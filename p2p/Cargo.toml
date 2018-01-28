@@ -4,7 +4,6 @@ version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 
 [dependencies]
-levin = { path = "../levin" }
 portable-storage = { path = "../portable-storage" }
 hash = { path = "../hash" }
 
