@@ -1,0 +1,18 @@
+[package]
+name = "p2p"
+version = "0.1.0"
+authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
+
+[dependencies]
+levin = { path = "../levin" }
+portable-storage = { path = "../portable-storage" }
+hash = { path = "../hash" }
+
+futures = { path = "../third-party/futures/" }
+futures-cpupool = { path = "../third-party/futures-cpupool/" }
+tokio-io = { path = "../third-party/tokio-io/" }
+tokio-core = { path = "../third-party/tokio-core/" }
+
+uuid = "0.5.0"
+bytes = "0.4.6"
+failure = "0.1.1"

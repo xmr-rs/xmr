@@ -1,0 +1,6 @@
+[package]
+name = "varint"
+version = "0.1.0"
+authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
+
+[dependencies]

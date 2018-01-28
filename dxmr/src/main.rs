@@ -1,0 +1,43 @@
+#[macro_use]
+extern crate clap;
+#[macro_use]
+extern crate failure;
+extern crate common_failures;
+#[macro_use]
+extern crate log;
+extern crate env_logger;
+extern crate p2p;
+
+mod network;
+mod config;
+mod peers;
+
+fn main() {
+    env_logger::init();
+
+    let matches  = clap_app!(dxmr =>
+        (version: "0.1.0")
+        (author: "Jean Pierre Dudey <jeandudey@hotmail.com>")
+        (about: "Monero client")
+        (@arg testnet: --testnet "Use the test network")
+    ).get_matches();
+    
+    // TODO: no unwrap
+    let cfg = config::parse(&matches).unwrap();
+
+    start(cfg)
+}
+
+fn start(cfg: config::Config) {
+    let mut el = p2p::event_loop();
+
+    let config = p2p::Config {
+        // TODO: Add option.
+        threads: 2,
+    };
+
+    let p2p = p2p::P2P::new(config, el.handle());
+
+    p2p.run();
+    el.run(p2p::forever());
+}

@@ -1,0 +1,40 @@
+[package]
+
+name          = "tokio-proto"
+version       = "0.1.1"
+license       = "MIT/Apache-2.0"
+authors       = ["Carl Lerche <me@carllerche.com>"]
+description   = """
+A network application framework for rapid development and highly scalable
+production deployments of clients and servers.
+"""
+
+documentation = "https://docs.rs/tokio-proto/0.1"
+homepage      = "https://tokio.rs"
+repository    = "https://github.com/tokio-rs/tokio-proto"
+readme        = "README.md"
+keywords      = [ "io", "async", "non-blocking", "futures" ]
+exclude       = [
+  ".gitignore",
+  ".travis.yml",
+  "deploy.sh",
+  "test/**/*",
+]
+
+[dependencies]
+futures = "0.1.11"
+log = "0.3.6"
+net2 = "0.2"
+rand = "0.3.14"
+slab = "0.3"
+smallvec = "0.2.0"
+take = "0.1.0"
+tokio-core = "0.1.5"
+tokio-service = "0.1"
+tokio-io = "0.1"
+
+[dev-dependencies]
+env_logger = "0.3.0"
+lazycell = "0.4.0"
+mio = "0.6"
+bytes = "0.4"

@@ -1,0 +1,8 @@
+[package]
+name = "hash"
+version = "0.1.0"
+authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
+
+[dependencies]
+portable-storage = { path = "../portable-storage" }
+failure = "0.1.1"

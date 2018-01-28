@@ -1,0 +1,9 @@
+[package]
+name = "levin"
+version = "0.1.0"
+authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
+
+[dependencies]
+bytes = "0.4.6"
+failure = "0.1.1"
+portable-storage = { path = "../portable-storage" }
