@@ -7,6 +7,9 @@ extern crate common_failures;
 extern crate log;
 extern crate env_logger;
 extern crate p2p;
+extern crate db;
+
+use std::sync::Arc;
 
 mod network;
 mod config;
@@ -36,7 +39,9 @@ fn start(cfg: config::Config) {
         threads: 2,
     };
 
-    let p2p = p2p::P2P::new(config, el.handle());
+    let blockchain = Arc::new(db::BlockChainDatabase);
+
+    let p2p = p2p::P2P::new(config, el.handle(), blockchain);
 
     p2p.run();
     el.run(p2p::forever());

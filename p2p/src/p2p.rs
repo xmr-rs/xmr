@@ -6,6 +6,8 @@ use futures_cpupool::CpuPool;
 use futures;
 use tokio_core::reactor::{Handle, Remote};
 
+use db::SharedBlockChain;
+
 use config::Config;
 use net::ConnectionCounter;
 
@@ -13,15 +15,21 @@ pub struct Context {
     connection_counter: ConnectionCounter,
     remote: Remote,
     pool: CpuPool,
+    config: Config,
+    blockchain: SharedBlockChain,
 }
 
 impl Context {
-    pub fn new(pool_handle: CpuPool, remote: Remote) -> Context {
+    pub fn new(pool_handle: CpuPool,
+               remote: Remote,
+               config: Config,
+               db: SharedBlockChain) -> Context {
         Context {
             // TODO: Add a cfg for max inbound/outbound connections
             connection_counter: ConnectionCounter::new(5, 5),
             remote: remote,
             pool: pool_handle,
+            config,
         }
     }
 
@@ -42,10 +50,10 @@ pub struct P2P {
 }
 
 impl P2P {
-    pub fn new(config: Config, handle: Handle) -> P2P {
+    pub fn new(config: Config, handle: Handle, db: SharedBlockChain) -> P2P {
         let pool = CpuPool::new(config.threads);
         P2P {
-            _context: Context::new(pool.clone(), handle.remote().clone()),
+            _context: Context::new(pool.clone(), handle.remote().clone(), config.clone(), db.clone()),
             _event_loop_handle: handle,
             _pool: pool,
         }

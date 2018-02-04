@@ -6,6 +6,7 @@ authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 [dependencies]
 portable-storage = { path = "../portable-storage" }
 hash = { path = "../hash" }
+db = { path = "../db" }
 
 futures = { path = "../third-party/futures/" }
 futures-cpupool = { path = "../third-party/futures-cpupool/" }

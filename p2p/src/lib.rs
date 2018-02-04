@@ -4,6 +4,7 @@ extern crate failure;
 extern crate bytes;
 extern crate uuid;
 extern crate hash;
+extern crate db;
 
 #[macro_use]
 extern crate futures;
