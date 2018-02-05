@@ -43,5 +43,9 @@ impl Serializer for BinarySerializer {
         self.serialize_uvarint(v);
     }
 
+    fn serialize_blob<T: AsRef<[u8]>>(&mut self, v: &T) {
+        self.bytes.extend_from_slice(v.as_ref());
+    }
+
     fn tag(&mut self, _tag: &str) {}
 }

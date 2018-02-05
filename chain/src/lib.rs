@@ -24,6 +24,7 @@ serialize2! {
         major_version -> (uvarint),
         minor_version -> (uvarint),
         timestamp -> (uvarint),
+        prev_id -> (blob),
         nonce -> (num),
     }
 }

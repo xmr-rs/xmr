@@ -28,4 +28,11 @@ macro_rules! serialize2 {
             $serializer.serialize_uvarint($self.$field_name);
         }
     };
+
+    (__internal $self:ident, $serializer:ident, $field_name:ident -> blob) => {
+        {
+            $serializer.tag(stringify!($field_name));
+            $serializer.serialize_blob(&$self.$field_name);
+        }
+    };
 }

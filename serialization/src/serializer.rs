@@ -16,6 +16,9 @@ pub trait Serializer {
     /// Serialize a variable-length signed integer.
     fn serialize_varint<I: ToPrimitive>(&mut self, v: I);
 
+    /// Serialize a binary blob.
+    fn serialize_blob<T: AsRef<[u8]>>(&mut self, v: &T);
+
     /// Serialize the field name.
     fn tag(&mut self, tag: &str);
 }
