@@ -49,3 +49,9 @@ impl From<H256> for StorageEntry {
         StorageEntry::Buf(v.as_bytes().to_vec())
     }
 }
+
+impl AsRef<[u8]> for H256 {
+    fn as_ref(&self) -> &[u8] {
+        self.as_bytes()
+    }
+}
