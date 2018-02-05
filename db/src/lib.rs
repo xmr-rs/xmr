@@ -2,6 +2,9 @@ extern crate sanakirja;
 extern crate bytes;
 extern crate hash;
 extern crate rand;
+extern crate linked_hash_map;
+extern crate serialization;
+extern crate chain;
 
 pub mod kv;
 mod block_chain;

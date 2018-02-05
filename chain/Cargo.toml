@@ -5,3 +5,4 @@ authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 
 [dependencies]
 hash = { path = "../hash" }
+serialization = { path = "../serialization" }

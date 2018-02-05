@@ -27,7 +27,7 @@ impl H256 {
         h
     }
 
-    pub fn as_bytes(&self) -> &[u8; H256_LENGTH] {
+    pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }
 }

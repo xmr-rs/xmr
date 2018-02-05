@@ -1,11 +1,8 @@
 use std::path::Path;
-use std::cmp::{max, Ordering};
-use std::slice::{from_raw_parts_mut, from_raw_parts};
-use std::iter::{Empty, empty};
-use std::borrow::Cow;
+use std::cmp::max;
 
 use rand::OsRng;
-use sanakirja::{Env, Error, MutTxn, Commit};
+use sanakirja::{Env, Error, MutTxn, Commit, Db, Transaction as SanakirjaTransaction};
 use sanakirja::value::UnsafeValue;
 
 use kv::{KeyValueDatabase, KeyState, Key, Value as TxValue, Transaction};
@@ -45,20 +42,24 @@ impl KeyValueDatabase for DiskDb {
     // TODO: Unwraps to errors.
 	fn write(&self, tx: Transaction) -> Result<(), String> {
         let mut txn = self.env.mut_txn_begin().unwrap();
-        let mut db = txn.create_db::<UnsafeValue, UnsafeValue>().unwrap();
         let mut prng = OsRng::new().unwrap();
 
+        // XXX: probably not the best performant kv db out there, but... who cares?
         for op in tx.operations.iter() {
             let op = op.into();
             match op {
                 RawOperation::Insert(ref kv) => {
+                    let mut db = open_db(&mut txn, kv.location);
                     let k = UnsafeValue::from_slice(kv.key.as_ref());
                     let v = UnsafeValue::from_slice(kv.value.as_ref());
                     txn.put::<_, _, UnsafeValue>(&mut prng, &mut db, k, v).unwrap();
+                    txn.set_root(kv.location, db);
                 },
                 RawOperation::Delete(ref k) => {
-                    let k = UnsafeValue::from_slice(k.key.as_ref());
-                    txn.del::<_, _, UnsafeValue>(&mut prng, &mut db, k, None).unwrap();
+                    let mut db = open_db(&mut txn, k.location);
+                    let key = UnsafeValue::from_slice(k.key.as_ref());
+                    txn.del::<_, _, UnsafeValue>(&mut prng, &mut db, key, None).unwrap();
+                    txn.set_root(k.location, db);
                 },
             }
         }
@@ -69,4 +70,13 @@ impl KeyValueDatabase for DiskDb {
     }
 
 	fn get(&self, key: &Key) -> Result<KeyState<TxValue>, String> { Err("".into()) }
+}
+
+fn open_db(txn: &mut MutTxn<()>, root: usize) -> Db<UnsafeValue, UnsafeValue> {
+    if let Some(db) = txn.root(root) {
+        db
+    } else {
+        // TODO: no unwrap
+        txn.create_db().unwrap()
+    }
 }

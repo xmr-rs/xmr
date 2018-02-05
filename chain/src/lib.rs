@@ -1,9 +1,11 @@
+#[macro_use]
+extern crate serialization;
 extern crate hash;
 
 use hash::H256;
 
 /// The metadata at the beginning of each block.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BlockHeader {
     /// Major block header version.
     pub major_version: u8,
@@ -15,4 +17,13 @@ pub struct BlockHeader {
     pub prev_id: H256,
     /// Any value which is used in the network consensus algorithm.
     pub nonce: u32,
+}
+
+serialize2! {
+    BlockHeader {
+        major_version -> (uvarint),
+        minor_version -> (uvarint),
+        timestamp -> (uvarint),
+        nonce -> (num),
+    }
 }

@@ -1,8 +1,9 @@
 [package]
-name = "varint"
+name = "serialization"
 version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 
 [dependencies]
+varint = { path = "../varint" }
 bytes = "0.4.6"
 num = "0.1.41"

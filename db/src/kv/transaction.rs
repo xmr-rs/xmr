@@ -1,5 +1,9 @@
 use bytes::Bytes;
 use hash::H256;
+use chain::BlockHeader;
+use serialization::binary_serialize as serialize;
+
+pub const COL_BLOCKS: usize = 0;
 
 #[derive(Debug)]
 pub enum Operation {
@@ -9,20 +13,20 @@ pub enum Operation {
 
 #[derive(Debug)]
 pub enum KeyValue {
-    /// The block hash, the key is the block height and the value is the hash.
-    BlockHash(u64, H256),
+    /// The block header.
+    Block(H256, BlockHeader),
 }
 
 #[derive(Debug)]
 pub enum Key {
     /// The block hash height.
-    BlockHash(u64),
+    Block(H256),
 }
 
 #[derive(Debug, Clone)]
 pub enum Value {
     /// The block hash.
-    BlockHash(H256),
+    Block(BlockHeader),
 }
 
 #[derive(Debug, Clone)]
@@ -54,27 +58,40 @@ impl<'a> From<&'a Operation> for RawOperation {
 
 #[derive(Debug)]
 pub struct RawKeyValue {
+    pub location: usize,
     pub key: Bytes,
     pub value: Bytes,
 }
 
 impl<'a> From<&'a KeyValue> for RawKeyValue {
     fn from(kv: &'a KeyValue) -> RawKeyValue {
-        match *kv {
-            KeyValue::BlockHash(ref key, ref value) => unimplemented!(),
+        let (location, key, value) = match *kv {
+            KeyValue::Block(ref k, ref v) => (COL_BLOCKS, Bytes::from(k.as_bytes()), serialize(v))
+        };
+        
+        RawKeyValue {
+            location,
+            key,
+            value,
         }
     }
 }
 
 #[derive(Debug)]
 pub struct RawKey {
+    pub location: usize,
     pub key: Bytes,
 }
 
 impl<'a> From<&'a Key> for RawKey {
     fn from(k: &'a Key) -> RawKey {
-        match *k {
-            Key::BlockHash(ref key) => unimplemented!(),
+        let (location, key) = match *k {
+            Key::Block(ref k) => (COL_BLOCKS, Bytes::from(k.as_bytes())),
+        };
+
+        RawKey {
+            location,
+            key,
         }
     }
 }
