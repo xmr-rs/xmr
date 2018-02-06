@@ -1,6 +1,5 @@
 use std::io::Cursor;
 use std::mem::size_of;
-use std::borrow::Cow;
 
 use num::Num;
 use num::cast::{ToPrimitive, NumCast};
@@ -8,7 +7,7 @@ use bytes::{BytesMut, Buf, BufMut};
 use varint;
 
 use serializer::Serializer;
-use deserializer::Deserializer;
+use deserializer::{Deserializer, DeserializeBlob};
 
 /// A serilaizer to serialize structures to binary.
 #[derive(Debug)]
@@ -53,8 +52,6 @@ impl Serializer for BinarySerializer {
     fn serialize_blob<T: AsRef<[u8]>>(&mut self, v: &T) {
         self.bytes.extend_from_slice(v.as_ref());
     }
-
-    fn serialize_tag(&mut self, _tag: &str) {}
 }
 
 /// A serilaizer to serialize structures to binary.
@@ -72,7 +69,7 @@ impl<'buf> BinaryDeserializer<'buf> {
     }
 }
 
-impl<'buf> Deserializer for BinaryDeserializer<'buf> {
+impl<'buf> Deserializer<'buf> for BinaryDeserializer<'buf> {
     fn deserialize_num<T: Num + NumCast + Sized>(&mut self) -> T {
         let size = size_of::<T>();
         let mut ret = 0u64;
@@ -98,12 +95,9 @@ impl<'buf> Deserializer for BinaryDeserializer<'buf> {
         T::from(varint::read(&mut self.bytes).unwrap()).unwrap()
     }
 
-    fn deserialize_blob<'a, T: From<&'a Cursor<&'a [u8]>>>(&'a mut self) -> T {
-        // TODO: use tryfrom.
-        T::from(&self.bytes)
-    }
-
-    fn deserialize_tag<'a>(&'a mut self) -> Option<Cow<'a, str>> {
-        None
+    fn deserialize_blob<T: DeserializeBlob>(&mut self) -> T
+    {
+        // TODO: error error error.
+        T::deserialize_blob(&mut self.bytes)
     }
 }

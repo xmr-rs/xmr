@@ -209,8 +209,10 @@ dependencies = [
 name = "hash"
 version = "0.1.0"
 dependencies = [
+ "bytes 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "portable-storage 0.1.0",
+ "serialization 0.1.0",
 ]
 
 [[package]]

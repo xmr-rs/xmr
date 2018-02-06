@@ -5,4 +5,6 @@ authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 
 [dependencies]
 portable-storage = { path = "../portable-storage" }
+serialization = { path = "../serialization" }
 failure = "0.1.1"
+bytes = "0.4.6"

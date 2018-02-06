@@ -46,30 +46,57 @@ macro_rules! serialize2 {
                 )*
             }
         }
+
+        impl $crate::deserializer::Deserialize for $struct_name {
+            fn deserialize<'buf, T: $crate::deserializer::Deserializer<'buf>>(deserializer: &'buf mut T) -> Self {
+                let mut st = Self::default();
+                $(
+                    serialize2!(__deserialize st, deserializer, $name -> $($discriminator)*);
+                )*
+                st
+            }
+        }
     };
     (__serialize $self:ident, $serializer:ident, $field_name:ident -> num) => {
         {
-            $serializer.tag(stringify!($field_name));
             $serializer.serialize_num($self.$field_name);
         }
     };
     (__serialize $self:ident, $serializer:ident, $field_name:ident -> varint) => {
         {
-            $serializer.tag(stringify!($field_name));
             $serializer.serialize_varint($self.$field_name);
         }
     };
     (__serialize $self:ident, $serializer:ident, $field_name:ident -> uvarint) => {
         {
-            $serializer.tag(stringify!($field_name));
             $serializer.serialize_uvarint($self.$field_name);
         }
     };
 
     (__serialize $self:ident, $serializer:ident, $field_name:ident -> blob) => {
         {
-            $serializer.tag(stringify!($field_name));
             $serializer.serialize_blob(&$self.$field_name);
+        }
+    };
+    (__deserialize $self:ident, $deserializer:ident, $field_name:ident -> num) => {
+        {
+            $self.$field_name= $deserializer.deserialize_num();
+        }
+    };
+    (__deserialize $self:ident, $deserializer:ident, $field_name:ident -> varint) => {
+        {
+            $self.$field_name = $deserializer.deserialize_varint();
+        }
+    };
+    (__deserialize $self:ident, $deserializer:ident, $field_name:ident -> uvarint) => {
+        {
+            $self.$field_name = $deserializer.deserialize_uvarint();
+        }
+    };
+
+    (__deserialize $self:ident, $deserializer:ident, $field_name:ident -> blob) => {
+        {
+            $self.$field_name = $deserializer.deserialize_blob();
         }
     };
 }

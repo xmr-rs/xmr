@@ -19,7 +19,4 @@ pub trait Serializer {
 
     /// Serialize a binary blob.
     fn serialize_blob<T: AsRef<[u8]>>(&mut self, v: &T);
-
-    /// Serialize the field name.
-    fn serialize_tag(&mut self, tag: &str);
 }

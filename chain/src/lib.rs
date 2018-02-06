@@ -5,7 +5,7 @@ extern crate hash;
 use hash::H256;
 
 /// The metadata at the beginning of each block.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct BlockHeader {
     /// Major block header version.
     pub major_version: u8,

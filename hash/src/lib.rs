@@ -1,9 +1,15 @@
 extern crate portable_storage;
 extern crate failure;
+extern crate bytes;
+extern crate serialization;
+
+use std::io::Cursor;
 
 use portable_storage::ser::ToUnderlying;
 use portable_storage::errors::InvalidStorageEntry;
 use portable_storage::{Result, StorageEntry};
+use serialization::deserializer::DeserializeBlob;
+use bytes::Buf;
 use failure::Error;
 
 /// H256 length in bytes.
@@ -53,5 +59,13 @@ impl From<H256> for StorageEntry {
 impl AsRef<[u8]> for H256 {
     fn as_ref(&self) -> &[u8] {
         self.as_bytes()
+    }
+}
+
+impl DeserializeBlob for H256 {
+    fn deserialize_blob(v: &mut Cursor<&[u8]>) -> H256 {
+        let mut hash = H256::new();
+        v.copy_to_slice(&mut hash.0);
+        hash
     }
 }

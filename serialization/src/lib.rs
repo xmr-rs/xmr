@@ -14,3 +14,8 @@ pub fn binary_serialize<T: serializer::Serialize>(v: &T) -> Bytes {
     v.serialize(&mut ser);
     ser.bytes().freeze()
 }
+
+pub fn binary_deserialize<T: deserializer::Deserialize, B: AsRef<[u8]>>(buf: &B) -> T {
+    let mut deser = binary::BinaryDeserializer::new(buf);
+    T::deserialize(&mut deser)
+}

@@ -1,10 +1,17 @@
 use num::Num;
 use num::cast::NumCast;
 use std::io::Cursor;
-use std::borrow::Cow;
+
+pub trait Deserialize: Default {
+    fn deserialize<'buf, T: Deserializer<'buf>>(deserializer: &'buf mut T) -> Self;
+}
+
+pub trait DeserializeBlob: Sized {
+    fn deserialize_blob(buf: &mut Cursor<&[u8]>) -> Self;
+}
 
 /// A trait to deserialize formats.
-pub trait Deserializer {
+pub trait Deserializer<'buf> {
     /// Deserialize a number, be it signed or unsigned.
     fn deserialize_num<T: Num + NumCast + Sized>(&mut self) -> T;
 
@@ -14,10 +21,6 @@ pub trait Deserializer {
     /// Deserialize a variable-length signed integer.
     fn deserialize_varint<T: NumCast>(&mut self) -> T;
 
-    // TODO: Use TryFrom
     /// Deserialize a binary blob.
-    fn deserialize_blob<'a, T: From<&'a Cursor<&'a [u8]>>>(&'a mut self) -> T;
-
-    /// Deserialize a tag.
-    fn deserialize_tag<'a>(&'a mut self) -> Option<Cow<'a, str>>;
+    fn deserialize_blob<T: DeserializeBlob>(&mut self) -> T;
 }
