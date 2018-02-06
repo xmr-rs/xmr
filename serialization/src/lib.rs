@@ -5,6 +5,7 @@ extern crate num;
 use bytes::Bytes;
 
 pub mod serializer;
+pub mod deserializer;
 pub mod binary;
 mod macros;
 

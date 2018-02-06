@@ -1,11 +1,12 @@
 use num::Num;
 use num::cast::ToPrimitive;
 
+/// A trait to serialize a structure.
 pub trait Serialize {
     fn serialize<T: Serializer>(&self, serializer: &mut T);
 }
 
-/// Serializer trait.
+/// A trait to serialize a structure to a given format.
 pub trait Serializer {
     /// Serialize a number, be it signed or unsigned.
     fn serialize_num<T: Num + ToPrimitive + Sized>(&mut self, v: T);
@@ -20,5 +21,5 @@ pub trait Serializer {
     fn serialize_blob<T: AsRef<[u8]>>(&mut self, v: &T);
 
     /// Serialize the field name.
-    fn tag(&mut self, tag: &str);
+    fn serialize_tag(&mut self, tag: &str);
 }
