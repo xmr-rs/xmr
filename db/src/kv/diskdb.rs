@@ -5,8 +5,8 @@ use rand::OsRng;
 use sanakirja::{Env, Error, MutTxn, Commit, Db, Transaction as SanakirjaTransaction};
 use sanakirja::value::UnsafeValue;
 
-use kv::{KeyValueDatabase, KeyState, Key, Value as TxValue, Transaction};
-use kv::transaction::RawOperation;
+use kv::{KeyValueDatabase, KeyState, Key, Value, Transaction};
+use kv::transaction::{RawOperation, RawKey};
 
 /// A database stored in disk.
 pub struct DiskDb {
@@ -69,7 +69,24 @@ impl KeyValueDatabase for DiskDb {
         Ok(())
     }
 
-	fn get(&self, key: &Key) -> Result<KeyState<TxValue>, String> { Err("".into()) }
+	fn get(&self, key: &Key) -> Result<KeyState<Value>, String> {
+        let raw_key: RawKey = key.into();
+        let mut txn = self.env.txn_begin().unwrap();
+        let db = match txn.root(raw_key.location) {
+            Some(db) => db,
+            None => {
+                return Err("Db doesn't exists".into())
+            }
+        };
+
+        let key_val = UnsafeValue::from_slice(&raw_key.key);
+        let val = txn.get::<_, UnsafeValue>(&db, key_val, None).ok_or("key doesn't exists".to_owned());
+        if let Ok(val) = val {
+            Ok(KeyState::Insert(Value::for_key(key, unsafe { val.as_slice() })))
+        } else {
+            Ok(KeyState::Delete)
+        }
+    }
 }
 
 fn open_db(txn: &mut MutTxn<()>, root: usize) -> Db<UnsafeValue, UnsafeValue> {

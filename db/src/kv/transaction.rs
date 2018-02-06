@@ -1,7 +1,7 @@
 use bytes::Bytes;
 use hash::H256;
 use chain::BlockHeader;
-use serialization::binary_serialize as serialize;
+use serialization::{binary_serialize as serialize, binary_deserialize as deserialize};
 
 pub const COL_BLOCKS: usize = 0;
 
@@ -27,6 +27,14 @@ pub enum Key {
 pub enum Value {
     /// The block hash.
     Block(BlockHeader),
+}
+
+impl Value {
+    pub fn for_key(key: &Key, bytes: &[u8]) -> Value {
+        match *key {
+            Key::Block(_) => Value::Block(deserialize(&bytes)),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
