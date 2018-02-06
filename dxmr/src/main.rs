@@ -39,7 +39,7 @@ fn start(cfg: config::Config) {
         threads: 2,
     };
 
-    let blockchain = Arc::new(db::BlockChainDatabase);
+    let blockchain_db = Arc::new(db::BlockChainDatabase::from_path("~/.xmr/database.dat"));
 
     let p2p = p2p::P2P::new(config, el.handle(), blockchain);
 
