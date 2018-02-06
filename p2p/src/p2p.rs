@@ -12,18 +12,16 @@ use config::Config;
 use net::ConnectionCounter;
 
 pub struct Context {
-    connection_counter: ConnectionCounter,
-    remote: Remote,
-    pool: CpuPool,
-    config: Config,
-    blockchain: SharedBlockChain,
+    pub(crate) connection_counter: ConnectionCounter,
+    pub(crate) remote: Remote,
+    pub(crate) pool: CpuPool,
+    pub(crate) config: Config,
 }
 
 impl Context {
     pub fn new(pool_handle: CpuPool,
                remote: Remote,
-               config: Config,
-               db: SharedBlockChain) -> Context {
+               config: Config) -> Context {
         Context {
             // TODO: Add a cfg for max inbound/outbound connections
             connection_counter: ConnectionCounter::new(5, 5),
@@ -50,10 +48,10 @@ pub struct P2P {
 }
 
 impl P2P {
-    pub fn new(config: Config, handle: Handle, db: SharedBlockChain) -> P2P {
+    pub fn new(config: Config, handle: Handle, _db: SharedBlockChain) -> P2P {
         let pool = CpuPool::new(config.threads);
         P2P {
-            _context: Context::new(pool.clone(), handle.remote().clone(), config.clone(), db.clone()),
+            _context: Context::new(pool.clone(), handle.remote().clone(), config.clone()),
             _event_loop_handle: handle,
             _pool: pool,
         }

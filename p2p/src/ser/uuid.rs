@@ -6,7 +6,7 @@ use portable_storage::ser::ToUnderlying;
 use portable_storage::{Result, StorageEntry};
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash)]
-pub struct SerializableUuid(uuid::Uuid);
+pub struct SerializableUuid(pub uuid::Uuid);
 
 impl ToUnderlying for SerializableUuid {
     fn to_underlying(entry: &StorageEntry) -> Result<SerializableUuid> {

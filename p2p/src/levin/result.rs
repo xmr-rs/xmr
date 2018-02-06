@@ -3,6 +3,7 @@ use std::result;
 /// A levin result.
 pub type LevinResult<T> = result::Result<T, LevinError>;
 
+#[derive(Debug)]
 pub enum LevinError {
     /// An error when reading `BucketHead`.
     BucketHeadError(BucketHeadError),
@@ -20,6 +21,7 @@ impl From<BucketHeadError> for LevinError {
     }
 }
 
+#[derive(Debug)]
 pub enum BucketHeadError {
     /// The version isn't supported.
     InvalidProtocolVersion(u32),

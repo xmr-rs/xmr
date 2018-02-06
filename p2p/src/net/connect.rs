@@ -9,14 +9,20 @@ use tokio_core::net::{TcpStream, TcpStreamNew};
 use uuid::Uuid;
 
 use p2p::Context;
-use levin::{LevinError, DefaultEndian, Invoke, invoke};
+use levin::{LevinError, DefaultEndian, Command, Invoke, invoke};
 use protocol::handshake::CryptoNoteHandshake;
 
-pub fn connect(address: &SocketAddr, handle: &Handle, context: Arc<Context>) -> Connect {
+pub type Request = <CryptoNoteHandshake as Command>::Request;
+
+pub fn connect(address: &SocketAddr,
+               handle: &Handle,
+               context: Arc<Context>,
+               request: Request) -> Connect {
     Connect {
         context,
         state: ConnectState::TcpConnect {
             future: TcpStream::connect(address, handle),
+            request,
         }
     }
 }
@@ -24,6 +30,7 @@ pub fn connect(address: &SocketAddr, handle: &Handle, context: Arc<Context>) -> 
 enum ConnectState {
     TcpConnect {
         future: TcpStreamNew,
+        request: Request,
     },
     Handshake {
         future: Invoke<CryptoNoteHandshake, TcpStream, DefaultEndian>,
@@ -42,17 +49,20 @@ impl Future for Connect {
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         loop {
             let next_state = match self.state {
-                ConnectState::TcpConnect { ref mut future } => {
+                ConnectState::TcpConnect { ref mut future, ref request } => {
                     let stream = try_ready!(future.poll());
-                    ConnectState::Handhsake {
-                        future: invoke::<Handshake, TcpStream, DefaultEndian>(),
+                    ConnectState::Handshake {
+                        future: invoke::<CryptoNoteHandshake, TcpStream, DefaultEndian>(stream, request),
                     }
                 },
                 ConnectState::Handshake { ref mut future } => {
                     let (stream, response) = try_ready!(future.poll());
-                    let response = response?;
-                    if response.node_data.network_id != self.context.config.network_id {
-                        let uuid = response.node_data.network_id;
+                    if response.is_err() {
+                        return Ok(Err(response.map_err(|e| ConnectError::from(e)).unwrap_err()).into())
+                    }
+                    let response = response.unwrap();
+                    if response.node_data.network_id.0 != self.context.config.network_id {
+                        let uuid = response.node_data.network_id.0;
                         return Ok(Err(ConnectError::WrongNetwork(uuid)).into());
                     }
                 },
@@ -62,6 +72,7 @@ impl Future for Connect {
     }
 }
 
+#[derive(Debug)]
 pub enum ConnectError {
     /// A levin error.
     LevinError(LevinError),

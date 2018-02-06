@@ -18,7 +18,7 @@ use levin::{
 };
 
 /// Invoke a command.
-pub fn invoke<C, A, E>(a: A, request: C::Request) -> Invoke<C, A, E>
+pub fn invoke<C, A, E>(a: A, request: &C::Request) -> Invoke<C, A, E>
     where C: Command,
           A: AsyncRead + AsyncWrite,
           E: ByteOrder,
