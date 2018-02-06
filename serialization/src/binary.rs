@@ -5,18 +5,21 @@ use varint;
 
 use serializer::Serializer;
 
+/// A serilaizer to serialize structures to binary.
 #[derive(Debug)]
 pub struct BinarySerializer {
     pub bytes: BytesMut
 }
 
 impl BinarySerializer {
+    /// Creates a new serializer.
     pub fn new() -> BinarySerializer {
         BinarySerializer {
             bytes: BytesMut::new(),
         }
     }
 
+    /// Take the underlying `BytesMut`.
     pub fn bytes(self) -> BytesMut {
         self.bytes
     }
@@ -30,8 +33,8 @@ impl Serializer for BinarySerializer {
         let mut v = v.to_u64().unwrap();
         self.bytes.reserve(size);
         for _ in 0..size {
-          self.bytes.put_u8((v & 0xff) as u8);
-          v >>= 8;
+            self.bytes.put_u8((v & 0xff) as u8);
+            if 1 < size { v >>= 8 }
         }
     }
 
@@ -47,5 +50,5 @@ impl Serializer for BinarySerializer {
         self.bytes.extend_from_slice(v.as_ref());
     }
 
-    fn tag(&mut self, _tag: &str) {}
+    fn serialize_tag(&mut self, _tag: &str) {}
 }
