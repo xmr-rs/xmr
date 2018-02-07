@@ -13,6 +13,7 @@ use levin::{LevinError, DefaultEndian, Command, Invoke, invoke};
 use protocol::handshake::CryptoNoteHandshake;
 
 pub type Request = <CryptoNoteHandshake as Command>::Request;
+pub type Response = <CryptoNoteHandshake as Command>::Response;
 
 pub fn connect(address: &SocketAddr,
                handle: &Handle,
@@ -32,7 +33,7 @@ enum ConnectState {
         future: TcpStreamNew,
         request: Request,
     },
-    Handshake {
+    DoHandshake {
         future: Invoke<CryptoNoteHandshake, TcpStream, DefaultEndian>,
     }
 }
@@ -43,7 +44,7 @@ pub struct Connect {
 }
 
 impl Future for Connect {
-    type Item = Result<TcpStream, ConnectError>;
+    type Item = Result<(TcpStream, Response), ConnectError>;
     type Error = io::Error;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
@@ -51,11 +52,11 @@ impl Future for Connect {
             let next_state = match self.state {
                 ConnectState::TcpConnect { ref mut future, ref request } => {
                     let stream = try_ready!(future.poll());
-                    ConnectState::Handshake {
+                    ConnectState::DoHandshake {
                         future: invoke::<CryptoNoteHandshake, TcpStream, DefaultEndian>(stream, request),
                     }
                 },
-                ConnectState::Handshake { ref mut future } => {
+                ConnectState::DoHandshake { ref mut future } => {
                     let (stream, response) = try_ready!(future.poll());
                     if response.is_err() {
                         return Ok(Err(response.map_err(|e| ConnectError::from(e)).unwrap_err()).into())
@@ -65,6 +66,8 @@ impl Future for Connect {
                         let uuid = response.node_data.network_id.0;
                         return Ok(Err(ConnectError::WrongNetwork(uuid)).into());
                     }
+
+                    return Ok();
                 },
             };
             self.state = next_state;
