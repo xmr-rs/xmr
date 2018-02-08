@@ -67,7 +67,11 @@ impl Future for Connect {
                         return Ok(Err(ConnectError::WrongNetwork(uuid)).into());
                     }
 
-                    return Ok();
+                    if response.node_data.peer_id == self.context.peer_id {
+                        return Ok(Err(ConnectError::SamePeerId).into());
+                    }
+
+                    return Ok(Ok((stream, response)).into());
                 },
             };
             self.state = next_state;
@@ -80,7 +84,9 @@ pub enum ConnectError {
     /// A levin error.
     LevinError(LevinError),
     /// Wrong network Id.
-    WrongNetwork(Uuid)
+    WrongNetwork(Uuid),
+    /// The peer has the same peer id, probably connected to self.
+    SamePeerId,
 }
 
 impl From<LevinError> for ConnectError {

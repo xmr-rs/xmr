@@ -8,7 +8,7 @@ pub mod handshake;
 pub mod timedsync;
 
 pub mod peerlist;
-use self::peerlist::PeerId;
+pub use self::peerlist::PeerId;
 
 mod ipv4_address;
 pub use self::ipv4_address::Ipv4Address;
