@@ -3,6 +3,7 @@ extern crate portable_storage;
 extern crate failure;
 extern crate bytes;
 extern crate uuid;
+extern crate rand;
 extern crate hash;
 extern crate db;
 
