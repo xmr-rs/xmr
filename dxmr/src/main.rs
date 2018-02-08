@@ -37,9 +37,10 @@ fn start(cfg: config::Config) {
     let config = p2p::Config {
         // TODO: Add option.
         threads: 2,
+        network_id: unimplemented!(),
     };
 
-    let blockchain_db = Arc::new(db::BlockChainDatabase::from_path("~/.xmr/database.dat"));
+    let blockchain_db = Arc::new(db::BlockChainDatabase::from_path("~/.xmr"));
 
     let p2p = p2p::P2P::new(config, el.handle(), blockchain);
 

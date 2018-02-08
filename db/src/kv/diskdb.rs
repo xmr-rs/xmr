@@ -30,7 +30,7 @@ impl DiskDb {
     /// Query the database file size.
     fn db_size<P>(path: P) -> u64 where P: AsRef<Path> {
         // XXX: Is this the best default?
-        const MIN_DB_SIZE: u64 = 4096;
+        const MIN_DB_SIZE: u64 = 1 << 17;
 
         Env::file_size(path.as_ref())
             .map(|size| max(size, MIN_DB_SIZE))
@@ -95,5 +95,42 @@ fn open_db(txn: &mut MutTxn<()>, root: usize) -> Db<UnsafeValue, UnsafeValue> {
     } else {
         // TODO: no unwrap
         txn.create_db().unwrap()
+    }
+}
+
+#[cfg(test)]
+pub mod tests {
+    extern crate tempdir;
+
+    use self::tempdir::TempDir;
+
+    use super::*;
+    use super::super::*;
+
+    #[test]
+    fn test_db() {
+        let hash = [
+            0x01, 0x3c, 0x01, 0xff, 0x00, 0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0x03, 0x02, 0x9b, 0x2e, 0x4c, 0x02, 0x81, 0xc0, 0xb0, 0x2e, 0x7c, 0x53,
+            0x29, 0x1a, 0x94, 0xd1, 0xd0, 0xcb, 0xff, 0x88
+        ];
+
+        let tempdir = TempDir::new("").unwrap();
+        let db = DiskDb::open(tempdir.path()).unwrap();
+
+        let mut tx = Transaction::new();
+
+        let kv = KeyValue::BlockHeight(hash.into(), 0);
+        tx.insert(kv);
+
+        db.write(tx).unwrap(); 
+
+        let k = Key::BlockHeight(hash.into());
+        match db.get(&k).unwrap() {
+            KeyState::Insert(Value::BlockHeight(0)) => { /* happy path */ },
+            KeyState::Insert(_) => panic!("invalid value"),
+            KeyState::Delete => panic!("key-value pair is deleted"),
+            KeyState::Unknown => panic!("key-value pair is unknown"),
+        }
     }
 }

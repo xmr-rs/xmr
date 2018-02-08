@@ -38,6 +38,12 @@ impl H256 {
     }
 }
 
+impl From<[u8; 32]> for H256 {
+    fn from(v: [u8; 32]) -> H256 {
+        H256(v)
+    }
+}
+
 impl ToUnderlying for H256 {
     fn to_underlying(entry: &StorageEntry) -> Result<H256> {
         match entry {
