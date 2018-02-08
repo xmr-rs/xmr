@@ -16,6 +16,8 @@ pub struct DiskDb {
 
 impl DiskDb {
     /// Open a database.
+    ///
+    /// It takes a path to a directory, not a file.
     pub fn open<P>(path: P) -> Result<DiskDb, Error>
         where P: AsRef<Path>,
     {
