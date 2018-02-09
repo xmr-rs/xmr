@@ -6,7 +6,7 @@ pub type LevinResult<T> = result::Result<T, LevinError>;
 #[derive(Debug)]
 pub enum LevinError {
     /// An error when reading `BucketHead`.
-    BucketHeadError(BucketHeadError),
+    BucketHead(BucketHeadError),
     /// Unexpected End-Of-Buffer.
     UnexpectedEob,
     /// Expected to read more bytes.
@@ -17,7 +17,7 @@ pub enum LevinError {
 
 impl From<BucketHeadError> for LevinError {
     fn from(e: BucketHeadError) -> LevinError {
-        LevinError::BucketHeadError(e)
+        LevinError::BucketHead(e)
     }
 }
 
