@@ -86,6 +86,9 @@ impl<C, A, E> Future for Invoke<C, A, E>
                             if bucket_head.command != C::ID {
                                 return Ok((stream, Err(LevinError::InvalidCommandId(bucket_head.command))).into());
                             }
+
+                            // TODO: add other verifications.
+
                             InvokeState::ReadResponseBody {
                                 reader: read(stream, buf),
                             }
