@@ -1,5 +1,8 @@
-extern crate bytes;
 extern crate linked_hash_map;
+extern crate bytes;
+
+#[macro_use]
+extern crate failure_derive;
 
 #[macro_use]
 pub extern crate failure;
