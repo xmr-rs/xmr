@@ -76,9 +76,7 @@ impl KeyValueDatabase for DiskDb {
         let mut txn = self.env.txn_begin().unwrap();
         let db = match txn.root(raw_key.location) {
             Some(db) => db,
-            None => {
-                return Err("Db doesn't exists".into())
-            }
+            None => return Ok(KeyState::Unknown),
         };
 
         let key_val = UnsafeValue::from_slice(&raw_key.key);
