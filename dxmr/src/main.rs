@@ -23,8 +23,9 @@ fn main() {
         (version: "0.1.0")
         (author: "Jean Pierre Dudey <jeandudey@hotmail.com>")
         (about: "Monero client")
+        (@arg threads: --threads +takes_value "Number of threads")
         (@arg testnet: --testnet "Use the test network")
-        (@arg connect: --connect "Connect only to the given peer")
+        (@arg connect: --connect +takes_value "Connect only to the given peer")
     ).get_matches();
     
     // TODO: no unwrap
@@ -37,15 +38,15 @@ fn start(cfg: config::Config) {
     let mut el = p2p::event_loop();
 
     let config = p2p::Config {
-        // TODO: Add option.
-        threads: 2,
+        threads: cfg.threads,
         network_id: cfg.network.id(),
+        peers: cfg.peers,
     };
 
     let blockchain = Arc::new(db::BlockChainDatabase::open("/home/jeandudey/.xmr"));
 
-    let p2p = p2p::P2P::new(config, el.handle(), blockchain);
+    let p2p = p2p::P2P::new(config, el.handle());
 
-    p2p.run();
+    p2p.run(blockchain.clone());
     el.run(p2p::forever());
 }

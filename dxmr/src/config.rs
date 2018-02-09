@@ -10,6 +10,7 @@ use peers::default_peers;
 pub struct Config {
     pub network: Network,
     pub peers: Vec<SocketAddr>,
+    pub threads: usize,
 }
 
 pub fn parse(matches: &ArgMatches) -> Result<Config, Error> {
@@ -18,27 +19,23 @@ pub fn parse(matches: &ArgMatches) -> Result<Config, Error> {
         false => Network::Mainnet,
     };
 
-    let default_peers = default_peers(network);
-    let mut peers: Vec<SocketAddr> = Vec::with_capacity(default_peers.len());
-    for seed in default_peers {
-        let s = seed.to_socket_addrs()
-            .io_context(Operation::Other, Target::Other("address".to_string()));
-        match s {
-            Ok(s) => {
-                for addr in s {
-                    match addr { 
-                        SocketAddr::V4(a) => peers.push(SocketAddr::V4(a)),
-                        // TODO: Handle IPv6 Addresses
-                        SocketAddr::V6(_) => {},
-                    }
-                }
-            }
-            Err(e) => warn!("{}", e),
+    let peers = match value_t!(matches.value_of("connect"), SocketAddr) {
+        Ok(addr) => {
+            let mut peers = Vec::with_capacity(1);
+            peers.push(addr);
+            peers
         }
-    }
+        Err(e) => {
+            // TODO: debug message, log?
+            default_peers(network)
+        },
+    };
+
+    let threads = value_t!(matches.value_of("threads"), usize).unwrap_or(1);
 
     Ok(Config {
         network,
         peers,
+        threads,
     })
 }

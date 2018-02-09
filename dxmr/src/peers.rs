@@ -1,7 +1,8 @@
+use std::net::{SocketAddr, ToSocketAddrs};
 use network::Network;
 
-pub fn default_peers(network: Network) -> &'static [&'static str] {
-    match network {
+pub fn default_peers(network: Network) -> Vec<SocketAddr> {
+    let addrs: &[&'static str] = match network {
         Network::Testnet => {
             &[
                 "212.83.175.67:28080",
@@ -23,7 +24,13 @@ pub fn default_peers(network: Network) -> &'static [&'static str] {
                 "212.83.172.165:28080",
             ]
         },
-    }
+    };
+
+    // TODO: use expect instead of unwrap.
+    addrs
+        .iter()
+        .map(|addr| (*addr).to_socket_addrs().unwrap().next().unwrap())
+        .collect()
 }
 
-// TODO: Add support for DNS seeds
+// TODO: Add support for seed nodes
