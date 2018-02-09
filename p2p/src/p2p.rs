@@ -7,7 +7,7 @@ use futures::{Future, finished};
 use tokio_core::reactor::{Handle, Remote};
 use rand::OsRng;
 
-use db::SharedBlockChain;
+use db::SharedStore;
 
 use config::Config;
 use protocol::PeerId;
@@ -41,40 +41,67 @@ impl Context {
         }
     }
 
-    pub fn connect(context: Arc<Context>, address: SocketAddr) {
+    pub fn connect(context: Arc<Context>,
+                   address: SocketAddr,
+                   req: <CryptoNoteHandshake as Command>::Request) {
         context.connection_counter.note_new_outbound_connection();
         context.remote.clone().spawn(move |handle| {
-            context.pool.clone().spawn(Self::connect_future(context.clone(), handle, address))
+            context.pool.clone().spawn(Self::connect_future(context.clone(), handle, address, req))
         })
     }
 
-    pub fn connect_future(context: Arc<Context>, handle:&Handle, address: SocketAddr) -> BoxedEmptyFuture {
-        type Request = <CryptoNoteHandshake as Command>::Request;
-
-        // TODO: use real data for request.
-        let req = Request::default();
+    pub fn connect_future(context: Arc<Context>,
+                          handle: &Handle,
+                          address: SocketAddr,
+                          req: <CryptoNoteHandshake as Command>::Request) -> BoxedEmptyFuture {
         let connection = connect(&address, handle, context.clone(), req);
-        Box::new(connection.then(move |_| {
+        Box::new(connection.then(move |result| {
+            match result {
+                Ok(response) => {
+                    match response {
+                        Ok((_stream, response)) => panic!("ok"),
+                        Err(e) => {
+                            context.connection_counter.note_close_outbound_connection();
+                            panic!("{:?}", e);
+                        }
+                    }
+                },
+                Err(e) => {
+                    context.connection_counter.note_close_outbound_connection();
+                    panic!("{:?}", e);
+                }
+            }
+
             finished(())
         }))
     }
 }
 
 pub struct P2P {
-    _event_loop_handle: Handle,
-    _context: Context,
+    event_loop_handle: Handle,
+    context: Arc<Context>,
     _pool: CpuPool,
 }
 
 impl P2P {
-    pub fn new(config: Config, handle: Handle, _db: SharedBlockChain) -> P2P {
+    pub fn new(config: Config, handle: Handle) -> P2P {
         let pool = CpuPool::new(config.threads);
+        let remote = handle.remote().clone();
         P2P {
-            _context: Context::new(pool.clone(), handle.remote().clone(), config.clone()),
-            _event_loop_handle: handle,
+            event_loop_handle: handle,
+            context: Arc::new(Context::new(pool.clone(), remote, config.clone())),
             _pool: pool,
         }
     }
 
-    pub fn run(&self) -> Result<(), Error> { Ok(()) }
+    pub fn run(&self, _store: SharedStore) -> Result<(), Error> {
+        type Request = <CryptoNoteHandshake as Command>::Request;
+
+        for addr in self.context.config.peers.iter() {
+            let req = Request::default();
+            Context::connect(self.context.clone(), addr.clone(), req)
+        }
+
+        Ok(())
+    }
 }
