@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use chain::BlockHeader;
 use best_block::BestBlock;
 
@@ -9,3 +11,5 @@ pub trait Store {
     /// Get the best block header.
     fn best_header(&self) -> BlockHeader;
 }
+
+pub type SharedStore = Arc<Store>;

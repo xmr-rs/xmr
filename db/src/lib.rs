@@ -14,7 +14,7 @@ mod block_chain;
 mod block_chain_db;
 mod store;
 
-pub use self::block_chain::{BlockChain, SharedBlockChain};
+pub use self::block_chain::BlockChain;
 pub use self::block_chain_db::BlockChainDatabase;
 pub use self::best_block::BestBlock;
-pub use self::store::Store;
+pub use self::store::{Store, SharedStore};
