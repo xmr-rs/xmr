@@ -35,14 +35,14 @@ impl BlockChainDatabase<DiskDb> {
 
 impl<DB> BlockChainDatabase<DB> where DB: KeyValueDatabase {
 	fn read_best_block(db: &DB) -> Option<BestBlock> {
-		let best_number = db.get(&Key::Meta(KEY_BEST_BLOCK_HEIGHT))
+		let best_height = db.get(&Key::Meta(KEY_BEST_BLOCK_HEIGHT))
             .map(KeyState::into_option)
             .map(|x| x.and_then(Value::as_meta));
-		let best_hash = db.get(&Key::Meta(KEY_BEST_BLOCK_ID))
+		let best_id = db.get(&Key::Meta(KEY_BEST_BLOCK_ID))
             .map(KeyState::into_option)
             .map(|x| x.and_then(Value::as_meta));
 
-		match (best_number, best_hash) {
+		match (best_height, best_id) {
 			(Ok(None), Ok(None)) => None,
 			(Ok(Some(height)), Ok(Some(id))) => Some(BestBlock {
 				height: deserialize(&height),
