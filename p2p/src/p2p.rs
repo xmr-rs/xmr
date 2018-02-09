@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use failure::Error;
 use futures_cpupool::CpuPool;
-use futures::{Future, empty};
+use futures::{Future, finished};
 use tokio_core::reactor::{Handle, Remote};
 use rand::OsRng;
 
@@ -12,6 +12,8 @@ use db::SharedBlockChain;
 use config::Config;
 use protocol::PeerId;
 use net::{connect, ConnectionCounter};
+use levin::Command;
+use protocol::handshake::CryptoNoteHandshake;
 
 pub type BoxedEmptyFuture = Box<Future<Item=(), Error=()> + Send>;
 
@@ -42,12 +44,19 @@ impl Context {
     pub fn connect(context: Arc<Context>, address: SocketAddr) {
         context.connection_counter.note_new_outbound_connection();
         context.remote.clone().spawn(move |handle| {
-            context.pool.clone().spawn(Self::connect_future(context.clone(), address))
+            context.pool.clone().spawn(Self::connect_future(context.clone(), handle, address))
         })
     }
 
-    pub fn connect_future(_context: Arc<Context>, _address: SocketAddr) -> BoxedEmptyFuture {
-        Box::new(empty())
+    pub fn connect_future(context: Arc<Context>, handle:&Handle, address: SocketAddr) -> BoxedEmptyFuture {
+        type Request = <CryptoNoteHandshake as Command>::Request;
+
+        // TODO: use real data for request.
+        let req = Request::default();
+        let connection = connect(&address, handle, context.clone(), req);
+        Box::new(connection.then(move |_| {
+            finished(())
+        }))
     }
 }
 

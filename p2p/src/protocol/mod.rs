@@ -22,10 +22,10 @@ pub struct BasicNodeData {
     /// The peer's local time
     pub local_time: u64,
 
-    // TODO: Reverse engineer this and add a doc string.
+    /// The peer's listening port.
     pub my_port: u32,
 
-    /// The peer id.
+    /// The peer's id.
     pub peer_id: PeerId,
 }
 

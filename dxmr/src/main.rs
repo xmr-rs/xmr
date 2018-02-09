@@ -6,6 +6,7 @@ extern crate common_failures;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
+extern crate uuid;
 extern crate p2p;
 extern crate db;
 
@@ -23,6 +24,7 @@ fn main() {
         (author: "Jean Pierre Dudey <jeandudey@hotmail.com>")
         (about: "Monero client")
         (@arg testnet: --testnet "Use the test network")
+        (@arg connect: --connect "Connect only to the given peer")
     ).get_matches();
     
     // TODO: no unwrap
@@ -37,10 +39,10 @@ fn start(cfg: config::Config) {
     let config = p2p::Config {
         // TODO: Add option.
         threads: 2,
-        network_id: unimplemented!(),
+        network_id: cfg.network.id(),
     };
 
-    let blockchain_db = Arc::new(db::BlockChainDatabase::from_path("~/.xmr"));
+    let blockchain = Arc::new(db::BlockChainDatabase::open("/home/jeandudey/.xmr"));
 
     let p2p = p2p::P2P::new(config, el.handle(), blockchain);
 

@@ -8,7 +8,8 @@ use std::io::Cursor;
 use portable_storage::ser::ToUnderlying;
 use portable_storage::errors::InvalidStorageEntry;
 use portable_storage::{Result, StorageEntry};
-use serialization::deserializer::DeserializeBlob;
+use serialization::deserializer::{Deserialize, Deserializer, DeserializeBlob};
+use serialization::serializer::{Serialize, Serializer};
 use bytes::Buf;
 use failure::Error;
 
@@ -16,7 +17,7 @@ use failure::Error;
 pub const H256_LENGTH: usize = 32;
 
 /// A 256-bit hash.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub struct H256(pub [u8; H256_LENGTH]);
 
 impl H256 {
@@ -73,5 +74,17 @@ impl DeserializeBlob for H256 {
         let mut hash = H256::new();
         v.copy_to_slice(&mut hash.0);
         hash
+    }
+}
+
+impl Serialize for H256 {
+    fn serialize<T: Serializer>(&self, serializer: &mut T) {
+        serializer.serialize_blob(self)
+    }
+}
+
+impl Deserialize for H256 {
+    fn deserialize<'buf, T: Deserializer<'buf>>(deserializer: &'buf mut T) -> Self {
+        deserializer.deserialize_blob()
     }
 }
