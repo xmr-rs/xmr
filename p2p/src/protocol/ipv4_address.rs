@@ -1,7 +1,6 @@
 use bytes::{BytesMut, Buf, BufMut, ByteOrder};
 
 use portable_storage::ser::bytes::SerializeBytes;
-use portable_storage::Result;
 
 /// An IPv4 address
 #[derive(Debug, Default, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -24,7 +23,7 @@ impl SerializeBytes for Ipv4Address {
         buf.put_u16::<T>(self.port);
     }
 
-    fn from_bytes<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<Ipv4Address> {
+    fn from_bytes<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<Ipv4Address, ::failure::Error> {
         // TODO remove this panic, use ensure_eob from portable-storage
         assert!(buf.remaining() >= 6);
         Ok(Ipv4Address {

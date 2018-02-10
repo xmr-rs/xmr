@@ -1,21 +1,19 @@
 use uuid;
-use failure::Error;
 
-use portable_storage::errors::InvalidStorageEntry;
-use portable_storage::ser::ToUnderlying;
-use portable_storage::{Result, StorageEntry};
+use portable_storage::ser::{ToUnderlying, Error, invalid_storage_entry};
+use portable_storage::StorageEntry;
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash)]
 pub struct SerializableUuid(pub uuid::Uuid);
 
 impl ToUnderlying for SerializableUuid {
-    fn to_underlying(entry: &StorageEntry) -> Result<SerializableUuid> {
+    fn to_underlying(entry: &StorageEntry) -> Result<SerializableUuid, Error> {
         match entry {
             &StorageEntry::Buf(ref v) => {
                 // TODO: Convert to failure
                 Ok(SerializableUuid(uuid::Uuid::from_bytes(&*v).unwrap()))
             }
-            _ => Err(Error::from(InvalidStorageEntry::new("StorageEntry::Buf")))
+            _ => Err(invalid_storage_entry("StorageEntry::Buf"))
         }
     }
 }

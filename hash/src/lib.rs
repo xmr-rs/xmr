@@ -5,13 +5,11 @@ extern crate serialization;
 
 use std::io::Cursor;
 
-use portable_storage::ser::ToUnderlying;
-use portable_storage::errors::InvalidStorageEntry;
-use portable_storage::{Result, StorageEntry};
+use portable_storage::ser::{ToUnderlying, Error, invalid_storage_entry};
+use portable_storage::StorageEntry;
 use serialization::deserializer::{Deserialize, Deserializer, DeserializeBlob};
 use serialization::serializer::{Serialize, Serializer};
 use bytes::Buf;
-use failure::Error;
 
 /// H256 length in bytes.
 pub const H256_LENGTH: usize = 32;
@@ -46,13 +44,13 @@ impl From<[u8; 32]> for H256 {
 }
 
 impl ToUnderlying for H256 {
-    fn to_underlying(entry: &StorageEntry) -> Result<H256> {
+    fn to_underlying(entry: &StorageEntry) -> Result<H256, Error> {
         match entry {
             &StorageEntry::Buf(ref v) => {
                 // TODO: Add error handling, this panics on invalid slice length
                 Ok(H256::from_bytes(v))
             }
-            _ => Err(Error::from(InvalidStorageEntry::new("StorageEntry::Buf")))
+            _ => Err(invalid_storage_entry("StorageEntry::Buf"))
         }
     }
 }

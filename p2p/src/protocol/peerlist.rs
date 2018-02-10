@@ -3,11 +3,8 @@ use bytes::{BytesMut, Buf, BufMut, ByteOrder};
 use rand::Rng;
 
 use portable_storage::ser::bytes::SerializeBytes;
-use portable_storage::ser::{Serializable, ToUnderlying};
-use portable_storage::errors::InvalidStorageEntry;
-use portable_storage::{StorageEntry, Result};
-
-use failure::Error;
+use portable_storage::ser::{Serializable, ToUnderlying, Error, invalid_storage_entry};
+use portable_storage::StorageEntry;
 
 use protocol::Ipv4Address;
 use levin::DefaultEndian;
@@ -40,10 +37,10 @@ impl From<PeerId> for StorageEntry {
 }
 
 impl ToUnderlying for PeerId {
-    fn to_underlying(entry: &StorageEntry) -> Result<PeerId> {
+    fn to_underlying(entry: &StorageEntry) -> Result<PeerId, Error> {
         match *entry {
             StorageEntry::U64(ref v) => Ok(PeerId::from(*v)),
-            _ => Err(Error::from(InvalidStorageEntry::new("StorageEntry::U64")))
+            _ => Err(invalid_storage_entry("StorageEntry::U64"))
         }
     }
 }
@@ -73,7 +70,7 @@ impl<A: Serializable + SerializeBytes> SerializeBytes for PeerlistEntryBase<A> {
         buf.put_i64::<T>(self.last_seen);
     }
 
-    fn from_bytes<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<PeerlistEntryBase<A>> {
+    fn from_bytes<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<PeerlistEntryBase<A>, ::failure::Error> {
         let adr = A::from_bytes::<T, B>(buf)?;
         assert!(buf.remaining() >= 16);
         let id = buf.get_u64::<T>().into();

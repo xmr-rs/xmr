@@ -2,13 +2,11 @@ use std::mem::size_of;
 use std::collections::LinkedList;
 use std::marker::PhantomData;
 
-use failure::Error;
 use bytes::{ByteOrder, BytesMut, IntoBuf, Buf};
 
-use portable_storage::{Result, StorageEntry};
-use portable_storage::ser::ToUnderlying;
+use portable_storage::StorageEntry;
+use portable_storage::ser::{ToUnderlying, Error, invalid_storage_entry};
 use portable_storage::ser::bytes::SerializeBytes;
-use portable_storage::errors::InvalidStorageEntry;
 
 use levin::DefaultEndian;
 
@@ -18,7 +16,7 @@ pub type DefaultSerializableLinkedList<T> = SerializableLinkedList<DefaultEndian
 pub struct SerializableLinkedList<E: ByteOrder, T: Sized + SerializeBytes + Default>(pub LinkedList<T>, PhantomData<E>);
 
 impl<E: ByteOrder, T: Sized + SerializeBytes + Default> ToUnderlying for SerializableLinkedList<E, T> {
-    fn to_underlying(entry: &StorageEntry) -> Result<SerializableLinkedList<E, T>> {
+    fn to_underlying(entry: &StorageEntry) -> Result<SerializableLinkedList<E, T>, Error> {
         match entry {
             &StorageEntry::Buf(ref v) => {
                 let mut remaining = v.len();
@@ -26,13 +24,14 @@ impl<E: ByteOrder, T: Sized + SerializeBytes + Default> ToUnderlying for Seriali
                 let mut list = SerializableLinkedList::default();
                 while remaining > 0 {
                     let r = buf.remaining();
-                    let element = T::from_bytes::<E, _>(&mut buf)?;
+                    // TODO: resolve this unwrap.
+                    let element = T::from_bytes::<E, _>(&mut buf).unwrap();
                     list.0.push_front(element);
                     remaining -= r - buf.remaining();
                 }
                 Ok(list)
             }
-            _ => Err(Error::from(InvalidStorageEntry::new("StorageEntry::Buf")))
+            _ => Err(invalid_storage_entry("StorageEntry::Buf"))
         }
     }
 }

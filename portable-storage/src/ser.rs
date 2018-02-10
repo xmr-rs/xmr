@@ -1,4 +1,4 @@
-use {Result, Section, StorageEntry};
+use {Section, StorageEntry};
 
 pub mod bytes {
     use bytes::{ByteOrder, BytesMut, Buf};
@@ -11,16 +11,16 @@ pub mod bytes {
 }
 
 #[derive(Debug, Clone, Copy, Fail)]
-#[fail(display = "unexpected portable-storage entry, expected {}", expected)]
-pub struct InvalidStorageEntry {
-    pub expected: &'static str,
+pub enum Error {
+    #[fail(display = "unexpected portable-storage entry, expected {}", expected)]
+    InvalidStorageEntry {
+        expected: &'static str,
+    },
 }
 
-impl InvalidStorageEntry {
-    pub fn new(expected: &'static str) -> InvalidStorageEntry {
-        InvalidStorageEntry {
-            expected
-        }
+pub fn invalid_storage_entry(expected: &'static str) -> Error {
+    Error::InvalidStorageEntry {
+        expected,
     }
 }
 
@@ -29,11 +29,11 @@ pub trait Serialize {
 }
 
 pub trait Deserialize: Default {
-    fn deserialize(section: &Section) -> Result<Self>;
+    fn deserialize(section: &Section) -> Result<Self, Error>;
 }
 
 pub trait ToUnderlying: Sized { 
-    fn to_underlying(entry: &StorageEntry) -> Result<Self>;
+    fn to_underlying(entry: &StorageEntry) -> Result<Self, Error>;
 }
 
 pub trait Serializable: Sized + Deserialize + Serialize + Default + Clone + Into<StorageEntry> + ToUnderlying {}
@@ -43,13 +43,11 @@ impl<T> Serializable for T where T: Sized + Deserialize + Serialize + Default + 
 macro_rules! impl_to_underlying {
     ($variant:path => $ty:ty) => {
         impl $crate::ser::ToUnderlying for $ty {
-            fn to_underlying(entry: &$crate::StorageEntry) -> $crate::Result<$ty>
+            fn to_underlying(entry: &$crate::StorageEntry) -> Result<$ty, $crate::ser::Error>
             {
                 match entry {
                     &$variant(ref v) => Ok(v.clone()),
-                    _ => Err($crate::failure::Error::from(
-                            $crate::ser::InvalidStorageEntry::new(stringify!($variant))
-                        ))
+                    _ => Err(invalid_storage_entry(stringify!($variant)))
                 }
             }
         }
@@ -98,7 +96,7 @@ macro_rules! serializable {
         }
     ) =>{
         impl $crate::ser::Deserialize for $struct_name {
-            fn deserialize(section: &$crate::Section) -> $crate::Result<$struct_name>
+            fn deserialize(section: &$crate::Section) -> Result<$struct_name, $crate::ser::Error>
             {
                 let mut result = Self::default();
                 for (k, v) in section.entries.iter() {
@@ -131,16 +129,12 @@ macro_rules! serializable {
         }
 
         impl $crate::ser::ToUnderlying for $struct_name {
-            fn to_underlying(entry: &$crate::StorageEntry) -> $crate::Result<$struct_name>
+            fn to_underlying(entry: &$crate::StorageEntry) -> Result<$struct_name, $crate::ser::Error>
             {
                 use $crate::ser::Deserialize;
                 match entry {
                     &$crate::StorageEntry::Section(ref v) => Self::deserialize(v),
-                    _ => Err(
-                        $crate::failure::Error::from(
-                            $crate::ser::InvalidStorageEntry::new("StorageEntry::Section")
-                        )
-                    ),
+                    _ => Err($crate::ser::invalid_storage_entry("StorageEntry::Section")),
                 }
             }
         }
@@ -152,7 +146,7 @@ macro_rules! serializable {
         }
     ) =>{
         impl<$($tytraits)+> $crate::ser::Deserialize for $struct_name<$tyargs> {
-            fn deserialize(section: &$crate::Section) -> $crate::Result<$struct_name<$tyargs>>
+            fn deserialize(section: &$crate::Section) -> Result<$struct_name<$tyargs>, $crate::ser::Error>
             {
                 let mut result = Self::default();
                 for (k, v) in section.entries.iter() {
@@ -185,16 +179,12 @@ macro_rules! serializable {
         }
 
         impl<$($tytraits)+> $crate::ser::ToUnderlying for $struct_name<$tyargs> {
-            fn to_underlying(entry: &$crate::StorageEntry) -> $crate::Result<$struct_name<$tyargs>>
+            fn to_underlying(entry: &$crate::StorageEntry) -> Result<$struct_name<$tyargs>, $crate::ser::Error>
             {
                 use $crate::ser::Deserialize;
                 match entry {
                     &$crate::StorageEntry::Section(ref v) => Self::deserialize(v),
-                    _ => Err(
-                        $crate::failure::Error::from(
-                            $crate::ser::InvalidStorageEntry::new("StorageEntry::Section")
-                        )
-                    ),
+                    _ => Err($crate::ser::invalid_storage_entry("StorageEntry::Section")),
                 }
             }
         }
