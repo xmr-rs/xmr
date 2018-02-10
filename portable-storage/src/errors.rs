@@ -24,17 +24,3 @@ macro_rules! ensure_eob {
         ensure!($buf.remaining() >= $needed, $crate::errors::UnexpectedEob { needed: $needed });
     };
 }
-
-#[derive(Debug, Clone, Copy, Fail)]
-#[fail(display = "unexpected portable-storage entry, expected {}", expected)]
-pub struct InvalidStorageEntry {
-    pub expected: &'static str,
-}
-
-impl InvalidStorageEntry {
-    pub fn new(expected: &'static str) -> InvalidStorageEntry {
-        InvalidStorageEntry {
-            expected
-        }
-    }
-}

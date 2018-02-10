@@ -10,6 +10,20 @@ pub mod bytes {
     }
 }
 
+#[derive(Debug, Clone, Copy, Fail)]
+#[fail(display = "unexpected portable-storage entry, expected {}", expected)]
+pub struct InvalidStorageEntry {
+    pub expected: &'static str,
+}
+
+impl InvalidStorageEntry {
+    pub fn new(expected: &'static str) -> InvalidStorageEntry {
+        InvalidStorageEntry {
+            expected
+        }
+    }
+}
+
 pub trait Serialize {
     fn serialize(&self) -> Section;
 }
@@ -34,7 +48,7 @@ macro_rules! impl_to_underlying {
                 match entry {
                     &$variant(ref v) => Ok(v.clone()),
                     _ => Err($crate::failure::Error::from(
-                            $crate::errors::InvalidStorageEntry::new(stringify!($variant))
+                            $crate::ser::InvalidStorageEntry::new(stringify!($variant))
                         ))
                 }
             }
@@ -124,7 +138,7 @@ macro_rules! serializable {
                     &$crate::StorageEntry::Section(ref v) => Self::deserialize(v),
                     _ => Err(
                         $crate::failure::Error::from(
-                            $crate::errors::InvalidStorageEntry::new("StorageEntry::Section")
+                            $crate::ser::InvalidStorageEntry::new("StorageEntry::Section")
                         )
                     ),
                 }
@@ -178,7 +192,7 @@ macro_rules! serializable {
                     &$crate::StorageEntry::Section(ref v) => Self::deserialize(v),
                     _ => Err(
                         $crate::failure::Error::from(
-                            $crate::errors::InvalidStorageEntry::new("StorageEntry::Section")
+                            $crate::ser::InvalidStorageEntry::new("StorageEntry::Section")
                         )
                     ),
                 }
