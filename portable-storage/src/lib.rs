@@ -20,20 +20,20 @@ pub use errors::Result;
 pub mod header;
 pub mod raw_size;
 
-pub const SERIALIZE_TYPE_INT64: u8 = 1;
-pub const SERIALIZE_TYPE_INT32: u8 = 2;
-pub const SERIALIZE_TYPE_INT16: u8 = 3;
-pub const SERIALIZE_TYPE_INT8: u8 = 4;
-pub const SERIALIZE_TYPE_UINT64: u8 = 5;
-pub const SERIALIZE_TYPE_UINT32: u8 = 6;
-pub const SERIALIZE_TYPE_UINT16: u8 = 7;
-pub const SERIALIZE_TYPE_UINT8: u8 = 8;
-pub const SERIALIZE_TYPE_DOUBLE: u8 = 9;
-pub const SERIALIZE_TYPE_STRING: u8 = 10;
-pub const SERIALIZE_TYPE_BOOL: u8 = 11;
-pub const SERIALIZE_TYPE_OBJECT: u8 = 12;
-pub const SERIALIZE_TYPE_ARRAY: u8 = 13;
-pub const SERIALIZE_FLAG_ARRAY: u8 = 0x80;
+const SERIALIZE_TYPE_INT64: u8 = 1;
+const SERIALIZE_TYPE_INT32: u8 = 2;
+const SERIALIZE_TYPE_INT16: u8 = 3;
+const SERIALIZE_TYPE_INT8: u8 = 4;
+const SERIALIZE_TYPE_UINT64: u8 = 5;
+const SERIALIZE_TYPE_UINT32: u8 = 6;
+const SERIALIZE_TYPE_UINT16: u8 = 7;
+const SERIALIZE_TYPE_UINT8: u8 = 8;
+const SERIALIZE_TYPE_DOUBLE: u8 = 9;
+const SERIALIZE_TYPE_STRING: u8 = 10;
+const SERIALIZE_TYPE_BOOL: u8 = 11;
+const SERIALIZE_TYPE_OBJECT: u8 = 12;
+const SERIALIZE_TYPE_ARRAY: u8 = 13;
+const SERIALIZE_FLAG_ARRAY: u8 = 0x80;
 
 #[derive(Debug)]
 pub enum StorageEntry {
