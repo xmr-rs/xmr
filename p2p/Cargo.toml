@@ -8,10 +8,10 @@ portable-storage = { path = "../portable-storage" }
 hash = { path = "../hash" }
 db = { path = "../db" }
 
-futures = { path = "../third-party/futures/" }
-futures-cpupool = { path = "../third-party/futures-cpupool/" }
-tokio-io = { path = "../third-party/tokio-io/" }
-tokio-core = { path = "../third-party/tokio-core/" }
+futures = "0.1.17"
+futures-cpupool = "0.1.8"
+tokio-io = "0.1.1"
+tokio-core = "0.1.12"
 
 uuid = "0.5.0"
 bytes = "0.4.6"
