@@ -1,21 +1,11 @@
 use std::fmt::{self, Debug, Display, Formatter};
-use failure::{Fail, Error};
+use failure::Error;
 
 pub type Result<T> = ::std::result::Result<T, Error>;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, Fail)]
 pub struct UnexpectedEob {
     pub needed: usize,
-}
-
-impl Debug for UnexpectedEob {
-    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        if self.needed != 0 {
-            write!(fmt, "unexpected end of buffer, needed {} bytes", self.needed)
-        } else {
-            write!(fmt, "unexpected end of buffer")
-        }
-    }
 }
 
 impl Display for UnexpectedEob {
@@ -28,8 +18,6 @@ impl Display for UnexpectedEob {
     }
 }
 
-impl Fail for UnexpectedEob { }
-
 #[macro_export]
 macro_rules! ensure_eob {
     ($buf:expr, $needed:expr) => {
@@ -37,7 +25,8 @@ macro_rules! ensure_eob {
     };
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, Fail)]
+#[fail(display = "unexpected portable-storage entry, expected {}", expected)]
 pub struct InvalidStorageEntry {
     pub expected: &'static str,
 }
@@ -49,17 +38,3 @@ impl InvalidStorageEntry {
         }
     }
 }
-
-impl Debug for InvalidStorageEntry {
-    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "unexpected portable-storage entry, expected {}", self.expected)
-    }
-}
-
-impl Display for InvalidStorageEntry {
-    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "unexpected portable-storage entry, expected {}", self.expected)
-    }
-}
-
-impl Fail for InvalidStorageEntry { }
