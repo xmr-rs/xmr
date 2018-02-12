@@ -7,12 +7,14 @@ use futures::{Future, finished};
 use tokio_core::reactor::{Handle, Remote};
 use rand::OsRng;
 
-use db::SharedStore;
+use db::Store;
 
 use config::Config;
 use protocol::PeerId;
 use net::{connect, ConnectionCounter};
 use levin::Command;
+use cryptonote::CoreSyncData;
+use protocol::BasicNodeData;
 use protocol::handshake::CryptoNoteHandshake;
 
 pub type BoxedEmptyFuture = Box<Future<Item=(), Error=()> + Send>;
@@ -75,6 +77,15 @@ impl Context {
             finished(())
         }))
     }
+
+    fn basic_node_data(&self) -> BasicNodeData {
+        BasicNodeData {
+            network_id: self.config.network_id.into(),
+            local_time: 0,
+            my_port: self.config.listen_port,
+            peer_id: self.peer_id,
+        }
+    }
 }
 
 pub struct P2P {
@@ -94,14 +105,29 @@ impl P2P {
         }
     }
 
-    pub fn run(&self, _store: SharedStore) -> Result<(), Error> {
+    pub fn run<S>(&self, store: &S) -> Result<(), Error> where S: Store {
         type Request = <CryptoNoteHandshake as Command>::Request;
 
         for addr in self.context.config.peers.iter() {
-            let req = Request::default();
+            let req = Request {
+                node_data: self.context.basic_node_data(),
+                payload_data: core_sync_data(store)
+            };
+
             Context::connect(self.context.clone(), addr.clone(), req)
         }
 
         Ok(())
+    }
+}
+
+fn core_sync_data<S>(store: &S) -> CoreSyncData where S: Store {
+    let best_block = store.best_block();
+    CoreSyncData {
+        current_height: best_block.height,
+        cumulative_difficulty: 0,
+        top_id: best_block.id,
+        // TODO: ideal hard fork verion.
+        top_version: 0,
     }
 }
