@@ -29,4 +29,12 @@ impl Network {
 
         Uuid::from_bytes(&id).expect("invalid network id")
     }
+
+    /// Returns this peer's listening port.
+    pub fn listen_port(&self) -> u32 {
+        match *self {
+            Network::Mainnet => 18080,
+            Network::Testnet => 28080,
+        }
+    }
 }

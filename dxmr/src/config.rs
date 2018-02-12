@@ -11,6 +11,7 @@ pub struct Config {
     pub network: Network,
     pub peers: Vec<SocketAddr>,
     pub threads: usize,
+    pub listen_port: u32,
 }
 
 pub fn parse(matches: &ArgMatches) -> Result<Config, Error> {
@@ -25,17 +26,19 @@ pub fn parse(matches: &ArgMatches) -> Result<Config, Error> {
             peers.push(addr);
             peers
         }
-        Err(e) => {
-            // TODO: debug message, log?
+        Err(_e) => {
             default_peers(network)
         },
     };
 
     let threads = value_t!(matches.value_of("threads"), usize).unwrap_or(1);
 
+    let listen_port = value_t!(matches.value_of("listenport"), u32).unwrap_or(network.listen_port());
+
     Ok(Config {
         network,
         peers,
         threads,
+        listen_port,
     })
 }

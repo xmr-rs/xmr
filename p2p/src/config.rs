@@ -10,4 +10,6 @@ pub struct Config {
     pub network_id: Uuid,
     /// Peers to connect.
     pub peers: Vec<SocketAddr>,
+    /// Listening port.
+    pub listen_port: u32,
 }

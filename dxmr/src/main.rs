@@ -26,6 +26,7 @@ fn main() {
         (@arg threads: --threads +takes_value "Number of threads")
         (@arg testnet: --testnet "Use the test network")
         (@arg connect: --connect +takes_value "Connect only to the given peer")
+        (@arg listenport: --listenport +takes_value )
     ).get_matches();
     
     // TODO: no unwrap
@@ -41,12 +42,13 @@ fn start(cfg: config::Config) {
         threads: cfg.threads,
         network_id: cfg.network.id(),
         peers: cfg.peers,
+        listen_port: cfg.listen_port,
     };
 
     let blockchain = Arc::new(db::BlockChainDatabase::open("/home/jeandudey/.xmr"));
 
     let p2p = p2p::P2P::new(config, el.handle());
 
-    p2p.run(blockchain.clone());
+    p2p.run(&*blockchain);
     el.run(p2p::forever());
 }
