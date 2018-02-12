@@ -6,10 +6,16 @@ use portable_storage::StorageEntry;
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash)]
 pub struct SerializableUuid(pub uuid::Uuid);
 
+impl From<uuid::Uuid> for SerializableUuid {
+    fn from(v: uuid::Uuid) -> SerializableUuid {
+        SerializableUuid(v)
+    }
+}
+
 impl ToUnderlying for SerializableUuid {
     fn to_underlying(entry: &StorageEntry) -> Result<SerializableUuid, Error> {
-        match entry {
-            &StorageEntry::Buf(ref v) => {
+        match *entry {
+            StorageEntry::Buf(ref v) => {
                 // TODO: Convert to failure
                 Ok(SerializableUuid(uuid::Uuid::from_bytes(&*v).unwrap()))
             }
