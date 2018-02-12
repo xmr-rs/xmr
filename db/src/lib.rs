@@ -17,4 +17,4 @@ mod store;
 pub use self::block_chain::BlockChain;
 pub use self::block_chain_db::BlockChainDatabase;
 pub use self::best_block::BestBlock;
-pub use self::store::{Store, SharedStore};
+pub use self::store::Store;
