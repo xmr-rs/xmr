@@ -79,10 +79,16 @@ impl Context {
     }
 
     fn basic_node_data(&self) -> BasicNodeData {
+        let my_port = if self.config.hide_my_port {
+            0
+        } else {
+            self.config.listen_port
+        };
+
         BasicNodeData {
             network_id: self.config.network_id.into(),
             local_time: 0,
-            my_port: self.config.listen_port,
+            my_port,
             peer_id: self.peer_id,
         }
     }

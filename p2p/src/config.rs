@@ -12,4 +12,6 @@ pub struct Config {
     pub peers: Vec<SocketAddr>,
     /// Listening port.
     pub listen_port: u32,
+    /// Hide my port.
+    pub hide_my_port: bool,
 }

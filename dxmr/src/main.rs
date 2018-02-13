@@ -27,6 +27,7 @@ fn main() {
         (@arg testnet: --testnet "Use the test network")
         (@arg connect: --connect +takes_value "Connect only to the given peer")
         (@arg listenport: --listenport +takes_value )
+        (@arg hidemyport: --hidemyport)
     ).get_matches();
     
     // TODO: no unwrap
@@ -43,6 +44,7 @@ fn start(cfg: config::Config) {
         network_id: cfg.network.id(),
         peers: cfg.peers,
         listen_port: cfg.listen_port,
+        hide_my_port: cfg.hide_my_port,
     };
 
     let blockchain = Arc::new(db::BlockChainDatabase::open("/home/jeandudey/.xmr"));
