@@ -31,9 +31,9 @@ pub struct BasicNodeData {
 
 serializable! {
     BasicNodeData {
-        network_id,
-        peer_id,
         local_time,
         my_port,
+        network_id,
+        peer_id,
     }
 }
