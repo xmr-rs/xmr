@@ -185,8 +185,16 @@ impl StorageEntry {
                 buf.put_u8(SERIALIZE_TYPE_STRING);
                 write_buf::<T>(buf, v);
             },
-            &StorageEntry::Array(ref v) => Array::write::<T>(buf, v), 
-            &StorageEntry::Section(ref v) => Section::write::<T>(buf, v), 
+            &StorageEntry::Array(ref v) => {
+                buf.reserve(1);
+                buf.put_u8(SERIALIZE_TYPE_ARRAY);
+                Array::write::<T>(buf, v);
+            }
+            &StorageEntry::Section(ref v) => {
+                buf.reserve(1);
+                buf.put_u8(SERIALIZE_TYPE_OBJECT);
+                Section::write::<T>(buf, v);
+            }
         }
     }
 }
