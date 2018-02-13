@@ -6,13 +6,12 @@ extern crate common_failures;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
-extern crate uuid;
 extern crate p2p;
 extern crate db;
+extern crate network;
 
 use std::sync::Arc;
 
-mod network;
 mod config;
 mod peers;
 

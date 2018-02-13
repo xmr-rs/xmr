@@ -1,2 +1,11 @@
 [workspace]
-members = ["dxmr", "hash", "portable-storage", "p2p", "db", "chain", "serialization"]
+members = [
+    "dxmr",
+    "hash",
+    "portable-storage",
+    "p2p",
+    "db",
+    "chain",
+    "serialization",
+    "network"
+]
