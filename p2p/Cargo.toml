@@ -5,6 +5,7 @@ authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 
 [dependencies]
 portable-storage = { path = "../portable-storage" }
+network = { path = "../network" }
 hash = { path = "../hash" }
 db = { path = "../db" }
 

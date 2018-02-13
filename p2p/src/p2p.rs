@@ -7,6 +7,7 @@ use futures::{Future, finished};
 use tokio_core::reactor::{Handle, Remote};
 use rand::OsRng;
 
+use network::Network;
 use db::Store;
 
 use config::Config;
@@ -82,11 +83,11 @@ impl Context {
         let my_port = if self.config.hide_my_port {
             0
         } else {
-            self.config.listen_port
+            self.config.listen_port.unwrap_or(self.config.network.listen_port())
         };
 
         BasicNodeData {
-            network_id: self.config.network_id.into(),
+            network_id: self.config.network.id().into(),
             local_time: 0,
             my_port,
             peer_id: self.peer_id,
@@ -117,7 +118,7 @@ impl P2P {
         for addr in self.context.config.peers.iter() {
             let req = Request {
                 node_data: self.context.basic_node_data(),
-                payload_data: core_sync_data(store)
+                payload_data: core_sync_data(store, &self.context.config.network),
             };
 
             Context::connect(self.context.clone(), addr.clone(), req)
@@ -127,13 +128,12 @@ impl P2P {
     }
 }
 
-fn core_sync_data<S>(store: &S) -> CoreSyncData where S: Store {
+fn core_sync_data<S>(store: &S, network: &Network) -> CoreSyncData where S: Store {
     let best_block = store.best_block();
     CoreSyncData {
         current_height: best_block.height,
         cumulative_difficulty: 0,
         top_id: best_block.id,
-        // TODO: ideal hard fork verion.
-        top_version: 0,
+        top_version: network.hard_forks().ideal_version(),
     }
 }

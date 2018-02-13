@@ -62,7 +62,7 @@ impl Future for Connect {
                         return Ok(Err(response.map_err(|e| ConnectError::from(e)).unwrap_err()).into())
                     }
                     let response = response.unwrap();
-                    if response.node_data.network_id.0 != self.context.config.network_id {
+                    if response.node_data.network_id.0 != self.context.config.network.id() {
                         let uuid = response.node_data.network_id.0;
                         return Ok(Err(ConnectError::WrongNetwork(uuid)).into());
                     }

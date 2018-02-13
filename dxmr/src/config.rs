@@ -11,7 +11,7 @@ pub struct Config {
     pub network: Network,
     pub peers: Vec<SocketAddr>,
     pub threads: usize,
-    pub listen_port: u32,
+    pub listen_port: Option<u32>,
     pub hide_my_port: bool,
 }
 
@@ -34,7 +34,7 @@ pub fn parse(matches: &ArgMatches) -> Result<Config, Error> {
 
     let threads = value_t!(matches.value_of("threads"), usize).unwrap_or(1);
 
-    let listen_port = value_t!(matches.value_of("listenport"), u32).unwrap_or(network.listen_port());
+    let listen_port = value_t!(matches.value_of("listenport"), u32).ok();
 
     let hide_my_port = matches.is_present("hidemyport");
 

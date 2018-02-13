@@ -41,29 +41,31 @@ impl Network {
     }
 
     pub fn hard_forks(&self) -> HardForks {
-        match *self {
+        let parameters: &'static [HardForkParameters] = match *self {
             Network::Mainnet => {
                 &[
-                    HardFork { version: 1, height: 1, threshold: 0, time: 1341378000 },
-                    HardFork { version: 2, height: 1009827, threshold: 0, time: 1442763710 },
-                    HardFork { version: 3, height: 1141317, threshold: 0, time: 1458558528 },
-                    HardFork { version: 4, height: 1220516, threshold: 0, time: 1483574400 },
-                    HardFork { version: 5, height: 1288616, threshold: 0, time: 1489520158 },
-                    HardFork { version: 6, height: 1400000, threshold: 0, time: 1503046577 },
+                    HardForkParameters { version: 1, height: 1, threshold: 0, time: 1341378000 },
+                    HardForkParameters { version: 2, height: 1009827, threshold: 0, time: 1442763710 },
+                    HardForkParameters { version: 3, height: 1141317, threshold: 0, time: 1458558528 },
+                    HardForkParameters { version: 4, height: 1220516, threshold: 0, time: 1483574400 },
+                    HardForkParameters { version: 5, height: 1288616, threshold: 0, time: 1489520158 },
+                    HardForkParameters { version: 6, height: 1400000, threshold: 0, time: 1503046577 },
                 ]
             },
             Network::Testnet => {
                 &[
-                    HardFork { version: 1, height: 1, threshold: 0, time: 1341378000 },
-                    HardFork { version: 2, height: 624634, threshold: 0, time: 1445355000 },
-                    HardFork { version: 3, height: 800500, threshold: 0, time: 1472415034 },
-                    HardFork { version: 4, height: 801219, threshold: 0, time: 1472415035 },
-                    HardFork { version: 5, height: 802660, threshold: 0, time: 1472415036 + 86400*180 }
-                    HardFork { version: 6, height: 971400, threshold: 0, time: 1501709789 },
-                    HardFork { version: 7, height: 1057028, threshold: 0, time: 1512211236 },
+                    HardForkParameters { version: 1, height: 1, threshold: 0, time: 1341378000 },
+                    HardForkParameters { version: 2, height: 624634, threshold: 0, time: 1445355000 },
+                    HardForkParameters { version: 3, height: 800500, threshold: 0, time: 1472415034 },
+                    HardForkParameters { version: 4, height: 801219, threshold: 0, time: 1472415035 },
+                    HardForkParameters { version: 5, height: 802660, threshold: 0, time: 1472415036 + 86400*180 },
+                    HardForkParameters { version: 6, height: 971400, threshold: 0, time: 1501709789 },
+                    HardForkParameters { version: 7, height: 1057028, threshold: 0, time: 1512211236 },
                 ]
             }
-        }
+        };
+
+        HardForks::from(parameters)
     }
 }
 

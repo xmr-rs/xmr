@@ -40,7 +40,7 @@ fn start(cfg: config::Config) {
 
     let config = p2p::Config {
         threads: cfg.threads,
-        network_id: cfg.network.id(),
+        network: cfg.network,
         peers: cfg.peers,
         listen_port: cfg.listen_port,
         hide_my_port: cfg.hide_my_port,

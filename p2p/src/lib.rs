@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate portable_storage;
+extern crate network;
 extern crate failure;
 extern crate bytes;
 extern crate uuid;
