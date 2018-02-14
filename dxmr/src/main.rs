@@ -14,6 +14,7 @@ use std::sync::Arc;
 
 mod config;
 mod peers;
+mod util;
 
 fn main() {
     env_logger::init();
