@@ -76,6 +76,8 @@ name = "chain"
 version = "0.1.0"
 dependencies = [
  "hash 0.1.0",
+ "keys 0.1.0",
+ "rct 0.1.0",
  "serialization 0.1.0",
 ]
 
@@ -233,6 +235,10 @@ dependencies = [
  "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "keys"
+version = "0.1.0"
 
 [[package]]
 name = "lazy_static"
@@ -489,6 +495,10 @@ dependencies = [
  "libc 0.2.36 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "rct"
+version = "0.1.0"
 
 [[package]]
 name = "redox_syscall"
