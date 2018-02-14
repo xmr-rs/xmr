@@ -221,3 +221,30 @@ serialize2! {
         key -> (blob),
     }
 }
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    use hash::H256;
+    use serialization::binary_serialize as serialize;
+
+    #[test]
+    fn block_header_test_vector() {
+        let test_vector = include_bytes!("../../compat/test-vectors/data/BLOCK_HEADER_TEST_VECTOR").to_vec();
+
+        let hdr = BlockHeader {
+            major_version: 1, 
+            minor_version: 0,
+            timestamp: 0,
+            prev_id: H256::default(),
+            nonce: 0,
+        };
+
+        let buf = serialize(&hdr);
+
+        if buf.as_ref() != test_vector.as_slice() {
+            panic!("buf doesn't match test vector.");
+        }
+    }
+}
