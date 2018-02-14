@@ -7,7 +7,7 @@ pub trait Serialize {
 }
 
 /// A trait to serialize a structure to a given format.
-pub trait Serializer {
+pub trait Serializer: Sized {
     /// Serialize a number, be it signed or unsigned.
     fn serialize_num<T: Num + ToPrimitive + Sized>(&mut self, v: T);
 
@@ -19,6 +19,14 @@ pub trait Serializer {
 
     /// Serialize a binary blob.
     fn serialize_blob<T: AsRef<[u8]>>(&mut self, v: &T);
+
+    /// Serialize an array.
+    fn serialize_array<T: Serialize, A: AsRef<[T]>>(&mut self, v: &A);
+
+    /// Serialize an struct that implements `Serialize`
+    fn serialize_struct<T: Serialize>(&mut self, v: &T) {
+        v.serialize(self)
+    }
 }
 
 macro_rules! impl_serialize_num {

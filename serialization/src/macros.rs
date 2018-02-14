@@ -48,7 +48,7 @@ macro_rules! serialize2 {
         }
 
         impl $crate::deserializer::Deserialize for $struct_name {
-            fn deserialize<'buf, T: $crate::deserializer::Deserializer<'buf>>(deserializer: &'buf mut T) -> Self {
+            fn deserialize<T: $crate::deserializer::Deserializer>(deserializer: &mut T) -> Self {
                 let mut st = Self::default();
                 $(
                     serialize2!(__deserialize st, deserializer, $name -> $($discriminator)*);
@@ -72,10 +72,19 @@ macro_rules! serialize2 {
             $serializer.serialize_uvarint($self.$field_name);
         }
     };
-
     (__serialize $self:ident, $serializer:ident, $field_name:ident -> blob) => {
         {
             $serializer.serialize_blob(&$self.$field_name);
+        }
+    };
+    (__serialize $self:ident, $serializer:ident, $field_name:ident -> struct) => {
+        {
+            $serializer.serialize_struct(&$self.$field_name);
+        }
+    };
+    (__serialize $self:ident, $serializer:ident, $field_name:ident -> array) => {
+        {
+            $serializer.serialize_array(&$self.$field_name);
         }
     };
     (__deserialize $self:ident, $deserializer:ident, $field_name:ident -> num) => {
@@ -93,10 +102,51 @@ macro_rules! serialize2 {
             $self.$field_name = $deserializer.deserialize_uvarint();
         }
     };
-
     (__deserialize $self:ident, $deserializer:ident, $field_name:ident -> blob) => {
         {
             $self.$field_name = $deserializer.deserialize_blob();
         }
     };
+    (__deserialize $self:ident, $deserializer:ident, $field_name:ident -> struct) => {
+        {
+            $self.$field_name = $deserializer.deserialize_struct();
+        }
+    };
+    (__deserialize $self:ident, $deserializer:ident, $field_name:ident -> array) => {
+        {
+            $self.$field_name = $deserializer.deserialize_array();
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! serialize2_variant {
+    ($enum_name:ident { $( $variant:path => ($deser:expr, $tag:expr) ,)+ }) => {
+        impl $crate::serializer::Serialize for $enum_name {
+            fn serialize<T: $crate::serializer::Serializer>(&self, serializer: &mut T) {
+                match self {
+                $(
+                    &$variant(ref v) => {
+                        serializer.serialize_num(u8::from($tag));
+                        serializer.serialize_struct(v);
+                    }
+                )+
+                }
+
+            }
+        }
+
+        impl $crate::deserializer::Deserialize for $enum_name {
+            fn deserialize<T: $crate::deserializer::Deserializer>(deserializer: &mut T) -> $enum_name {
+                let tag: u8 = deserializer.deserialize_num();
+                match tag {
+                $(
+                    $tag => $variant($deser(deserializer)),
+                )+
+                    // TODO: again throw an error and stop panicking around there.
+                    _ => panic!("invalid varian tag"),
+                }
+            }
+        }
+    }
 }

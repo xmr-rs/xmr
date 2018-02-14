@@ -3,7 +3,7 @@ use num::cast::NumCast;
 use std::io::Cursor;
 
 pub trait Deserialize: Default {
-    fn deserialize<'buf, T: Deserializer<'buf>>(deserializer: &'buf mut T) -> Self;
+    fn deserialize<T: Deserializer>(deserializer: &mut T) -> Self;
 }
 
 pub trait DeserializeBlob: Sized {
@@ -11,7 +11,7 @@ pub trait DeserializeBlob: Sized {
 }
 
 /// A trait to deserialize formats.
-pub trait Deserializer<'buf> {
+pub trait Deserializer: Sized {
     /// Deserialize a number, be it signed or unsigned.
     fn deserialize_num<T: Num + NumCast + Sized>(&mut self) -> T;
 
@@ -23,12 +23,20 @@ pub trait Deserializer<'buf> {
 
     /// Deserialize a binary blob.
     fn deserialize_blob<T: DeserializeBlob>(&mut self) -> T;
+
+    /// Deserialize an array.
+    fn deserialize_array<T: Deserialize>(&mut self) -> Vec<T>;
+
+    /// Deserialize an struct that implements `Deserialize`.
+    fn deserialize_struct<T: Deserialize>(&mut self) -> T {
+        T::deserialize(self)
+    }
 }
 
 macro_rules! impl_deserialize_num {
     ($ty:ty) => {
         impl Deserialize for $ty {
-            fn deserialize<'buf, T: Deserializer<'buf>>(deserializer: &'buf mut T) -> $ty {
+            fn deserialize<T: Deserializer>(deserializer: &mut T) -> $ty {
                 deserializer.deserialize_num::<$ty>()
             }
         }
