@@ -13,7 +13,15 @@ using cryptonote::CORE_SYNC_DATA;
 using crypto::hash;
 using config::testnet::NETWORK_ID;
 
+void command_handshake_t_request();
+
 int main() {
+    command_handshake_t_request();
+    return 0;
+}
+
+
+void command_handshake_t_request() {
     auto stg = portable_storage();
     
     COMMAND_HANDSHAKE_T<CORE_SYNC_DATA>::request req = {
@@ -37,6 +45,4 @@ int main() {
 
     auto output_file = std::ofstream("COMMAND_HANDSHAKE_T_TEST_VECTOR");
     output_file.write(buf.c_str(), buf.size());
-
-    return 0;
 }
