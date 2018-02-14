@@ -6,6 +6,7 @@ use serialization::{binary_serialize as serialize, binary_deserialize as deseria
 pub const COL_META: usize = 0;
 pub const COL_BLOCKS: usize = 1;
 pub const COL_BLOCK_HEIGHTS: usize = 2;
+pub const COL_BLOCK_HASHES: usize = 2;
 
 #[derive(Debug)]
 pub enum Operation {
@@ -21,6 +22,8 @@ pub enum KeyValue {
     Block(H256, BlockHeader),
     /// Block hash to height mapping.
     BlockHeight(H256, u64),
+    /// Block heigh to hash mapping.
+    BlockHash(u64, H256),
 }
 
 #[derive(Debug)]
@@ -31,6 +34,8 @@ pub enum Key {
     Block(H256),
     /// Block hash to height mapping.
     BlockHeight(H256),
+    /// Block heigh to hash mapping.
+    BlockHash(u64),
 }
 
 #[derive(Debug, Clone)]
@@ -41,6 +46,8 @@ pub enum Value {
     Block(BlockHeader),
     /// Block hash to height mapping.
     BlockHeight(u64),
+    /// Block heigh to hash mapping.
+    BlockHash(H256),
 }
 
 impl Value {
@@ -48,7 +55,8 @@ impl Value {
         match *key {
             Key::Meta(_) => Value::Meta(bytes.into()),
             Key::Block(_) => Value::Block(deserialize(&bytes)),
-            Key::BlockHeight(_) => Value::BlockHeight(deserialize(&bytes))
+            Key::BlockHeight(_) => Value::BlockHeight(deserialize(&bytes)),
+            Key::BlockHash(_) => Value::BlockHash(H256::from_bytes(&bytes)),
         }
     }
 
@@ -69,6 +77,13 @@ impl Value {
     pub fn as_block_height(self) -> Option<u64> {
         match self {
             Value::BlockHeight(height) => Some(height),
+            _ => None,
+        }
+    }
+
+    pub fn as_block_hash(self) -> Option<H256> {
+        match self {
+            Value::BlockHash(hash) => Some(hash),
             _ => None,
         }
     }
@@ -144,6 +159,7 @@ impl<'a> From<&'a KeyValue> for RawKeyValue {
             KeyValue::Meta(ref k, ref v) => (COL_META, Bytes::from(k.as_bytes()), v.clone()),
             KeyValue::Block(ref k, ref v) => (COL_BLOCKS, Bytes::from(k.as_bytes()), serialize(v)),
             KeyValue::BlockHeight(ref k, ref v) => (COL_BLOCK_HEIGHTS, Bytes::from(k.as_bytes()), serialize(v)),
+            KeyValue::BlockHash(ref k, ref v) => (COL_BLOCK_HASHES, serialize(k), Bytes::from(v.as_bytes())),
         };
         
         RawKeyValue {
@@ -166,6 +182,7 @@ impl<'a> From<&'a Key> for RawKey {
             Key::Meta(ref k) => (COL_META, Bytes::from(k.as_bytes())),
             Key::Block(ref k) => (COL_BLOCKS, Bytes::from(k.as_bytes())),
             Key::BlockHeight(ref k) => (COL_BLOCK_HEIGHTS, Bytes::from(k.as_bytes())),
+            Key::BlockHash(ref k) => (COL_BLOCK_HASHES, serialize(k)),
         };
 
         RawKey {

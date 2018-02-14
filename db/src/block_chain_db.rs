@@ -7,6 +7,8 @@ use hash::H256;
 use serialization::binary_deserialize as deserialize;
 
 use block_chain::BlockChain;
+use block_provider::BlockProvider;
+
 use kv::{Key, Value, KeyState, KeyValueDatabase, DiskDb};
 
 use store::Store;
@@ -51,6 +53,10 @@ impl<DB> BlockChainDatabase<DB> where DB: KeyValueDatabase {
 			_ => panic!("Inconsistent DB"),
 		}
 	}
+    
+    fn get(&self, key: Key) -> Option<Value> {
+        self.db.get(&key).expect("db value to be fine").into_option()
+    }
 }
 
 impl<DB> BlockChain for BlockChainDatabase<DB> where DB: KeyValueDatabase {
@@ -66,5 +72,12 @@ impl<DB> Store for BlockChainDatabase<DB> where DB: KeyValueDatabase {
 
     fn best_header(&self) -> BlockHeader {
         BlockHeader::default()
+    }
+}
+
+impl<DB> BlockProvider for BlockChainDatabase<DB> where DB: KeyValueDatabase {
+    fn block_hash(&self, height: u64) -> Option<H256> {
+        self.get(Key::BlockHash(height))
+            .and_then(Value::as_block_hash)
     }
 }
