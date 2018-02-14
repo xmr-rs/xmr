@@ -43,8 +43,16 @@ pub struct Block {
     pub tx_hashes: Vec<H256>,
 }
 
-/// Transaction prefix.
+/// A transaction.
 #[derive(Debug)]
+pub struct Transaction {
+    pub prefix: TransactionPrefix,
+    pub signatures: Vec<Vec<Signature>>,
+    pub rct_signatures: RctSignature,
+}
+
+/// Transaction prefix.
+#[derive(Debug, Default)]
 pub struct TransactionPrefix {
     pub version: u8,
     pub vin: Vec<TxIn>,
@@ -52,12 +60,13 @@ pub struct TransactionPrefix {
     pub extra: Vec<u8>,
 }
 
-/// A transaction.
-#[derive(Debug)]
-pub struct Transaction {
-    pub prefix: TransactionPrefix,
-    pub signatures: Vec<Vec<Signature>>,
-    pub rct_signatures: RctSignature,
+serialize2! {
+    TransactionPrefix {
+        version -> (uvarint),
+        vin -> (array),
+        vout -> (array),
+        extra -> (array),
+    }
 }
 
 /// Transaction input.
@@ -67,6 +76,21 @@ pub enum TxIn {
     ToScript(TxInToScript),
     ToScriptHash(TxInToScriptHash),
     ToKey(TxInToKey),
+}
+
+impl Default for TxIn {
+    fn default() -> TxIn {
+        TxIn::Gen(TxInGen::default())
+    }
+}
+
+serialize2_variant! {
+    TxIn {
+        TxIn::Gen => (TxInGen::deserialize, 0xff),
+        TxIn::ToScript => (TxInToScript::deserialize, 0x0),
+        TxIn::ToScriptHash => (TxInToScriptHash::deserialize, 0x1),
+        TxIn::ToKey => (TxInToKey::deserialize, 0x2),
+    }
 }
 
 #[derive(Debug, Default)]
@@ -87,6 +111,14 @@ pub struct TxInToScript {
     pub sigset: Vec<u8>,
 }
 
+serialize2! {
+    TxInToScript {
+        prev -> (blob),
+        prevout -> (uvarint),
+        sigset -> (array),
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct TxInToScriptHash {
     pub prev: H256,
@@ -95,18 +127,42 @@ pub struct TxInToScriptHash {
     pub sigset: Vec<u8>,
 }
 
+serialize2! {
+    TxInToScriptHash {
+        prev -> (blob),
+        prevout -> (uvarint),
+        script -> (struct),
+        sigset -> (array),
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct TxInToKey {
-    pub amount: usize,
+    pub amount: u64,
     pub key_offsets: Vec<u64>,
     pub k_image: KeyImage,
 }
 
+serialize2! {
+    TxInToKey {
+        amount -> (uvarint),
+        key_offsets -> (array),
+        k_image -> (blob),
+    }
+}
+
 /// Transaction output.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct TxOut {
     pub amount: u64,
     pub target: TxOutTarget,
+}
+
+serialize2! {
+    TxOut {
+        amount -> (uvarint),
+        target -> (struct),
+    }
 }
 
 /// Transaction output target.
@@ -117,10 +173,31 @@ pub enum TxOutTarget {
     ToKey(TxOutToKey)
 }
 
+impl Default for TxOutTarget {
+    fn default() -> TxOutTarget {
+        TxOutTarget::ToScript(TxOutToScript::default())
+    }
+}
+
+serialize2_variant! {
+    TxOutTarget {
+        TxOutTarget::ToScript => (TxOutToScript::deserialize, 0x0),
+        TxOutTarget::ToScriptHash => (TxOutToScriptHash::deserialize, 0x1),
+        TxOutTarget::ToKey => (TxOutToKey::deserialize, 0x2),
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct TxOutToScript {
     pub keys: Vec<PublicKey>,
     pub script: Vec<u8>,
+}
+
+serialize2! {
+    TxOutToScript {
+        keys -> (array),
+        script -> (array),
+    }
 }
 
 #[derive(Debug, Default)]
@@ -137,4 +214,10 @@ serialize2! {
 #[derive(Debug, Default)]
 pub struct TxOutToKey {
     pub key: PublicKey,
+}
+
+serialize2! {
+    TxOutToKey {
+        key -> (blob),
+    }
 }
