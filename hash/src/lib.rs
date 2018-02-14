@@ -82,7 +82,7 @@ impl Serialize for H256 {
 }
 
 impl Deserialize for H256 {
-    fn deserialize<'buf, T: Deserializer<'buf>>(deserializer: &'buf mut T) -> Self {
+    fn deserialize<T: Deserializer>(deserializer: &mut T) -> Self {
         deserializer.deserialize_blob()
     }
 }
