@@ -239,6 +239,10 @@ dependencies = [
 [[package]]
 name = "keys"
 version = "0.1.0"
+dependencies = [
+ "bytes 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serialization 0.1.0",
+]
 
 [[package]]
 name = "lazy_static"
