@@ -437,6 +437,7 @@ dependencies = [
  "futures 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures-cpupool 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "hash 0.1.0",
+ "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "network 0.1.0",
  "portable-storage 0.1.0",
  "rand 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",

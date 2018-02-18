@@ -14,6 +14,9 @@ extern crate futures_cpupool;
 extern crate tokio_core;
 extern crate tokio_io;
 
+#[macro_use]
+extern crate log;
+
 pub mod event_loop;
 pub mod protocol;
 pub mod cryptonote;
