@@ -1,6 +1,5 @@
 use std::net::SocketAddr;
 use network::Network;
-use uuid::Uuid;
 
 /// P2P configuration.
 #[derive(Debug, Clone)]
