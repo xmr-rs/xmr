@@ -68,10 +68,18 @@ impl BucketHead {
 
         if bucket_head.signature != LEVIN_SIGNATURE { 
             return Err(BucketHeadError::InvalidSignature(bucket_head.signature).into());
-        } else if bucket_head.protocol_version != LEVIN_PROTOCOL_VER_1 {
+        }
+        
+        if bucket_head.protocol_version != LEVIN_PROTOCOL_VER_1 {
             return Err(BucketHeadError::InvalidProtocolVersion(bucket_head.protocol_version).into());
-        } else if bucket_head.cb > LEVIN_DEFAULT_MAX_PACKET_SIZE {
+        }
+
+        if bucket_head.cb > LEVIN_DEFAULT_MAX_PACKET_SIZE {
             return Err(BucketHeadError::TooBig(bucket_head.cb).into());
+        }
+
+        if bucket_head.return_code < 0 {
+            return Err(BucketHeadError::ReturnCode(bucket_head.return_code).into());
         }
 
         Ok(bucket_head)

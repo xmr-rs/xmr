@@ -27,6 +27,8 @@ pub enum BucketHeadError {
     InvalidProtocolVersion(u32),
     /// Invalid signature
     InvalidSignature(u64),
+    /// An error code was returned.
+    ReturnCode(i32),
     /// Packet too big.
     TooBig(u64),
 }
