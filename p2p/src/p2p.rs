@@ -1,5 +1,6 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::error::Error as StdError;
 
 use failure::Error;
 use futures_cpupool::CpuPool;
@@ -47,6 +48,9 @@ impl Context {
     pub fn connect(context: Arc<Context>,
                    address: SocketAddr,
                    req: <CryptoNoteHandshake as Command>::Request) {
+        trace!("connect request: {:?}" , req);
+        trace!("connect address: {:?}", address);
+
         context.connection_counter.note_new_outbound_connection();
         context.remote.clone().spawn(move |handle| {
             context.pool.clone().spawn(Self::connect_future(context.clone(), handle, address, req))
@@ -65,13 +69,13 @@ impl Context {
                         Ok((_stream, response)) => panic!("ok"),
                         Err(e) => {
                             context.connection_counter.note_close_outbound_connection();
-                            panic!("{:?}", e);
+                            warn!("node returned invalid data: {:?}", e);
                         }
                     }
                 },
                 Err(e) => {
                     context.connection_counter.note_close_outbound_connection();
-                    panic!("{:?}", e);
+                    warn!("couldn't establish connection to node: {}", e.description());
                 }
             }
 
@@ -103,6 +107,8 @@ pub struct P2P {
 
 impl P2P {
     pub fn new(config: Config, handle: Handle) -> P2P {
+        trace!("p2p config: {:?}", config);
+
         let pool = CpuPool::new(config.threads);
         let remote = handle.remote().clone();
         P2P {
@@ -114,6 +120,8 @@ impl P2P {
 
     pub fn run<S>(&self, store: &S) -> Result<(), Error> where S: Store {
         type Request = <CryptoNoteHandshake as Command>::Request;
+
+        trace!("running p2p");
 
         for addr in self.context.config.peers.iter() {
             let req = Request {
