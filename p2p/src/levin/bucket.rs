@@ -1,5 +1,3 @@
-use std::io;
-
 use bytes::{ByteOrder, Buf, BufMut, BytesMut};
 
 use levin::{LevinResult, LevinError, BucketHeadError};
@@ -21,14 +19,8 @@ pub const LEVIN_PROTOCOL_VER_1: u32 = 1;
 /// Size in bytes of `BucketHead`.
 pub const BUCKET_HEAD_LENGTH: usize = 33;
 
+/// Ok return code.
 pub const LEVIN_OK: i32 = 0;
-pub const LEVIN_ERROR_CONNECTION: i32 = -1;
-pub const LEVIN_ERROR_CONNECTION_NOT_FOUND: i32 = -2;
-pub const LEVIN_ERROR_CONNECTION_DESTROYED: i32 = -3;
-pub const LEVIN_ERROR_CONNECTION_TIMEDOUT: i32 = -4;
-pub const LEVIN_ERROR_CONNECTION_NO_DUPLEX_PROTOCOL: i32 = -5;
-pub const LEVIN_ERROR_CONNECTION_HANDLER_NOT_DEFINED: i32 = -6;
-pub const LEVIN_ERROR_FORMAT: i32 = -7;
 
 /// Header of all the levin protocol operations.
 #[derive(Debug)]
@@ -78,7 +70,7 @@ impl BucketHead {
             return Err(BucketHeadError::TooBig(bucket_head.cb).into());
         }
 
-        if bucket_head.return_code < 0 {
+        if bucket_head.return_code != LEVIN_OK {
             return Err(BucketHeadError::ReturnCode(bucket_head.return_code).into());
         }
 
