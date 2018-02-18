@@ -64,9 +64,9 @@ impl Context {
         let connection = connect(&address, handle, context.clone(), req);
         Box::new(connection.then(move |result| {
             match result {
-                Ok(response) => {
+                Ok((_, response)) => {
                     match response {
-                        Ok((_stream, response)) => panic!("ok"),
+                        Ok(_response) => panic!("ok"),
                         Err(e) => {
                             context.connection_counter.note_close_outbound_connection();
                             warn!("node returned invalid data: {:?}", e);

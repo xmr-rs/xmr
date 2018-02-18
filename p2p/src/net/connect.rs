@@ -33,8 +33,8 @@ enum ConnectState {
         future: TcpStreamNew,
         request: Request,
     },
-    DoHandshake {
-        future: Invoke<CryptoNoteHandshake, TcpStream, DefaultEndian>,
+    InvokeHandshake {
+        future: Invoke<TcpStream>,
     }
 }
 
@@ -44,7 +44,7 @@ pub struct Connect {
 }
 
 impl Future for Connect {
-    type Item = Result<(TcpStream, Response), ConnectError>;
+    type Item = (TcpStream, Result<Response, ConnectError>);
     type Error = io::Error;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
@@ -52,26 +52,14 @@ impl Future for Connect {
             let next_state = match self.state {
                 ConnectState::TcpConnect { ref mut future, ref request } => {
                     let stream = try_ready!(future.poll());
-                    ConnectState::DoHandshake {
+                    ConnectState::InvokeHandshake {
                         future: invoke::<CryptoNoteHandshake, TcpStream, DefaultEndian>(stream, request),
                     }
                 },
-                ConnectState::DoHandshake { ref mut future } => {
-                    let (stream, response) = try_ready!(future.poll());
-                    if response.is_err() {
-                        return Ok(Err(response.map_err(|e| ConnectError::from(e)).unwrap_err()).into())
-                    }
-                    let response = response.unwrap();
-                    if response.node_data.network_id.0 != self.context.config.network.id() {
-                        let uuid = response.node_data.network_id.0;
-                        return Ok(Err(ConnectError::WrongNetwork(uuid)).into());
-                    }
+                ConnectState::InvokeHandshake { ref mut future } => {
+                    let stream = try_ready!(future.poll());
 
-                    if response.node_data.peer_id == self.context.peer_id {
-                        return Ok(Err(ConnectError::SamePeerId).into());
-                    }
-
-                    return Ok(Ok((stream, response)).into());
+                    return Ok((stream, Err(ConnectError::SamePeerId)).into())
                 },
             };
             self.state = next_state;
