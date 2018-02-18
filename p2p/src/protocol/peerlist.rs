@@ -7,7 +7,6 @@ use portable_storage::ser::{Serializable, ToUnderlying, Error, invalid_storage_e
 use portable_storage::StorageEntry;
 
 use protocol::Ipv4Address;
-use levin::DefaultEndian;
 
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct PeerId(u64);
