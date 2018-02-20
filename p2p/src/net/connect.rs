@@ -9,11 +9,26 @@ use tokio_core::net::{TcpStream, TcpStreamNew};
 use uuid::Uuid;
 
 use p2p::Context;
-use levin::{LevinError, DefaultEndian, Command, Invoke, invoke};
+use config::P2P_SUPPORT_FLAGS;
+
 use protocol::handshake::CryptoNoteHandshake;
+use protocol::request_support_flags::RequestSupportFlags;
+
+use levin::{
+    LevinError,
+    DefaultEndian,
+    Command,
+    Invoke,
+    Receive,
+    Response as LevinResponse,
+    invoke,
+    receive,
+    response,
+};
 
 pub type Request = <CryptoNoteHandshake as Command>::Request;
 pub type Response = <CryptoNoteHandshake as Command>::Response;
+type SupportFlagsResponse = <RequestSupportFlags as Command>::Response;
 
 pub fn connect(address: &SocketAddr,
                handle: &Handle,
@@ -28,6 +43,11 @@ pub fn connect(address: &SocketAddr,
     }
 }
 
+pub struct Connect {
+    state: ConnectState,
+    context: Arc<Context>,
+}
+
 enum ConnectState {
     TcpConnect {
         future: TcpStreamNew,
@@ -35,12 +55,13 @@ enum ConnectState {
     },
     InvokeHandshake {
         future: Invoke<TcpStream>,
+    },
+    ReceiveRequestSupportFlags {
+        future: Receive<TcpStream, DefaultEndian, RequestSupportFlags>,
+    },
+    SendSupportFlags {
+        future: LevinResponse<TcpStream>,
     }
-}
-
-pub struct Connect {
-    state: ConnectState,
-    context: Arc<Context>,
 }
 
 impl Future for Connect {
@@ -59,8 +80,29 @@ impl Future for Connect {
                 ConnectState::InvokeHandshake { ref mut future } => {
                     let stream = try_ready!(future.poll());
 
-                    return Ok((stream, Err(ConnectError::SamePeerId)).into())
+                    ConnectState::ReceiveRequestSupportFlags {
+                        future: receive(stream),
+                    }
                 },
+                ConnectState::ReceiveRequestSupportFlags { ref mut future } => {
+                    let (stream, request) = try_ready!(future.poll());
+                    if let Err(e) = request {
+                        return Ok((stream, Err(e.into())).into());
+                    }
+
+                    let res = SupportFlagsResponse {
+                        support_flags: P2P_SUPPORT_FLAGS,
+                    };
+
+                    ConnectState::SendSupportFlags {
+                        future: response::<TcpStream, DefaultEndian, RequestSupportFlags>(stream, res)
+                    }
+                },
+                ConnectState::SendSupportFlags { ref mut future } => {
+                    let stream = try_ready!(future.poll());
+
+                    return Ok((stream, Err(ConnectError::SamePeerId)).into())
+                }
             };
             self.state = next_state;
         }
