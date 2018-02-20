@@ -5,6 +5,7 @@ use ser::SerializableUuid;
 pub const P2P_COMMAND_BASE_ID: u32 = COMMAND_BASE_ID;
 
 pub mod handshake;
+pub mod request_support_flags;
 pub mod timedsync;
 
 pub mod peerlist;
