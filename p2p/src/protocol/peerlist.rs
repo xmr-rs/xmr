@@ -4,6 +4,7 @@ use rand::Rng;
 
 use portable_storage::ser::bytes::SerializeBytes;
 use portable_storage::ser::{Serializable, ToUnderlying, Error, invalid_storage_entry};
+use portable_storage::errors::UnexpectedEob;
 use portable_storage::StorageEntry;
 
 use protocol::Ipv4Address;
@@ -69,9 +70,9 @@ impl<A: Serializable + SerializeBytes> SerializeBytes for PeerlistEntryBase<A> {
         buf.put_i64::<T>(self.last_seen);
     }
 
-    fn from_bytes<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<PeerlistEntryBase<A>, ::failure::Error> {
+    fn from_bytes<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<PeerlistEntryBase<A>, UnexpectedEob> {
         let adr = A::from_bytes::<T, B>(buf)?;
-        assert!(buf.remaining() >= 16);
+        ensure_eob!(buf, 16);
         let id = buf.get_u64::<T>().into();
         let last_seen= buf.get_i64::<T>();
         Ok(PeerlistEntryBase { adr, id, last_seen })

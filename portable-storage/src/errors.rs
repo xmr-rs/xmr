@@ -1,7 +1,6 @@
 use std::fmt::{self, Debug, Display, Formatter};
-use failure::Error;
 
-pub type Result<T> = ::std::result::Result<T, Error>;
+pub type Result<T> = ::std::result::Result<T, UnexpectedEob>;
 
 #[derive(Debug, Clone, Copy, Fail)]
 pub struct UnexpectedEob {
@@ -21,6 +20,8 @@ impl Display for UnexpectedEob {
 #[macro_export]
 macro_rules! ensure_eob {
     ($buf:expr, $needed:expr) => {
-        ensure!($buf.remaining() >= $needed, $crate::errors::UnexpectedEob { needed: $needed });
+        if $buf.remaining() < $needed {
+            return Err($crate::errors::UnexpectedEob { needed: $needed });
+        }
     };
 }
