@@ -190,3 +190,21 @@ macro_rules! serializable {
         }
     };
 }
+
+// TODO: add test vector for `Empty`
+
+#[derive(Debug, Default)]
+pub struct Empty;
+
+impl Deserialize for Empty {
+    fn deserialize(_section: &Section) -> Result<Self, Error>
+    {
+        Ok(Empty)
+    }
+}
+
+impl Serialize for Empty {
+    fn serialize(&self) -> Section {
+        Section::new()
+    }
+}
