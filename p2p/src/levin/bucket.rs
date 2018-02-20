@@ -70,7 +70,7 @@ impl BucketHead {
             return Err(BucketHeadError::TooBig(bucket_head.cb).into());
         }
 
-        if bucket_head.return_code != LEVIN_OK {
+        if bucket_head.return_code < 0 {
             return Err(BucketHeadError::ReturnCode(bucket_head.return_code).into());
         }
 
