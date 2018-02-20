@@ -61,6 +61,9 @@ enum ConnectState {
     },
     SendSupportFlags {
         future: LevinResponse<TcpStream>,
+    },
+    ReceiveHandshakeResponse {
+        future: Receive<TcpStream, DefaultEndian, CryptoNoteHandshake>,
     }
 }
 
@@ -101,7 +104,27 @@ impl Future for Connect {
                 ConnectState::SendSupportFlags { ref mut future } => {
                     let stream = try_ready!(future.poll());
 
-                    return Ok((stream, Err(ConnectError::SamePeerId)).into())
+                    ConnectState::ReceiveHandshakeResponse {
+                        future: receive(stream),
+                    }
+                },
+                ConnectState::ReceiveHandshakeResponse { ref mut future } => {
+                    let (stream, response) = try_ready!(future.poll());
+
+                    let response = match response {
+                        Ok(rsp) => rsp,
+                        Err(e) => return Ok((stream, Err(e.into())).into()),
+                    };
+
+                    if response.node_data.network_id.0 != self.context.config.network.id() {
+                        return Ok((stream, Err(ConnectError::WrongNetwork(response.node_data.network_id.0))).into());
+                    }
+                    
+                    if response.node_data.peer_id == self.context.peer_id {
+                        return Ok((stream, Err(ConnectError::SamePeerId)).into());
+                    }
+
+                    return Ok((stream, Ok(response)).into());
                 }
             };
             self.state = next_state;
