@@ -21,6 +21,7 @@ pub fn receive<A, E, C>(a: A) -> Receive<A, E, C>
     where A: AsyncRead,
           E: ByteOrder,
           C: Command, {
+    trace!("receive - creating future");
     let buf = vec![0u8; BUCKET_HEAD_LENGTH];
     Receive {
         state: ReceiveState::ReadBucket {
@@ -58,6 +59,7 @@ impl<A, E, C> Future for Receive<A, E, C>
         loop {
             let next_state = match self.state {
                 ReceiveState::ReadBucket { ref mut reader } => {
+                    trace!("receive poll - reading bucket");
                     let (stream, buf, size) = try_ready!(reader.poll());
                     if buf.len() != size {
                         return Ok((stream, Err(LevinError::UnfinishedRead(buf.len()))).into());
@@ -81,6 +83,8 @@ impl<A, E, C> Future for Receive<A, E, C>
                     }
                 },
                 ReceiveState::ReadResponse { ref mut reader } => {
+                    trace!("receive poll - reading response");
+
                     let (stream, buf, size) = try_ready!(reader.poll());
                     if buf.len() != size {
                         return Ok((stream, Err(LevinError::UnfinishedRead(buf.len()))).into());

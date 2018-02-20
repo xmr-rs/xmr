@@ -19,6 +19,8 @@ pub fn invoke<C, A, E>(a: A, request: &C::Request) -> Invoke<A>
           A: AsyncWrite,
           E: ByteOrder,
 {
+    trace!("invoke - creating future");
+
     let section = request.serialize();
     let mut command_buf = BytesMut::new();
     portable_storage::write::<E>(&mut command_buf, &section);
@@ -41,6 +43,7 @@ impl<A> Future for Invoke<A> where A: AsyncWrite {
     type Error = io::Error;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+        trace!("invoke poll - writing");
         let (stream, _) = try_ready!(self.writer.poll());
         Ok(stream.into())
     }
