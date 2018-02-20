@@ -1,13 +1,13 @@
 [workspace]
 members = [
+    "chain",
+    "db",
     "dxmr",
     "hash",
-    "portable-storage",
-    "p2p",
-    "db",
-    "chain",
-    "serialization",
-    "network",
     "keys",
+    "network",
+    "p2p",
+    "portable-storage",
     "rct",
+    "serialization",
 ]
