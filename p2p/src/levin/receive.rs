@@ -1,25 +1,25 @@
 use std::io;
 use std::marker::PhantomData;
 
-use bytes::{ByteOrder, IntoBuf};
+use bytes::IntoBuf;
 use futures::{Future, Poll};
 
 use tokio_io::AsyncRead;
 use tokio_io::io::{Read, read};
 
-use portable_storage::{self, Deserialize};
+use portable_storage;
 
 use levin::{
     BUCKET_HEAD_LENGTH,
     BucketHead,
     Command,
+    Storage,
     LevinResult,
     LevinError,
 };
 
-pub fn receive<A, E, C>(a: A) -> Receive<A, E, C>
+pub fn receive<A, C>(a: A) -> Receive<A, C>
     where A: AsyncRead,
-          E: ByteOrder,
           C: Command, {
     trace!("receive - creating future");
     let buf = vec![0u8; BUCKET_HEAD_LENGTH];
@@ -32,9 +32,9 @@ pub fn receive<A, E, C>(a: A) -> Receive<A, E, C>
 }
 
 #[derive(Debug)]
-pub struct Receive<A: AsyncRead, E: ByteOrder, C: Command> {
+pub struct Receive<A: AsyncRead, C: Command> {
     state: ReceiveState<A>,
-    _phantom_data: PhantomData<(E, C)>,
+    _phantom_data: PhantomData<C>,
 }
 
 #[derive(Debug)]
@@ -47,9 +47,8 @@ enum ReceiveState<A> {
     },
 }
 
-impl<A, E, C> Future for Receive<A, E, C>
+impl<A, C> Future for Receive<A, C>
     where A: AsyncRead,
-          E: ByteOrder,
           C: Command,
 {
     type Item = (A, LevinResult<C::Response>);
@@ -66,7 +65,7 @@ impl<A, E, C> Future for Receive<A, E, C>
                     }
 
                     let mut buf = buf.into_buf();
-                    let bucket_head = match BucketHead::read::<E, _>(&mut buf) { 
+                    let bucket_head = match BucketHead::read(&mut buf) { 
                         Ok(b) => b,
                         Err(e) => {
                             return Ok((stream, Err(e)).into());
@@ -91,8 +90,8 @@ impl<A, E, C> Future for Receive<A, E, C>
                     }
 
                     let mut buf = buf.into_buf();
-                    let section = portable_storage::read::<E, _>(&mut buf).unwrap();
-                    let response = C::Response::deserialize(&section).unwrap();
+                    let section = portable_storage::read(&mut buf).unwrap();
+                    let response = C::Response::from_section(section).unwrap();
 
                     return Ok((stream, Ok(response)).into())
                 },

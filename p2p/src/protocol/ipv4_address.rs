@@ -1,35 +1,33 @@
-use bytes::{BytesMut, Buf, BufMut, ByteOrder};
+use bytes::{BytesMut, Buf, BufMut, IntoBuf, LittleEndian};
 
-use portable_storage::ser::bytes::SerializeBytes;
-use portable_storage::errors::UnexpectedEob;
+use portable_storage_utils::stl::{StlElement, Error};
 
 /// An IPv4 address
-#[derive(Debug, Default, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Hash)]
 pub struct Ipv4Address {
     pub ip: u32,
     pub port: u16,
 }
 
-serializable! {
-    Ipv4Address {
-        ip,
-        port,
-    }
-}
+impl StlElement for Ipv4Address {
+    const LENGTH: usize = 4 + 2;
 
-impl SerializeBytes for Ipv4Address {
-    fn to_bytes<T: ByteOrder>(&self, buf: &mut BytesMut) {
-        buf.reserve(6);
-        buf.put_u32::<T>(self.ip);
-        buf.put_u16::<T>(self.port);
-    }
+    fn from_bytes(v: &[u8]) -> Result<Ipv4Address, Error> {
+        if v.len() != Self::LENGTH {
+            return Err(Error::InvalidLength(v.len()))
+        }
 
-    fn from_bytes<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<Ipv4Address, UnexpectedEob> {
-        ensure_eob!(buf, 6);
+        let mut buf = v.into_buf();
 
         Ok(Ipv4Address {
-            ip: buf.get_u32::<T>(),
-            port: buf.get_u16::<T>(),
+            ip: buf.get_u32::<LittleEndian>(),
+            port: buf.get_u16::<LittleEndian>(),
         })
+    }
+
+    fn to_bytes(&self, buf: &mut BytesMut) {
+        buf.reserve(Self::LENGTH);
+        buf.put_u32::<LittleEndian>(self.ip);
+        buf.put_u16::<LittleEndian>(self.port);
     }
 }

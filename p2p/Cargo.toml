@@ -5,6 +5,7 @@ authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 
 [dependencies]
 portable-storage = { path = "../portable-storage" }
+portable-storage-utils = { path = "../portable-storage-utils" }
 network = { path = "../network" }
 hash = { path = "../hash" }
 db = { path = "../db" }
@@ -19,3 +20,6 @@ bytes = "0.4.6"
 failure = "0.1.1"
 rand = "0.4.2"
 log = "0.4.1"
+
+serde = "1.0.27"
+serde_derive = "1.0.27"

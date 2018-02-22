@@ -1,10 +1,11 @@
 [package]
-name = "hash"
+name = "portable-storage-utils"
 version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 
 [dependencies]
-serialization = { path = "../serialization" }
-
-bytes = "0.4.6"
+uuid = "0.5.1"
 serde = "1.0.27"
+bytes = "0.4.6"
+failure = "0.1.1"
+failure_derive = "0.1.1"

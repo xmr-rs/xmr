@@ -17,7 +17,7 @@ use net::{connect, ConnectionCounter};
 use levin::Command;
 use cryptonote::CoreSyncData;
 use protocol::BasicNodeData;
-use protocol::handshake::CryptoNoteHandshake;
+use protocol::handshake::Handshake;
 
 pub type BoxedEmptyFuture = Box<Future<Item=(), Error=()> + Send>;
 
@@ -47,7 +47,7 @@ impl Context {
 
     pub fn connect(context: Arc<Context>,
                    address: SocketAddr,
-                   req: <CryptoNoteHandshake as Command>::Request) {
+                   req: <Handshake as Command>::Request) {
         trace!("connect request: {:?}" , req);
         trace!("connect address: {:?}", address);
 
@@ -60,7 +60,7 @@ impl Context {
     pub fn connect_future(context: Arc<Context>,
                           handle: &Handle,
                           address: SocketAddr,
-                          req: <CryptoNoteHandshake as Command>::Request) -> BoxedEmptyFuture {
+                          req: <Handshake as Command>::Request) -> BoxedEmptyFuture {
         let connection = connect(&address, handle, context.clone(), req);
         Box::new(connection.then(move |result| {
             match result {
@@ -119,7 +119,7 @@ impl P2P {
     }
 
     pub fn run<S>(&self, store: &S) -> Result<(), Error> where S: Store {
-        type Request = <CryptoNoteHandshake as Command>::Request;
+        type Request = <Handshake as Command>::Request;
 
         trace!("running p2p");
 

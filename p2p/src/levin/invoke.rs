@@ -3,30 +3,30 @@ use std::io;
 use futures::{Future, Poll};
 use tokio_io:: AsyncWrite;
 use tokio_io::io::{WriteAll, write_all};
-use bytes::{BytesMut, ByteOrder};
+use bytes::BytesMut;
 
-use portable_storage::{self, Serialize};
+use portable_storage;
 
 use levin::{
     Command,
+    Storage,
     BucketHead,
     invoke_bucket,
 };
 
 /// Invoke a command.
-pub fn invoke<C, A, E>(a: A, request: &C::Request) -> Invoke<A>
+pub fn invoke<C, A>(a: A, request: &C::Request) -> Invoke<A>
     where C: Command,
           A: AsyncWrite,
-          E: ByteOrder,
 {
     trace!("invoke - creating future");
 
-    let section = request.serialize();
+    let section = request.to_section().unwrap();
     let mut command_buf = BytesMut::new();
-    portable_storage::write::<E>(&mut command_buf, &section);
+    portable_storage::write(&mut command_buf, &section);
 
     let mut buf = BytesMut::new();
-    BucketHead::write::<E>(&mut buf, invoke_bucket(C::ID, command_buf.len()));
+    BucketHead::write(&mut buf, invoke_bucket(C::ID, command_buf.len()));
     buf.unsplit(command_buf);
 
     Invoke {

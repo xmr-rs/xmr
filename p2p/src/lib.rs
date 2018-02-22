@@ -1,5 +1,5 @@
-#[macro_use]
 extern crate portable_storage;
+extern crate portable_storage_utils;
 extern crate network;
 extern crate failure;
 extern crate bytes;
@@ -7,6 +7,10 @@ extern crate uuid;
 extern crate rand;
 extern crate hash;
 extern crate db;
+
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 
 #[macro_use]
 extern crate futures;
@@ -20,7 +24,6 @@ extern crate log;
 pub mod event_loop;
 pub mod protocol;
 pub mod cryptonote;
-pub mod ser;
 pub mod p2p;
 pub mod net;
 pub mod config;

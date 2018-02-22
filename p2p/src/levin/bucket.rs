@@ -1,4 +1,4 @@
-use bytes::{ByteOrder, Buf, BufMut, BytesMut};
+use bytes::{Buf, BufMut, BytesMut, LittleEndian};
 
 use levin::{LevinResult, LevinError, BucketHeadError};
 
@@ -43,19 +43,19 @@ pub struct BucketHead {
 
 impl BucketHead {
     /// Read a `BucketHead` from a buffer.
-    pub fn read<T: ByteOrder, B: Buf>(buf: &mut B) -> LevinResult<Self> {
+    pub fn read<B: Buf>(buf: &mut B) -> LevinResult<Self> {
         if buf.remaining() < BUCKET_HEAD_LENGTH {
             return Err(LevinError::UnexpectedEob);
         }
 
         let bucket_head = BucketHead {
-            signature: buf.get_u64::<T>(),
-            cb: buf.get_u64::<T>(),
+            signature: buf.get_u64::<LittleEndian>(),
+            cb: buf.get_u64::<LittleEndian>(),
             have_to_return_data: buf.get_u8() != 0,
-            command: buf.get_u32::<T>(),
-            return_code: buf.get_i32::<T>(),
-            flags: buf.get_u32::<T>(),
-            protocol_version: buf.get_u32::<T>(),
+            command: buf.get_u32::<LittleEndian>(),
+            return_code: buf.get_i32::<LittleEndian>(),
+            flags: buf.get_u32::<LittleEndian>(),
+            protocol_version: buf.get_u32::<LittleEndian>(),
         };
 
         if bucket_head.signature != LEVIN_SIGNATURE { 
@@ -78,16 +78,16 @@ impl BucketHead {
     }
 
     /// Write a `BucketHead` to a buffer.
-    pub fn write<T: ByteOrder>(buf: &mut BytesMut, bucket_head: BucketHead) {
+    pub fn write(buf: &mut BytesMut, bucket_head: BucketHead) {
         buf.reserve(BUCKET_HEAD_LENGTH);
 
-        buf.put_u64::<T>(bucket_head.signature);
-        buf.put_u64::<T>(bucket_head.cb);
+        buf.put_u64::<LittleEndian>(bucket_head.signature);
+        buf.put_u64::<LittleEndian>(bucket_head.cb);
         buf.put_u8(if bucket_head.have_to_return_data { 1u8 } else { 0u8 });
-        buf.put_u32::<T>(bucket_head.command);
-        buf.put_i32::<T>(bucket_head.return_code);
-        buf.put_u32::<T>(bucket_head.flags);
-        buf.put_u32::<T>(bucket_head.protocol_version);
+        buf.put_u32::<LittleEndian>(bucket_head.command);
+        buf.put_i32::<LittleEndian>(bucket_head.return_code);
+        buf.put_u32::<LittleEndian>(bucket_head.flags);
+        buf.put_u32::<LittleEndian>(bucket_head.protocol_version);
     }
 }
 

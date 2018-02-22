@@ -11,12 +11,11 @@ use uuid::Uuid;
 use p2p::Context;
 use config::P2P_SUPPORT_FLAGS;
 
-use protocol::handshake::CryptoNoteHandshake;
+use protocol::handshake::Handshake;
 use protocol::request_support_flags::RequestSupportFlags;
 
 use levin::{
     LevinError,
-    DefaultEndian,
     Command,
     Invoke,
     Receive,
@@ -26,8 +25,8 @@ use levin::{
     response,
 };
 
-pub type Request = <CryptoNoteHandshake as Command>::Request;
-pub type Response = <CryptoNoteHandshake as Command>::Response;
+pub type Request = <Handshake as Command>::Request;
+pub type Response = <Handshake as Command>::Response;
 type SupportFlagsResponse = <RequestSupportFlags as Command>::Response;
 
 pub fn connect(address: &SocketAddr,
@@ -57,13 +56,13 @@ enum ConnectState {
         future: Invoke<TcpStream>,
     },
     ReceiveRequestSupportFlags {
-        future: Receive<TcpStream, DefaultEndian, RequestSupportFlags>,
+        future: Receive<TcpStream, RequestSupportFlags>,
     },
     SendSupportFlags {
         future: LevinResponse<TcpStream>,
     },
     ReceiveHandshakeResponse {
-        future: Receive<TcpStream, DefaultEndian, CryptoNoteHandshake>,
+        future: Receive<TcpStream, Handshake>,
     }
 }
 
@@ -77,7 +76,7 @@ impl Future for Connect {
                 ConnectState::TcpConnect { ref mut future, ref request } => {
                     let stream = try_ready!(future.poll());
                     ConnectState::InvokeHandshake {
-                        future: invoke::<CryptoNoteHandshake, TcpStream, DefaultEndian>(stream, request),
+                        future: invoke::<Handshake, TcpStream>(stream, request),
                     }
                 },
                 ConnectState::InvokeHandshake { ref mut future } => {
@@ -98,7 +97,7 @@ impl Future for Connect {
                     };
 
                     ConnectState::SendSupportFlags {
-                        future: response::<TcpStream, DefaultEndian, RequestSupportFlags>(stream, res)
+                        future: response::<TcpStream, RequestSupportFlags>(stream, res)
                     }
                 },
                 ConnectState::SendSupportFlags { ref mut future } => {

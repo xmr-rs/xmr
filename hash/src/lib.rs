@@ -1,7 +1,6 @@
 extern crate serialization;
 
 extern crate bytes;
-extern crate failure;
 extern crate serde;
 
 use std::io::Cursor;

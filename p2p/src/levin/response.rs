@@ -1,32 +1,32 @@
 use std::io;
 
-use bytes::{ByteOrder, BytesMut};
+use bytes::BytesMut;
 use futures::{Future, Poll};
 
 use tokio_io::AsyncWrite;
 use tokio_io::io::{WriteAll, write_all};
 
-use portable_storage::{self, Serialize};
+use portable_storage;
 
 use levin::{
     BUCKET_HEAD_LENGTH,
     BucketHead,
     Command,
+    Storage,
     response_bucket,
 };
 
-pub fn response<A, E, C>(a: A, response: C::Response) -> Response<A>
+pub fn response<A, C>(a: A, response: C::Response) -> Response<A>
     where A: AsyncWrite,
-          E: ByteOrder,
           C: Command, {
     trace!("response - creating future");
-    let section = response.serialize();
+    let section = response.to_section().unwrap();
 
     let mut response_buf = BytesMut::new();
-    portable_storage::write::<E>(&mut response_buf, &section);
+    portable_storage::write(&mut response_buf, &section);
 
     let mut buf = BytesMut::with_capacity(BUCKET_HEAD_LENGTH);
-    BucketHead::write::<E>(&mut buf, response_bucket(C::ID, response_buf.len()));
+    BucketHead::write(&mut buf, response_bucket(C::ID, response_buf.len()));
 
     // XXX: unsplit is a bad and confusing name. In this context it mean's
     // "concatenate".
