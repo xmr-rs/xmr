@@ -2,16 +2,26 @@ extern crate linked_hash_map;
 extern crate bytes;
 
 #[macro_use]
-extern crate failure_derive;
+extern crate serde;
+#[cfg_attr(test, macro_use)]
+#[cfg(test)]
+extern crate serde_derive;
 
 #[macro_use]
 pub extern crate failure;
+#[macro_use]
+extern crate failure_derive;
+
+use std::ops::Index;
 
 use linked_hash_map::LinkedHashMap;
 use bytes::{Buf, BufMut, BytesMut, ByteOrder};
 
 pub mod ser;
-pub use ser::{Deserialize, Serialize};
+pub mod de;
+
+pub use ser::to_section;
+pub use de::from_section;
 
 #[macro_use]
 pub mod errors;
@@ -35,7 +45,7 @@ const SERIALIZE_TYPE_OBJECT: u8 = 12;
 const SERIALIZE_TYPE_ARRAY: u8 = 13;
 const SERIALIZE_FLAG_ARRAY: u8 = 0x80;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum StorageEntry {
     U64(u64),
     U32(u32),
@@ -197,12 +207,67 @@ impl StorageEntry {
             }
         }
     }
+
+    fn serialize_type(&self) -> u8 {
+        use StorageEntry::*;
+
+        match *self {
+            U64(_) => { SERIALIZE_TYPE_UINT64 },
+            U32(_) => { SERIALIZE_TYPE_UINT32 },
+            U16(_) => { SERIALIZE_TYPE_UINT16 },
+            U8(_) => { SERIALIZE_TYPE_UINT8 },
+            I64(_) => { SERIALIZE_TYPE_INT64 },
+            I32(_) => { SERIALIZE_TYPE_INT32 },
+            I16(_) => { SERIALIZE_TYPE_INT16 },
+            I8(_) => { SERIALIZE_TYPE_INT8 },
+            Double(_) => { SERIALIZE_TYPE_DOUBLE },
+            Bool(_) => { SERIALIZE_TYPE_BOOL },
+            Buf(_) => { SERIALIZE_TYPE_STRING },
+            Array(_) => { SERIALIZE_TYPE_ARRAY },
+            Section(_) => { SERIALIZE_TYPE_OBJECT },
+        }
+    }
 }
 
-#[derive(Debug)]
-pub struct Array(pub Vec<StorageEntry>, pub u8);
+#[derive(Debug, Clone)]
+pub struct Array {
+    array: Vec<StorageEntry>,
+    serialize_type: Option<u8>,
+}
 
 impl Array {
+    pub fn new() -> Array {
+        Array {
+            array: Vec::new(),
+            serialize_type: None,
+        }
+    }
+
+    pub fn with_capacity(capacity: usize) -> Array {
+        Array {
+            array: Vec::with_capacity(capacity),
+            serialize_type: None,
+        }
+    }
+
+    pub fn push(&mut self, entry: StorageEntry) -> std::result::Result<(), ()> {
+        match self.serialize_type {
+            Some(serialize_type) => {
+                if serialize_type & SERIALIZE_FLAG_ARRAY != entry.serialize_type() {
+                    return Err(());
+                }
+            },
+            None => self.serialize_type = Some(entry.serialize_type() | SERIALIZE_FLAG_ARRAY),
+        }
+
+        self.array.push(entry);
+        Ok(())
+    }
+
+    pub fn into_iter(self) -> std::vec::IntoIter<StorageEntry> {
+        self.array.into_iter()
+    }
+
     fn read<T: ByteOrder, B: Buf>(buf: &mut B, mut serialize_type: u8) -> Result<Array> {
         let orig_serialize_type = serialize_type;
         if serialize_type & SERIALIZE_FLAG_ARRAY != SERIALIZE_FLAG_ARRAY {
@@ -214,11 +279,14 @@ impl Array {
 
         let size = raw_size::read::<T, B>(buf)?;
 
-        let mut array = Array(Vec::with_capacity(size), orig_serialize_type);
-        array.0.reserve(size);
+        let mut array = Array {
+            array: Vec::with_capacity(size),
+            serialize_type: Some(orig_serialize_type),
+        };
+        array.array.reserve(size);
 
         for _ in 0..size {
-            array.0.push(StorageEntry::read_entry_raw::<T, B>(buf, serialize_type)?);
+            array.array.push(StorageEntry::read_entry_raw::<T, B>(buf, serialize_type)?);
         }
 
         Ok(array)
@@ -226,14 +294,14 @@ impl Array {
 
     fn write<T: ByteOrder>(buf: &mut BytesMut, array: &Array) {
         buf.reserve(1);
-        buf.put_u8(array.1);
-        for entry in array.0.iter() {
+        buf.put_u8(array.serialize_type.unwrap());
+        for entry in array.array.iter() {
             StorageEntry::write::<T>(buf, &entry);
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Section {
     pub entries: LinkedHashMap<String, StorageEntry>,
 }
@@ -245,9 +313,24 @@ impl Section {
         }
     }
 
+    pub fn with_capacity(capacity: usize) -> Section {
+        Section {
+            entries: LinkedHashMap::with_capacity(capacity),
+        }
+    }
+
     /// Insernt an storage entry.
     pub fn insert<T: Into<StorageEntry>>(&mut self, name: String, entry: T) {
         self.entries.insert(name, entry.into());
+    }
+
+    /// Length of this section.
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn into_iter(self) -> linked_hash_map::IntoIter<String, StorageEntry> {
+        self.entries.into_iter()
     }
 
     fn read<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<Section> {
@@ -272,6 +355,14 @@ impl Section {
             write_name(buf, &*name);
             StorageEntry::write::<T>(buf, &entry);
         }
+    }
+}
+
+impl Index<&'static str> for Section {
+    type Output = StorageEntry;
+
+    fn index(&self, index: &'static str) -> &Self::Output {
+        &self.entries[index]
     }
 }
 

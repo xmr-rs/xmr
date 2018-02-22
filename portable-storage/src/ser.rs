@@ -1,210 +1,429 @@
-use {Section, StorageEntry};
+use serde::Serializer;
+use serde::ser::{Error as ErrorTrait, Impossible, Serialize, SerializeSeq, SerializeStruct};
+use serde::de::value::Error;
 
-pub mod bytes {
-    use bytes::{ByteOrder, BytesMut, Buf};
-    use Result;
+use {Section, Array, StorageEntry};
 
-    pub trait SerializeBytes: Sized {
-        fn to_bytes<T: ByteOrder>(&self, buf: &mut BytesMut);
-        fn from_bytes<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<Self>;
-    }
+pub fn to_section<T: Serialize>(v: &T) -> Result<Section, Error> {
+    v.serialize(RootSectionSerializer)
 }
 
-#[derive(Debug, Clone, Copy, Fail)]
-pub enum Error {
-    #[fail(display = "unexpected portable-storage entry, expected {}", expected)]
-    InvalidStorageEntry {
-        expected: &'static str,
-    },
-}
-
-pub fn invalid_storage_entry(expected: &'static str) -> Error {
-    Error::InvalidStorageEntry {
-        expected,
-    }
-}
-
-pub trait Serialize {
-    fn serialize(&self) -> Section;
-}
-
-pub trait Deserialize: Default {
-    fn deserialize(section: &Section) -> Result<Self, Error>;
-}
-
-pub trait ToUnderlying: Sized { 
-    fn to_underlying(entry: &StorageEntry) -> Result<Self, Error>;
-}
-
-pub trait Serializable: Sized + Deserialize + Serialize + Default + Clone + Into<StorageEntry> + ToUnderlying {}
-
-impl<T> Serializable for T where T: Sized + Deserialize + Serialize + Default + Clone + Into<StorageEntry> + ToUnderlying {}
-
-macro_rules! impl_to_underlying {
-    ($variant:path => $ty:ty) => {
-        impl $crate::ser::ToUnderlying for $ty {
-            fn to_underlying(entry: &$crate::StorageEntry) -> Result<$ty, $crate::ser::Error>
-            {
-                match entry {
-                    &$variant(ref v) => Ok(v.clone()),
-                    _ => Err(invalid_storage_entry(stringify!($variant)))
-                }
-            }
+macro_rules! unsupported {
+    ($method:ident, $ty:ty) => {
+        fn $method(self, _: $ty) -> Result<Self::Ok, Self::Error> {
+            Err(Error::custom(concat!("serializing a `", stringify!($ty), "` isn't supported")))
         }
     }
 }
 
-macro_rules! impl_from_for_storage_entry {
-    ($ty:ty => $entry:path) => {
-        impl From<$ty> for $crate::StorageEntry {
-            fn from(v: $ty) -> $crate::StorageEntry {
-                $entry(v)
-            }
+struct RootSectionSerializer;
+
+impl Serializer for RootSectionSerializer {
+    type Ok = Section;
+    type Error = Error;
+    type SerializeSeq = Impossible<Self::Ok, Self::Error>;
+    type SerializeTuple = Impossible<Self::Ok, Self::Error>;
+    type SerializeTupleStruct = Impossible<Self::Ok, Self::Error>;
+    type SerializeTupleVariant = Impossible<Self::Ok, Self::Error>;
+    type SerializeMap = Impossible<Self::Ok, Self::Error>;
+    type SerializeStruct = KvSerializer;
+    type SerializeStructVariant = Impossible<Self::Ok, Self::Error>;
+
+    unsupported!(serialize_bool, bool);
+    unsupported!(serialize_i8, i8);
+    unsupported!(serialize_i16, i16);
+    unsupported!(serialize_i32, i32);
+    unsupported!(serialize_i64, i64);
+    unsupported!(serialize_u8, u8);
+    unsupported!(serialize_u16, u16);
+    unsupported!(serialize_u32, u32);
+    unsupported!(serialize_u64, u64);
+    unsupported!(serialize_f32, f32);
+    unsupported!(serialize_f64, f64);
+    unsupported!(serialize_char, char);
+    unsupported!(serialize_str, &str);
+    unsupported!(serialize_bytes, &[u8]);
+
+    fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
+        Err(Error::custom("serializing `None` isn't supported"))
+    }
+
+    fn serialize_some<T: ?Sized>(
+            self, 
+            _value: &T
+        ) -> Result<Self::Ok, Self::Error>
+        where
+            T: Serialize {
+        Err(Error::custom("serializing `Some(_)` isn't supported"))
+    }
+
+    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
+        Err(Error::custom("serializing `()` isn't supported"))
+    }
+
+    fn serialize_unit_struct(self, _name: &'static str) -> Result<Self::Ok, Self::Error> {
+        Err(Error::custom("serializing `()` isn't supported"))
+    }
+
+    fn serialize_unit_variant(
+            self, 
+            _name: &'static str, 
+            _variant_index: u32, 
+            _variant: &'static str
+        ) -> Result<Self::Ok, Self::Error> {
+        Err(Error::custom("serializing `()` isn't supported"))
+    }
+
+    fn serialize_newtype_struct<T: ?Sized>(
+            self, 
+            _name: &'static str, 
+            _value: &T
+        ) -> Result<Self::Ok, Self::Error>
+        where
+            T: Serialize {
+        Err(Error::custom("serializing a newtype struct isn't supported"))
+    }
+
+    fn serialize_newtype_variant<T: ?Sized>(
+            self, 
+            _name: &'static str, 
+            _variant_index: u32, 
+            _variant: &'static str, 
+            _value: &T
+        ) -> Result<Self::Ok, Self::Error>
+        where
+            T: Serialize {
+        Err(Error::custom("serializing a newtype variant isn't supported"))
+    }
+
+
+    fn serialize_seq(
+        self, 
+        _len: Option<usize>
+    ) -> Result<Self::SerializeSeq, Self::Error> {
+        Err(Error::custom("serializing a sequence isn't supported"))
+    }
+
+    fn serialize_tuple(
+        self, 
+        _len: usize
+    ) -> Result<Self::SerializeTuple, Self::Error> {
+        Err(Error::custom("serializing a tuple isn't supported"))
+    }
+
+    fn serialize_tuple_struct(
+        self, 
+        _name: &'static str, 
+        _len: usize
+    ) -> Result<Self::SerializeTupleStruct, Self::Error> {;
+        Err(Error::custom("serializing a tuple struct isn't supported"))
+    }
+
+    fn serialize_tuple_variant(
+        self, 
+        _name: &'static str, 
+        _variant_index: u32, 
+        _variant: &'static str, 
+        _len: usize
+    ) -> Result<Self::SerializeTupleVariant, Self::Error> {
+        Err(Error::custom("serializing a tuple variant isn't supported"))
+    }
+
+    fn serialize_map(
+        self, 
+        _len: Option<usize>
+    ) -> Result<Self::SerializeMap, Self::Error> {
+        Err(Error::custom("serializing a map isn't supported"))
+    }
+
+    fn serialize_struct(
+        self, 
+        _name: &'static str, 
+        len: usize
+    ) -> Result<Self::SerializeStruct, Self::Error> {
+        Ok(KvSerializer(Section::with_capacity(len)))
+    }
+
+    fn serialize_struct_variant(
+        self, 
+        _name: &'static str, 
+        _variant_index: u32, 
+        _variant: &'static str, 
+        _len: usize
+    ) -> Result<Self::SerializeStructVariant, Self::Error> {
+        Err(Error::custom("serializing a struct variant isn't supported"))
+    }
+
+    fn is_human_readable(&self) -> bool { false }
+}
+
+struct KvSerializer(Section);
+
+impl SerializeStruct for KvSerializer {
+    type Ok = Section;
+    type Error = Error;
+
+    fn serialize_field<T: ?Sized>(
+        &mut self, 
+        key: &'static str, 
+        value: &T
+    ) -> Result<(), Self::Error>
+    where
+        T: Serialize {
+        let entry = value.serialize(StorageEntrySerializer)?;
+        self.0.insert(key.to_string(), entry);
+        Ok(())
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        Ok(self.0)
+    }
+
+    fn skip_field(&mut self, _key: &'static str) -> Result<(), Self::Error> {
+        Err(Error::custom("fields can't be skipped"))
+    }
+}
+
+struct ArraySerializer(Array);
+
+impl ArraySerializer {
+    fn push(&mut self, entry: StorageEntry) -> Result<(), Error> {
+        self.0.push(entry).map_err(|_| {
+            Error::custom("array entries need to be of the same type.")
+        })
+    }
+}
+
+impl SerializeSeq for ArraySerializer {
+    type Ok = StorageEntry;
+    type Error = Error;
+
+    fn serialize_element<T: ?Sized>(
+            &mut self, 
+            value: &T
+        ) -> Result<(), Self::Error>
+        where
+            T: Serialize {
+        let entry = value.serialize(StorageEntrySerializer)?;
+        self.push(entry)
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        Ok(StorageEntry::Array(self.0))
+    }
+}
+
+macro_rules! storage_entry {
+    ($method:ident, $ty:ty, $path:path) => {
+        fn $method(self, v: $ty) -> Result<Self::Ok, Self::Error> {
+            Ok($path(v))
         }
     }
 }
 
-impl_to_underlying!(StorageEntry::U64 => u64);
-impl_to_underlying!(StorageEntry::U32 => u32);
-impl_to_underlying!(StorageEntry::U16 => u16);
-impl_to_underlying!(StorageEntry::U8 => u8);
-impl_to_underlying!(StorageEntry::I64 => i64);
-impl_to_underlying!(StorageEntry::I32 => i32);
-impl_to_underlying!(StorageEntry::I16 => i16);
-impl_to_underlying!(StorageEntry::I8 => i8);
-impl_to_underlying!(StorageEntry::Double => f64);
-impl_to_underlying!(StorageEntry::Bool => bool);
-impl_to_underlying!(StorageEntry::Buf => Vec<u8>);
+struct EntryKvSerializer(Section);
 
-impl_from_for_storage_entry!(u64 => StorageEntry::U64);
-impl_from_for_storage_entry!(u32 => StorageEntry::U32);
-impl_from_for_storage_entry!(u16 => StorageEntry::U16);
-impl_from_for_storage_entry!(u8 => StorageEntry::U8);
-impl_from_for_storage_entry!(i64 => StorageEntry::I64);
-impl_from_for_storage_entry!(i32 => StorageEntry::I32);
-impl_from_for_storage_entry!(i16 => StorageEntry::I16);
-impl_from_for_storage_entry!(i8 => StorageEntry::I8);
-impl_from_for_storage_entry!(f64 => StorageEntry::Double);
-impl_from_for_storage_entry!(bool => StorageEntry::Bool);
-impl_from_for_storage_entry!(Vec<u8> => StorageEntry::Buf);
+impl SerializeStruct for EntryKvSerializer {
+    type Ok = StorageEntry;
+    type Error = Error;
 
-#[macro_export]
-macro_rules! serializable {
-    (
-        $struct_name:ident {
-            $($fname:ident ,)+
-        }
-    ) =>{
-        impl $crate::ser::Deserialize for $struct_name {
-            fn deserialize(section: &$crate::Section) -> Result<$struct_name, $crate::ser::Error>
-            {
-                let mut result = Self::default();
-                for (k, v) in section.entries.iter() {
-                    $(
-                        if k == stringify!($fname) {
-                            result.$fname = $crate::ser::ToUnderlying::to_underlying(v)?;
-                        }
-                    )+
-                }
-                Ok(result)
-            }
-        }
+    fn serialize_field<T: ?Sized>(
+        &mut self, 
+        key: &'static str, 
+        value: &T
+    ) -> Result<(), Self::Error>
+    where
+        T: Serialize {
+        let entry = value.serialize(StorageEntrySerializer)?;
+        self.0.insert(key.to_string(), entry);
+        Ok(())
+    }
 
-        impl $crate::ser::Serialize for $struct_name {
-            fn serialize(&self) -> $crate::Section {
-                let mut section = $crate::Section::new();
-                $(
-                    section.insert(stringify!($fname).to_string(), self.$fname.clone());
-                )+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        Ok(StorageEntry::Section(self.0))
+    }
 
-                section
-            }
-        }
-
-        impl From<$struct_name> for $crate::StorageEntry {
-            fn from(v: $struct_name) -> $crate::StorageEntry {
-                use $crate::ser::Serialize;
-                $crate::StorageEntry::Section(v.serialize())
-            }
-        }
-
-        impl $crate::ser::ToUnderlying for $struct_name {
-            fn to_underlying(entry: &$crate::StorageEntry) -> Result<$struct_name, $crate::ser::Error>
-            {
-                use $crate::ser::Deserialize;
-                match entry {
-                    &$crate::StorageEntry::Section(ref v) => Self::deserialize(v),
-                    _ => Err($crate::ser::invalid_storage_entry("StorageEntry::Section")),
-                }
-            }
-        }
-    };
-
-    (
-        $struct_name:ident<$tyargs:tt> where ($($tytraits:tt)+) {
-            $($fname:ident ,)+
-        }
-    ) =>{
-        impl<$($tytraits)+> $crate::ser::Deserialize for $struct_name<$tyargs> {
-            fn deserialize(section: &$crate::Section) -> Result<$struct_name<$tyargs>, $crate::ser::Error>
-            {
-                let mut result = Self::default();
-                for (k, v) in section.entries.iter() {
-                    $(
-                        if k == stringify!($fname) {
-                            result.$fname = $crate::ser::ToUnderlying::to_underlying(v)?;
-                        }
-                    )+
-                }
-                Ok(result)
-            }
-        }
-
-        impl<$($tytraits)+> $crate::ser::Serialize for $struct_name<$tyargs> {
-            fn serialize(&self) -> $crate::Section {
-                let mut section = $crate::Section::new();
-                $(
-                    section.insert(stringify!($fname).to_string(), self.$fname.clone());
-                )+
-
-                section
-            }
-        }
-
-        impl<$($tytraits)+> From<$struct_name<$tyargs>> for $crate::StorageEntry {
-            fn from(v: $struct_name<$tyargs>) -> $crate::StorageEntry {
-                use $crate::ser::Serialize;
-                $crate::StorageEntry::Section(v.serialize())
-            }
-        }
-
-        impl<$($tytraits)+> $crate::ser::ToUnderlying for $struct_name<$tyargs> {
-            fn to_underlying(entry: &$crate::StorageEntry) -> Result<$struct_name<$tyargs>, $crate::ser::Error>
-            {
-                use $crate::ser::Deserialize;
-                match entry {
-                    &$crate::StorageEntry::Section(ref v) => Self::deserialize(v),
-                    _ => Err($crate::ser::invalid_storage_entry("StorageEntry::Section")),
-                }
-            }
-        }
-    };
-}
-
-// TODO: add test vector for `Empty`
-
-#[derive(Debug, Default)]
-pub struct Empty;
-
-impl Deserialize for Empty {
-    fn deserialize(_section: &Section) -> Result<Self, Error>
-    {
-        Ok(Empty)
+    fn skip_field(&mut self, _key: &'static str) -> Result<(), Self::Error> {
+        Err(Error::custom("fields can't be skipped"))
     }
 }
 
-impl Serialize for Empty {
-    fn serialize(&self) -> Section {
-        Section::new()
+struct StorageEntrySerializer;
+
+impl Serializer for StorageEntrySerializer {
+    type Ok = StorageEntry;
+    type Error = Error;
+    type SerializeSeq = ArraySerializer;
+    type SerializeTuple = Impossible<Self::Ok, Self::Error>;
+    type SerializeTupleStruct = Impossible<Self::Ok, Self::Error>;
+    type SerializeTupleVariant = Impossible<Self::Ok, Self::Error>;
+    type SerializeMap = Impossible<Self::Ok, Self::Error>;
+    type SerializeStruct = EntryKvSerializer;
+    type SerializeStructVariant = Impossible<Self::Ok, Self::Error>;
+
+    storage_entry!(serialize_bool, bool, StorageEntry::Bool);
+    storage_entry!(serialize_i8, i8, StorageEntry::I8);
+    storage_entry!(serialize_i16, i16, StorageEntry::I16);
+    storage_entry!(serialize_i32, i32, StorageEntry::I32);
+    storage_entry!(serialize_i64, i64, StorageEntry::I64);
+    storage_entry!(serialize_u8, u8, StorageEntry::U8);
+    storage_entry!(serialize_u16, u16, StorageEntry::U16);
+    storage_entry!(serialize_u32, u32, StorageEntry::U32);
+    storage_entry!(serialize_u64, u64, StorageEntry::U64);
+    unsupported!(serialize_f32, f32);
+    storage_entry!(serialize_f64, f64, StorageEntry::Double);
+    unsupported!(serialize_char, char);
+    unsupported!(serialize_str, &str);
+
+    fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
+        Ok(StorageEntry::Buf(v.to_vec()))
+    }
+
+    fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
+        Err(Error::custom("serializing `None` isn't supported"))
+    }
+
+    fn serialize_some<T: ?Sized>(
+            self, 
+            _value: &T
+        ) -> Result<Self::Ok, Self::Error>
+        where
+            T: Serialize {
+        Err(Error::custom("serializing `Some(_)` isn't supported"))
+    }
+
+    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
+        Err(Error::custom("serializing `()` isn't supported"))
+    }
+
+    fn serialize_unit_struct(self, _name: &'static str) -> Result<Self::Ok, Self::Error> {
+        Err(Error::custom("serializing `()` isn't supported"))
+    }
+
+    fn serialize_unit_variant(
+            self, 
+            _name: &'static str, 
+            _variant_index: u32, 
+            _variant: &'static str
+        ) -> Result<Self::Ok, Self::Error> {
+        Err(Error::custom("serializing `()` isn't supported"))
+    }
+
+    fn serialize_newtype_struct<T: ?Sized>(
+            self, 
+            _name: &'static str, 
+            _value: &T
+        ) -> Result<Self::Ok, Self::Error>
+        where
+            T: Serialize {
+        Err(Error::custom("serializing a newtype struct isn't supported"))
+    }
+
+    fn serialize_newtype_variant<T: ?Sized>(
+            self, 
+            _name: &'static str, 
+            _variant_index: u32, 
+            _variant: &'static str, 
+            _value: &T
+        ) -> Result<Self::Ok, Self::Error>
+        where
+            T: Serialize {
+        Err(Error::custom("serializing a newtype variant isn't supported"))
+    }
+
+
+    fn serialize_seq(
+        self, 
+        len: Option<usize>
+    ) -> Result<Self::SerializeSeq, Self::Error> {
+        if let Some(len) = len {
+            Ok(ArraySerializer(Array::with_capacity(len)))
+        } else {
+            Ok(ArraySerializer(Array::new()))
+        }
+    }
+
+    fn serialize_tuple(
+        self, 
+        _len: usize
+    ) -> Result<Self::SerializeTuple, Self::Error> {
+        Err(Error::custom("serializing a tuple isn't supported"))
+    }
+
+    fn serialize_tuple_struct(
+        self, 
+        _name: &'static str, 
+        _len: usize
+    ) -> Result<Self::SerializeTupleStruct, Self::Error> {;
+        Err(Error::custom("serializing a tuple struct isn't supported"))
+    }
+
+    fn serialize_tuple_variant(
+        self, 
+        _name: &'static str, 
+        _variant_index: u32, 
+        _variant: &'static str, 
+        _len: usize
+    ) -> Result<Self::SerializeTupleVariant, Self::Error> {
+        Err(Error::custom("serializing a tuple variant isn't supported"))
+    }
+
+    fn serialize_map(
+        self, 
+        _len: Option<usize>
+    ) -> Result<Self::SerializeMap, Self::Error> {
+        Err(Error::custom("serializing a map isn't supported"))
+    }
+
+    fn serialize_struct(
+        self, 
+        _name: &'static str, 
+        len: usize
+    ) -> Result<Self::SerializeStruct, Self::Error> {
+        Ok(EntryKvSerializer(Section::with_capacity(len)))
+    }
+
+    fn serialize_struct_variant(
+        self, 
+        _name: &'static str, 
+        _variant_index: u32, 
+        _variant: &'static str, 
+        _len: usize
+    ) -> Result<Self::SerializeStructVariant, Self::Error> {
+        Err(Error::custom("serializing a struct variant isn't supported"))
+    }
+
+    fn is_human_readable(&self) -> bool { false }
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    use portable_storage::StorageEntry;
+
+    #[derive(Serialize)]
+    struct TestVector0 {
+        id: u8,
+        transaction_proof: u32,
+    }
+
+    #[test]
+    fn test_vector_0() {
+        let test_vector_0 = TestVector0 {
+            id: 56,
+            transaction_proof: 1337,
+        };
+
+        let section = to_section(&test_vector_0).unwrap();
+        match section["id"] {
+            StorageEntry::U8(56) => (),
+            _ => panic!(),
+        }
+
+        match section["transaction_proof"] {
+            StorageEntry::U32(1337) => (),
+            _ => panic!(),
+        }
     }
 }
