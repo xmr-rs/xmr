@@ -1,12 +1,11 @@
-extern crate portable_storage;
-extern crate failure;
-extern crate bytes;
 extern crate serialization;
+
+extern crate bytes;
+extern crate failure;
+extern crate serde;
 
 use std::io::Cursor;
 
-use portable_storage::ser::{ToUnderlying, Error, invalid_storage_entry};
-use portable_storage::StorageEntry;
 use serialization::deserializer::{Deserialize, Deserializer, DeserializeBlob};
 use serialization::serializer::{Serialize, Serializer};
 use bytes::Buf;
@@ -43,21 +42,36 @@ impl From<[u8; 32]> for H256 {
     }
 }
 
-impl ToUnderlying for H256 {
-    fn to_underlying(entry: &StorageEntry) -> Result<H256, Error> {
-        match entry {
-            &StorageEntry::Buf(ref v) => {
-                // TODO: Add error handling, this panics on invalid slice length
-                Ok(H256::from_bytes(v))
+impl<'de> serde::Deserialize<'de> for H256 {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: serde::Deserializer<'de>
+    {
+        impl<'de> serde::de::Visitor<'de> for H256 {
+            type Value = H256;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(formatter, "a {} bytes slice", H256_LENGTH)
             }
-            _ => Err(invalid_storage_entry("StorageEntry::Buf"))
+
+            fn visit_bytes<E>(mut self, v: &[u8]) -> Result<Self::Value, E>
+                where E: serde::de::Error {
+                if v.len() != H256_LENGTH {
+                    Err(E::custom(format!("slice length isn't {} bytes", H256_LENGTH)))
+                } else {
+                    self.0.copy_from_slice(v);
+                    Ok(self)
+                }
+            }
         }
+        deserializer.deserialize_bytes(H256::default())
     }
 }
 
-impl From<H256> for StorageEntry {
-    fn from(v: H256) -> StorageEntry {
-        StorageEntry::Buf(v.as_bytes().to_vec())
+impl serde::Serialize for H256 {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: serde::Serializer
+    {
+        serializer.serialize_bytes(&self.0)
     }
 }
 
