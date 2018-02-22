@@ -15,7 +15,7 @@ extern crate failure_derive;
 use std::ops::Index;
 
 use linked_hash_map::LinkedHashMap;
-use bytes::{Buf, BufMut, BytesMut, ByteOrder};
+use bytes::{Buf, BufMut, BytesMut, LittleEndian};
 
 pub mod ser;
 pub mod de;
@@ -63,29 +63,29 @@ pub enum StorageEntry {
 }
 
 impl StorageEntry {
-    fn read<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<StorageEntry> {
+    fn read<B: Buf>(buf: &mut B) -> Result<StorageEntry> {
         let serialize_type = buf.get_u8();
         if serialize_type & SERIALIZE_FLAG_ARRAY == SERIALIZE_FLAG_ARRAY {
-            let arr = Array::read::<T, B>(buf, serialize_type)?;
+            let arr = Array::read::<B>(buf, serialize_type)?;
             return Ok(StorageEntry::Array(arr));
         }
 
-        Self::read_entry_raw::<T, B>(buf, serialize_type)
+        Self::read_entry_raw::<B>(buf, serialize_type)
     }
 
-    fn read_entry_raw<T: ByteOrder, B: Buf>(buf: &mut B, serialize_type: u8) -> Result<StorageEntry> {
+    fn read_entry_raw<B: Buf>(buf: &mut B, serialize_type: u8) -> Result<StorageEntry> {
         let entry = match serialize_type {
             SERIALIZE_TYPE_INT64 => {
                 ensure_eob!(buf, 8);
-                StorageEntry::I64(buf.get_i64::<T>())
+                StorageEntry::I64(buf.get_i64::<LittleEndian>())
             },
             SERIALIZE_TYPE_INT32 => {
                 ensure_eob!(buf, 4);
-                StorageEntry::I32(buf.get_i32::<T>())
+                StorageEntry::I32(buf.get_i32::<LittleEndian>())
             },
             SERIALIZE_TYPE_INT16 => {
                 ensure_eob!(buf, 2);
-                StorageEntry::I16(buf.get_i16::<T>())
+                StorageEntry::I16(buf.get_i16::<LittleEndian>())
             },
             SERIALIZE_TYPE_INT8 => {
                 ensure_eob!(buf, 1);
@@ -93,15 +93,15 @@ impl StorageEntry {
             },
             SERIALIZE_TYPE_UINT64 => {
                 ensure_eob!(buf, 8);
-                StorageEntry::U64(buf.get_u64::<T>())
+                StorageEntry::U64(buf.get_u64::<LittleEndian>())
             },
             SERIALIZE_TYPE_UINT32 => {
                 ensure_eob!(buf, 4);
-                StorageEntry::U32(buf.get_u32::<T>())
+                StorageEntry::U32(buf.get_u32::<LittleEndian>())
             },
             SERIALIZE_TYPE_UINT16 => {
                 ensure_eob!(buf, 2);
-                StorageEntry::U16(buf.get_u16::<T>())
+                StorageEntry::U16(buf.get_u16::<LittleEndian>())
             },
             SERIALIZE_TYPE_UINT8 => {
                 ensure_eob!(buf, 1);
@@ -109,10 +109,10 @@ impl StorageEntry {
             },
             SERIALIZE_TYPE_DOUBLE => {
                 ensure_eob!(buf, 8);
-                StorageEntry::Double(buf.get_f64::<T>())
+                StorageEntry::Double(buf.get_f64::<LittleEndian>())
             },
             SERIALIZE_TYPE_STRING => {
-                let b = read_buf::<T, B>(buf)?;
+                let b = read_buf::<B>(buf)?;
                 StorageEntry::Buf(b)
             },
             SERIALIZE_TYPE_BOOL => {
@@ -120,7 +120,7 @@ impl StorageEntry {
                 StorageEntry::Bool(buf.get_u8() != 0)
             },
             SERIALIZE_TYPE_OBJECT => {
-                StorageEntry::Section(Section::read::<T, B>(buf)?)
+                StorageEntry::Section(Section::read::<B>(buf)?)
             },
             SERIALIZE_TYPE_ARRAY => {
                 ensure_eob!(buf, 1);
@@ -129,7 +129,7 @@ impl StorageEntry {
                     panic!();
                 }
 
-                let arr = Array::read::<T, B>(buf, serialize_type)?;
+                let arr = Array::read::<B>(buf, serialize_type)?;
                 StorageEntry::Array(arr)
             },
             _ => panic!(), // TODO: failure
@@ -138,93 +138,91 @@ impl StorageEntry {
         Ok(entry)
     }
 
-    fn write<T: ByteOrder>(buf: &mut BytesMut, entry: &Self) {
-        match entry {
-            &StorageEntry::U64(ref v) => {
+    fn write(buf: &mut BytesMut, entry: &Self) {
+        match *entry {
+            StorageEntry::U64(ref v) => {
                 buf.reserve(9);
                 buf.put_u8(SERIALIZE_TYPE_UINT64);
-                buf.put_u64::<T>(*v);
+                buf.put_u64::<LittleEndian>(*v);
             },
-            &StorageEntry::U32(ref v) => {
+            StorageEntry::U32(ref v) => {
                 buf.reserve(5);
                 buf.put_u8(SERIALIZE_TYPE_UINT32);
-                buf.put_u32::<T>(*v);
+                buf.put_u32::<LittleEndian>(*v);
             },
-            &StorageEntry::U16(ref v) => {
+            StorageEntry::U16(ref v) => {
                 buf.reserve(3);
                 buf.put_u8(SERIALIZE_TYPE_UINT16);
-                buf.put_u16::<T>(*v);
+                buf.put_u16::<LittleEndian>(*v);
             },
-            &StorageEntry::U8(ref v) => {
+            StorageEntry::U8(ref v) => {
                 buf.reserve(2);
                 buf.put_u8(SERIALIZE_TYPE_UINT8);
                 buf.put_u8(*v);
             },
-            &StorageEntry::I64(ref v) => {
+            StorageEntry::I64(ref v) => {
                 buf.reserve(9);
                 buf.put_u8(SERIALIZE_TYPE_INT64);
-                buf.put_i64::<T>(*v);
+                buf.put_i64::<LittleEndian>(*v);
             },
-            &StorageEntry::I32(ref v) => {
+            StorageEntry::I32(ref v) => {
                 buf.reserve(5);
                 buf.put_u8(SERIALIZE_TYPE_INT32);
-                buf.put_i32::<T>(*v);
+                buf.put_i32::<LittleEndian>(*v);
             },
-            &StorageEntry::I16(ref v) => {
+            StorageEntry::I16(ref v) => {
                 buf.reserve(3);
                 buf.put_u8(SERIALIZE_TYPE_INT16);
-                buf.put_i16::<T>(*v);
+                buf.put_i16::<LittleEndian>(*v);
             },
-            &StorageEntry::I8(ref v) => {
+            StorageEntry::I8(ref v) => {
                 buf.reserve(2);
                 buf.put_u8(SERIALIZE_TYPE_INT8);
                 buf.put_i8(*v);
             },
-            &StorageEntry::Double(ref v) => {
+            StorageEntry::Double(ref v) => {
                 buf.reserve(9);
                 buf.put_u8(SERIALIZE_TYPE_DOUBLE);
-                buf.put_f64::<T>(*v);
+                buf.put_f64::<LittleEndian>(*v);
             },
-            &StorageEntry::Bool(ref v) => {
+            StorageEntry::Bool(ref v) => {
                 buf.reserve(2);
                 buf.put_u8(SERIALIZE_TYPE_BOOL);
                 buf.put_u8(if *v == false { 0 } else { 1 });
             },
-            &StorageEntry::Buf(ref v) => {
+            StorageEntry::Buf(ref v) => {
                 buf.reserve(1);
                 buf.put_u8(SERIALIZE_TYPE_STRING);
-                write_buf::<T>(buf, v);
+                write_buf(buf, v);
             },
-            &StorageEntry::Array(ref v) => {
+            StorageEntry::Array(ref v) => {
                 buf.reserve(1);
                 buf.put_u8(SERIALIZE_TYPE_ARRAY);
-                Array::write::<T>(buf, v);
-            }
-            &StorageEntry::Section(ref v) => {
+                Array::write(buf, v);
+            },
+            StorageEntry::Section(ref v) => {
                 buf.reserve(1);
                 buf.put_u8(SERIALIZE_TYPE_OBJECT);
-                Section::write::<T>(buf, v);
-            }
+                Section::write(buf, v);
+            },
         }
     }
 
     fn serialize_type(&self) -> u8 {
-        use StorageEntry::*;
-
         match *self {
-            U64(_) => { SERIALIZE_TYPE_UINT64 },
-            U32(_) => { SERIALIZE_TYPE_UINT32 },
-            U16(_) => { SERIALIZE_TYPE_UINT16 },
-            U8(_) => { SERIALIZE_TYPE_UINT8 },
-            I64(_) => { SERIALIZE_TYPE_INT64 },
-            I32(_) => { SERIALIZE_TYPE_INT32 },
-            I16(_) => { SERIALIZE_TYPE_INT16 },
-            I8(_) => { SERIALIZE_TYPE_INT8 },
-            Double(_) => { SERIALIZE_TYPE_DOUBLE },
-            Bool(_) => { SERIALIZE_TYPE_BOOL },
-            Buf(_) => { SERIALIZE_TYPE_STRING },
-            Array(_) => { SERIALIZE_TYPE_ARRAY },
-            Section(_) => { SERIALIZE_TYPE_OBJECT },
+            StorageEntry::U64(_) => { SERIALIZE_TYPE_UINT64 },
+            StorageEntry::U32(_) => { SERIALIZE_TYPE_UINT32 },
+            StorageEntry::U16(_) => { SERIALIZE_TYPE_UINT16 },
+            StorageEntry::U8(_) => { SERIALIZE_TYPE_UINT8 },
+            StorageEntry::I64(_) => { SERIALIZE_TYPE_INT64 },
+            StorageEntry::I32(_) => { SERIALIZE_TYPE_INT32 },
+            StorageEntry::I16(_) => { SERIALIZE_TYPE_INT16 },
+            StorageEntry::I8(_) => { SERIALIZE_TYPE_INT8 },
+            StorageEntry::Double(_) => { SERIALIZE_TYPE_DOUBLE },
+            StorageEntry::Bool(_) => { SERIALIZE_TYPE_BOOL },
+            StorageEntry::Buf(_) => { SERIALIZE_TYPE_STRING },
+            StorageEntry::Array(_) => { SERIALIZE_TYPE_ARRAY },
+            StorageEntry::Section(_) => { SERIALIZE_TYPE_OBJECT },
         }
     }
 }
@@ -268,7 +266,7 @@ impl Array {
         self.array.into_iter()
     }
 
-    fn read<T: ByteOrder, B: Buf>(buf: &mut B, mut serialize_type: u8) -> Result<Array> {
+    fn read<B: Buf>(buf: &mut B, mut serialize_type: u8) -> Result<Array> {
         let orig_serialize_type = serialize_type;
         if serialize_type & SERIALIZE_FLAG_ARRAY != SERIALIZE_FLAG_ARRAY {
             // TODO: failure
@@ -277,7 +275,7 @@ impl Array {
             serialize_type &= !SERIALIZE_FLAG_ARRAY;
         }
 
-        let size = raw_size::read::<T, B>(buf)?;
+        let size = raw_size::read::<B>(buf)?;
 
         let mut array = Array {
             array: Vec::with_capacity(size),
@@ -286,17 +284,17 @@ impl Array {
         array.array.reserve(size);
 
         for _ in 0..size {
-            array.array.push(StorageEntry::read_entry_raw::<T, B>(buf, serialize_type)?);
+            array.array.push(StorageEntry::read_entry_raw::<B>(buf, serialize_type)?);
         }
 
         Ok(array)
     }
 
-    fn write<T: ByteOrder>(buf: &mut BytesMut, array: &Array) {
+    fn write(buf: &mut BytesMut, array: &Array) {
         buf.reserve(1);
         buf.put_u8(array.serialize_type.unwrap());
         for entry in array.array.iter() {
-            StorageEntry::write::<T>(buf, &entry);
+            StorageEntry::write(buf, &entry);
         }
     }
 }
@@ -333,27 +331,27 @@ impl Section {
         self.entries.into_iter()
     }
 
-    fn read<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<Section> {
+    fn read<B: Buf>(buf: &mut B) -> Result<Section> {
         let mut section = Section::new();
-        let count = raw_size::read::<T, B>(buf)?;
+        let count = raw_size::read::<B>(buf)?;
 
         section.entries.reserve(count);
         for _ in 0..count {
             let name = read_name::<B>(buf)?;
-            let entry = StorageEntry::read::<T, B>(buf)?;
+            let entry = StorageEntry::read::<B>(buf)?;
             section.entries.insert(name.clone(), entry);
         }
 
         Ok(section)
     }
 
-    fn write<T: ByteOrder>(buf: &mut BytesMut, section: &Self) {
-        raw_size::write::<T>(buf, section.entries.len());
+    fn write(buf: &mut BytesMut, section: &Self) {
+        raw_size::write(buf, section.entries.len());
 
         for (name, entry) in section.entries.iter() {
 
             write_name(buf, &*name);
-            StorageEntry::write::<T>(buf, &entry);
+            StorageEntry::write(buf, &entry);
         }
     }
 }
@@ -366,8 +364,8 @@ impl Index<&'static str> for Section {
     }
 }
 
-pub fn read<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<Section> {
-    let header = header::StorageBlockHeader::read::<T, B>(buf)?;
+pub fn read<B: Buf>(buf: &mut B) -> Result<Section> {
+    let header = header::StorageBlockHeader::read::<B>(buf)?;
     if (header.signature_a != header::PORTABLE_STORAGE_SIGNATUREA ||
         header.signature_b != header::PORTABLE_STORAGE_SIGNATUREB) &&
         header.version != header::PORTABLE_STORAGE_FORMAT_VER {
@@ -375,12 +373,12 @@ pub fn read<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<Section> {
         panic!()
     }
 
-    Section::read::<T, B>(buf)
+    Section::read::<B>(buf)
 }
 
-pub fn write<T: ByteOrder>(buf: &mut BytesMut, section: &Section) {
-    header::StorageBlockHeader::write::<T>(buf);
-    Section::write::<T>(buf, section);
+pub fn write(buf: &mut BytesMut, section: &Section) {
+    header::StorageBlockHeader::write(buf);
+    Section::write(buf, section);
 }
 
 fn read_name<B: Buf>(buf: &mut B) -> Result<String> {
@@ -393,8 +391,8 @@ fn read_name<B: Buf>(buf: &mut B) -> Result<String> {
     Ok(s)
 }
 
-fn read_buf<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<Vec<u8>> {
-    let length = raw_size::read::<T, B>(buf)?;
+fn read_buf<B: Buf>(buf: &mut B) -> Result<Vec<u8>> {
+    let length = raw_size::read::<B>(buf)?;
     ensure_eob!(buf, length);
 
     let mut b = Vec::with_capacity(length);
@@ -403,8 +401,8 @@ fn read_buf<T: ByteOrder, B: Buf>(buf: &mut B) -> Result<Vec<u8>> {
     Ok(b)
 }
 
-fn write_buf<T: ByteOrder>(buf: &mut BytesMut, b: &Vec<u8>) {
-    raw_size::write::<T>(buf, b.len());
+fn write_buf(buf: &mut BytesMut, b: &Vec<u8>) {
+    raw_size::write(buf, b.len());
 
     buf.reserve(b.len());
     buf.put(b.as_slice());
