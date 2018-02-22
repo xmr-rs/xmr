@@ -1,5 +1,5 @@
 use bytes::{Buf, BufMut, BytesMut, LittleEndian};
-use errors::Result;
+use Result;
 
 pub const PORTABLE_RAW_SIZE_MARK_MASK: u8 = 0x03;
 pub const PORTABLE_RAW_SIZE_MARK_BYTE: u8 = 0;
@@ -8,7 +8,7 @@ pub const PORTABLE_RAW_SIZE_MARK_DWORD: u8 = 2;
 pub const PORTABLE_RAW_SIZE_MARK_INT64: u8 = 3;
 
 pub fn read<B: Buf>(buf: &mut B) -> Result<usize> {
-    ensure_eob!(buf, 1);
+    ensure_eof!(buf, 1);
     let mark = buf.bytes()[0] & PORTABLE_RAW_SIZE_MARK_MASK;
 
     match mark {
@@ -16,15 +16,15 @@ pub fn read<B: Buf>(buf: &mut B) -> Result<usize> {
             Ok((buf.get_u8() >> 2) as usize)
         }
         PORTABLE_RAW_SIZE_MARK_WORD => {
-            ensure_eob!(buf, 2);
+            ensure_eof!(buf, 2);
             Ok((buf.get_u16::<LittleEndian>() >> 2) as usize)
         }
         PORTABLE_RAW_SIZE_MARK_DWORD => {
-            ensure_eob!(buf, 4);
+            ensure_eof!(buf, 4);
             Ok((buf.get_u32::<LittleEndian>() >> 2) as usize)
         }
         PORTABLE_RAW_SIZE_MARK_INT64 => {
-            ensure_eob!(buf, 8);
+            ensure_eof!(buf, 8);
             Ok((buf.get_u64::<LittleEndian>() >> 2) as usize)
         }
         _ => unreachable!(),

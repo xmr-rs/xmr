@@ -7,8 +7,7 @@ extern crate serde;
 #[cfg(test)]
 extern crate serde_derive;
 
-#[macro_use]
-pub extern crate failure;
+extern crate failure;
 #[macro_use]
 extern crate failure_derive;
 
@@ -23,12 +22,33 @@ pub mod de;
 pub use ser::to_section;
 pub use de::from_section;
 
-#[macro_use]
-pub mod errors;
-pub use errors::Result;
+#[macro_export]
+macro_rules! ensure_eof {
+    ($buf:expr, $needed:expr) => {
+        if $buf.remaining() < $needed {
+            return Err($crate::Error::UnexpectedEof { needed: $needed });
+        }
+    };
+}
 
 pub mod header;
 pub mod raw_size;
+
+pub type Result<T> = ::std::result::Result<T, Error>;
+
+#[derive(Debug, Clone, Fail)]
+pub enum Error {
+    #[fail(display = "reached EOF, needed {}", needed)]
+    UnexpectedEof {
+        needed: usize,
+    },
+    #[fail(display = "the header isn't valid")]
+    InvalidHeader,
+    #[fail(display = "the storage entry serialize type isn't valid ({:X})", _0)]
+    InvalidSerializeType(u8),
+    #[fail(display = "the array serialize type isn't valid ({:X})", _0)]
+    InvalidArrayType(u8),
+}
 
 const SERIALIZE_TYPE_INT64: u8 = 1;
 const SERIALIZE_TYPE_INT32: u8 = 2;
@@ -76,39 +96,39 @@ impl StorageEntry {
     fn read_entry_raw<B: Buf>(buf: &mut B, serialize_type: u8) -> Result<StorageEntry> {
         let entry = match serialize_type {
             SERIALIZE_TYPE_INT64 => {
-                ensure_eob!(buf, 8);
+                ensure_eof!(buf, 8);
                 StorageEntry::I64(buf.get_i64::<LittleEndian>())
             },
             SERIALIZE_TYPE_INT32 => {
-                ensure_eob!(buf, 4);
+                ensure_eof!(buf, 4);
                 StorageEntry::I32(buf.get_i32::<LittleEndian>())
             },
             SERIALIZE_TYPE_INT16 => {
-                ensure_eob!(buf, 2);
+                ensure_eof!(buf, 2);
                 StorageEntry::I16(buf.get_i16::<LittleEndian>())
             },
             SERIALIZE_TYPE_INT8 => {
-                ensure_eob!(buf, 1);
+                ensure_eof!(buf, 1);
                 StorageEntry::I8(buf.get_i8())
             },
             SERIALIZE_TYPE_UINT64 => {
-                ensure_eob!(buf, 8);
+                ensure_eof!(buf, 8);
                 StorageEntry::U64(buf.get_u64::<LittleEndian>())
             },
             SERIALIZE_TYPE_UINT32 => {
-                ensure_eob!(buf, 4);
+                ensure_eof!(buf, 4);
                 StorageEntry::U32(buf.get_u32::<LittleEndian>())
             },
             SERIALIZE_TYPE_UINT16 => {
-                ensure_eob!(buf, 2);
+                ensure_eof!(buf, 2);
                 StorageEntry::U16(buf.get_u16::<LittleEndian>())
             },
             SERIALIZE_TYPE_UINT8 => {
-                ensure_eob!(buf, 1);
+                ensure_eof!(buf, 1);
                 StorageEntry::U8(buf.get_u8())
             },
             SERIALIZE_TYPE_DOUBLE => {
-                ensure_eob!(buf, 8);
+                ensure_eof!(buf, 8);
                 StorageEntry::Double(buf.get_f64::<LittleEndian>())
             },
             SERIALIZE_TYPE_STRING => {
@@ -116,14 +136,14 @@ impl StorageEntry {
                 StorageEntry::Buf(b)
             },
             SERIALIZE_TYPE_BOOL => {
-                ensure_eob!(buf, 1);
+                ensure_eof!(buf, 1);
                 StorageEntry::Bool(buf.get_u8() != 0)
             },
             SERIALIZE_TYPE_OBJECT => {
                 StorageEntry::Section(Section::read::<B>(buf)?)
             },
             SERIALIZE_TYPE_ARRAY => {
-                ensure_eob!(buf, 1);
+                ensure_eof!(buf, 1);
                 let serialize_type = buf.get_u8();
                 if serialize_type & SERIALIZE_FLAG_ARRAY != SERIALIZE_FLAG_ARRAY {
                     panic!();
@@ -132,7 +152,9 @@ impl StorageEntry {
                 let arr = Array::read::<B>(buf, serialize_type)?;
                 StorageEntry::Array(arr)
             },
-            _ => panic!(), // TODO: failure
+            _ => {
+                return Err(Error::InvalidSerializeType(serialize_type));
+            },
         };
 
         Ok(entry)
@@ -269,8 +291,7 @@ impl Array {
     fn read<B: Buf>(buf: &mut B, mut serialize_type: u8) -> Result<Array> {
         let orig_serialize_type = serialize_type;
         if serialize_type & SERIALIZE_FLAG_ARRAY != SERIALIZE_FLAG_ARRAY {
-            // TODO: failure
-            panic!();
+            return Err(Error::InvalidArrayType(serialize_type));
         } else {
             serialize_type &= !SERIALIZE_FLAG_ARRAY;
         }
@@ -365,14 +386,7 @@ impl Index<&'static str> for Section {
 }
 
 pub fn read<B: Buf>(buf: &mut B) -> Result<Section> {
-    let header = header::StorageBlockHeader::read::<B>(buf)?;
-    if (header.signature_a != header::PORTABLE_STORAGE_SIGNATUREA ||
-        header.signature_b != header::PORTABLE_STORAGE_SIGNATUREB) &&
-        header.version != header::PORTABLE_STORAGE_FORMAT_VER {
-        // TODO: failure
-        panic!()
-    }
-
+    header::StorageBlockHeader::read::<B>(buf)?;
     Section::read::<B>(buf)
 }
 
@@ -382,9 +396,9 @@ pub fn write(buf: &mut BytesMut, section: &Section) {
 }
 
 fn read_name<B: Buf>(buf: &mut B) -> Result<String> {
-    ensure_eob!(buf, 1);
+    ensure_eof!(buf, 1);
     let length = buf.get_u8() as usize;
-    ensure_eob!(buf, length);
+    ensure_eof!(buf, length);
 
     let s = String::from_utf8_lossy(&buf.bytes()[..length]).into_owned();
     buf.advance(length);
@@ -393,7 +407,7 @@ fn read_name<B: Buf>(buf: &mut B) -> Result<String> {
 
 fn read_buf<B: Buf>(buf: &mut B) -> Result<Vec<u8>> {
     let length = raw_size::read::<B>(buf)?;
-    ensure_eob!(buf, length);
+    ensure_eof!(buf, length);
 
     let mut b = Vec::with_capacity(length);
     b.extend_from_slice(&buf.bytes()[..length]);

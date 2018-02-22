@@ -1,5 +1,5 @@
 use bytes::{Buf, BufMut, BytesMut, LittleEndian};
-use errors::Result;
+use {Result, Error};
 
 pub const PORTABLE_STORAGE_SIGNATUREA: u32 = 0x01011101;
 pub const PORTABLE_STORAGE_SIGNATUREB: u32 = 0x01020101;
@@ -27,13 +27,21 @@ impl StorageBlockHeader {
     }
 
     pub fn read<B: Buf>(buf: &mut B) -> Result<Self> {
-        ensure_eob!(buf, PORTABLE_STORAGE_BLOCK_HEADER_LENGTH);
+        ensure_eof!(buf, PORTABLE_STORAGE_BLOCK_HEADER_LENGTH);
 
-        Ok(StorageBlockHeader {
+        let hdr = StorageBlockHeader {
             signature_a: buf.get_u32::<LittleEndian>(),
             signature_b: buf.get_u32::<LittleEndian>(),
             version: buf.get_u8(),
-        })
+        };
+
+        if (hdr.is_valid_signature_a() ||
+            hdr.is_valid_signature_b()) &&
+            hdr.is_valid_version() {
+            return Err(Error::InvalidHeader);
+        } else {
+            Ok(hdr)
+        }
     }
 
     pub fn write(buf: &mut BytesMut) {
