@@ -38,9 +38,9 @@ impl StorageBlockHeader {
         if (hdr.is_valid_signature_a() ||
             hdr.is_valid_signature_b()) &&
             hdr.is_valid_version() {
-            return Err(Error::InvalidHeader);
-        } else {
             Ok(hdr)
+        } else {
+            Err(Error::InvalidHeader)
         }
     }
 
