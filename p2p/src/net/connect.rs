@@ -56,13 +56,13 @@ enum ConnectState {
         future: Invoke<TcpStream>,
     },
     ReceiveRequestSupportFlags {
-        future: Receive<TcpStream, RequestSupportFlags>,
+        future: Receive<TcpStream, <RequestSupportFlags as Command>::Request>,
     },
     SendSupportFlags {
         future: LevinResponse<TcpStream>,
     },
     ReceiveHandshakeResponse {
-        future: Receive<TcpStream, Handshake>,
+        future: Receive<TcpStream, <Handshake as Command>::Response>,
     }
 }
 
@@ -111,7 +111,7 @@ impl Future for Connect {
                     let (stream, response) = try_ready!(future.poll());
 
                     let response = match response {
-                        Ok(rsp) => rsp,
+                        Ok((_, rsp)) => rsp,
                         Err(e) => return Ok((stream, Err(e.into())).into()),
                     };
 

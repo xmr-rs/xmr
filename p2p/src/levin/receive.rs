@@ -12,15 +12,14 @@ use portable_storage;
 use levin::{
     BUCKET_HEAD_LENGTH,
     BucketHead,
-    Command,
     Storage,
     LevinResult,
     LevinError,
 };
 
-pub fn receive<A, C>(a: A) -> Receive<A, C>
+pub fn receive<A, S>(a: A) -> Receive<A, S>
     where A: AsyncRead,
-          C: Command, {
+          S: Storage, {
     trace!("receive - creating future");
     let buf = vec![0u8; BUCKET_HEAD_LENGTH];
     Receive {
@@ -32,9 +31,9 @@ pub fn receive<A, C>(a: A) -> Receive<A, C>
 }
 
 #[derive(Debug)]
-pub struct Receive<A: AsyncRead, C: Command> {
+pub struct Receive<A: AsyncRead, S: Storage> {
     state: ReceiveState<A>,
-    _phantom_data: PhantomData<C>,
+    _phantom_data: PhantomData<S>,
 }
 
 #[derive(Debug)]
@@ -42,16 +41,17 @@ enum ReceiveState<A> {
     ReadBucket {
         reader: Read<A, Vec<u8>>,
     },
-    ReadResponse {
+    ReadStorage {
+        bucket_head: BucketHead,
         reader: Read<A, Vec<u8>>,
     },
 }
 
-impl<A, C> Future for Receive<A, C>
+impl<A, S> Future for Receive<A, S>
     where A: AsyncRead,
-          C: Command,
+          S: Storage,
 {
-    type Item = (A, LevinResult<C::Response>);
+    type Item = (A, LevinResult<(BucketHead, S)>);
     type Error = io::Error;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
@@ -72,16 +72,15 @@ impl<A, C> Future for Receive<A, C>
                         },
                     };
 
-                    if bucket_head.command != C::ID {
-                        return Ok((stream, Err(LevinError::InvalidCommandId(bucket_head.command))).into());
-                    }
+                    trace!("receive poll - bucket received: {:?}", bucket_head);
 
-                    let mut response_buf = vec![0u8; bucket_head.cb as usize];
-                    ReceiveState::ReadResponse {
-                        reader: read(stream, response_buf)
+                    let buf = vec![0u8; bucket_head.cb as usize];
+                    ReceiveState::ReadStorage {
+                        bucket_head,
+                        reader: read(stream, buf)
                     }
                 },
-                ReceiveState::ReadResponse { ref mut reader } => {
+                ReceiveState::ReadStorage { ref bucket_head, ref mut reader } => {
                     trace!("receive poll - reading response");
 
                     let (stream, buf, size) = try_ready!(reader.poll());
@@ -91,9 +90,10 @@ impl<A, C> Future for Receive<A, C>
 
                     let mut buf = buf.into_buf();
                     let section = portable_storage::read(&mut buf).unwrap();
-                    let response = C::Response::from_section(section).unwrap();
+                    trace!("receive poll - received: {:?}", section);
+                    let response = S::from_section(section).unwrap();
 
-                    return Ok((stream, Ok(response)).into())
+                    return Ok((stream, Ok((bucket_head.clone(), response))).into())
                 },
             };
 
