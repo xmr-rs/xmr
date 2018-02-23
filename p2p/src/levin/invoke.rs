@@ -22,6 +22,9 @@ pub fn invoke<C, A>(a: A, request: &C::Request) -> Invoke<A>
     trace!("invoke - creating future");
 
     let section = request.to_section().unwrap();
+
+    trace!("invoke - section created: {:?}", section);
+
     let mut command_buf = BytesMut::new();
     portable_storage::write(&mut command_buf, &section);
 

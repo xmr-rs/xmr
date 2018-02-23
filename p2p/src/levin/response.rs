@@ -21,6 +21,7 @@ pub fn response<A, C>(a: A, response: C::Response) -> Response<A>
           C: Command, {
     trace!("response - creating future");
     let section = response.to_section().unwrap();
+    trace!("response - section created: {:?}", section);
 
     let mut response_buf = BytesMut::new();
     portable_storage::write(&mut response_buf, &section);
