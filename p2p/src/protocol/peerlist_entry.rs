@@ -15,16 +15,16 @@ impl StlElement for PeerlistEntry {
     const LENGTH: usize = Ipv4Address::LENGTH + 8 + 8;
 
     fn from_bytes(v: &[u8]) -> Result<PeerlistEntry, Error> {
-        if v.len() != Ipv4Address::LENGTH {
+        if v.len() != Self::LENGTH {
             return Err(Error::InvalidLength(v.len()))
         }
 
-        let adr = Ipv4Address::from_bytes(v)?;
+        let adr = Ipv4Address::from_bytes(&v[..Ipv4Address::LENGTH])?;
 
         let mut buf = (&v[Ipv4Address::LENGTH..]).into_buf();
 
         let id = buf.get_u64::<LittleEndian>().into();
-        let last_seen= buf.get_i64::<LittleEndian>();
+        let last_seen = buf.get_i64::<LittleEndian>();
 
         Ok(PeerlistEntry { adr, id, last_seen })
     }

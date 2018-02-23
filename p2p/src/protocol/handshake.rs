@@ -27,7 +27,7 @@ pub struct HandshakeRequest {
 pub struct HandshakeResponse {
     pub node_data: BasicNodeData,
     pub payload_data: CoreSyncData,
-    pub local_peerlist_new: StlLinkedList<PeerlistEntry>,
+    pub local_peerlist: StlLinkedList<PeerlistEntry>,
 }
 
 #[cfg(test)]

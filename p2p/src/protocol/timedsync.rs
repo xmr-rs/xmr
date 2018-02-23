@@ -23,5 +23,5 @@ pub struct TimedSyncRequest {
 pub struct TimedSyncResponse {
     pub local_time: u64,
     pub payload_data: CoreSyncData,
-    pub local_peerlist_new: StlLinkedList<PeerlistEntry>,
+    pub local_peerlist: StlLinkedList<PeerlistEntry>,
 }
