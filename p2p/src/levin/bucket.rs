@@ -23,7 +23,7 @@ pub const BUCKET_HEAD_LENGTH: usize = 33;
 pub const LEVIN_OK: i32 = 0;
 
 /// Header of all the levin protocol operations.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BucketHead {
     /// This identifies the stream as a valid header.
     pub signature: u64,
