@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::error::Error as StdError;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use failure::Error;
 use futures_cpupool::CpuPool;
@@ -90,9 +91,12 @@ impl Context {
             self.config.listen_port.unwrap_or(self.config.network.listen_port())
         };
 
+        let local_time = SystemTime::now().duration_since(UNIX_EPOCH)
+            .expect("the system time is behind unix epoch").as_secs();
+
         BasicNodeData {
             network_id: self.config.network.id().into(),
-            local_time: 0,
+            local_time,
             my_port,
             peer_id: self.peer_id,
         }
