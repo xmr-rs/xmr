@@ -1,20 +1,17 @@
 #[macro_use]
 extern crate clap;
-#[macro_use]
 extern crate failure;
-extern crate common_failures;
-#[macro_use]
 extern crate log;
 extern crate env_logger;
 extern crate p2p;
 extern crate db;
 extern crate network;
 
-use std::sync::Arc;
-
 mod config;
 mod peers;
-mod util;
+
+use std::sync::Arc;
+use failure::Error;
 
 fn main() {
     env_logger::init();
@@ -33,10 +30,13 @@ fn main() {
     // TODO: no unwrap
     let cfg = config::parse(&matches).unwrap();
 
-    start(cfg)
+    if let Err(e) = start(cfg) {
+        println!("{}", e);
+        return;
+    }
 }
 
-fn start(cfg: config::Config) {
+fn start(cfg: config::Config) -> Result<(), Error> {
     let mut el = p2p::event_loop();
 
     let config = p2p::Config {
@@ -47,10 +47,13 @@ fn start(cfg: config::Config) {
         hide_my_port: cfg.hide_my_port,
     };
 
-    let blockchain = Arc::new(db::BlockChainDatabase::open("/home/jeandudey/.xmr"));
+    // TODO: add a function called open_db for this.
+    let blockchain = Arc::new(db::BlockChainDatabase::open("/home/jeandudey/.xmr")?);
 
     let p2p = p2p::P2P::new(config, el.handle());
 
-    p2p.run(&*blockchain);
-    el.run(p2p::forever());
+    p2p.run(&*blockchain).expect("couldn't start p2p");
+    el.run(p2p::forever()).expect("couldn't run event loop");
+
+    Ok(())
 }

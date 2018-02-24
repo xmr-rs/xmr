@@ -1,5 +1,7 @@
 use std::path::Path;
 
+use sanakirja;
+
 use parking_lot::RwLock;
 
 use chain::BlockHeader;
@@ -14,24 +16,33 @@ use kv::{Key, Value, KeyState, KeyValueDatabase, DiskDb};
 use store::Store;
 use best_block::BestBlock;
 
+use error::Error;
+
 const KEY_BEST_BLOCK_HEIGHT: &'static str = "best_block_height";
 const KEY_BEST_BLOCK_ID: &'static str = "best_block_id";
 
 /// A blockchain database.
+#[derive(Debug)]
 pub struct BlockChainDatabase<DB: KeyValueDatabase> {
     db: DB,
     best_block: RwLock<BestBlock>,
 }
 
 impl BlockChainDatabase<DiskDb> {
-    pub fn open<P: AsRef<Path>>(path: P) -> BlockChainDatabase<DiskDb> {
-        // TODO: unwrap unwrap unwrap
-        let db = DiskDb::open(path).unwrap();
+    pub fn open<P: AsRef<Path>>(path: P) -> Result<BlockChainDatabase<DiskDb>, Error> {
+        let db = match DiskDb::open(path) {
+            Ok(db) => db,
+            Err(sanakirja::Error::IO(e)) => return Err(Error::Io(e)),
+            Err(sanakirja::Error::NotEnoughSpace) => panic!("couldn't \"mmap\" database"),
+            Err(sanakirja::Error::Poison) => return Err(Error::AlreadyOpen),
+        };
+
         let best_block = RwLock::new(Self::read_best_block(&db).unwrap_or_default());
-        BlockChainDatabase {
+
+        Ok(BlockChainDatabase {
             db,
             best_block,
-        }
+        })
     }
 }
 

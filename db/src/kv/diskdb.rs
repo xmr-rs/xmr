@@ -1,3 +1,4 @@
+use std::fmt::{self, Debug, Formatter};
 use std::path::Path;
 use std::cmp::max;
 
@@ -95,6 +96,12 @@ fn open_db(txn: &mut MutTxn<()>, root: usize) -> Db<UnsafeValue, UnsafeValue> {
     } else {
         // TODO: no unwrap
         txn.create_db().unwrap()
+    }
+}
+
+impl Debug for DiskDb {
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "DiskDb")
     }
 }
 

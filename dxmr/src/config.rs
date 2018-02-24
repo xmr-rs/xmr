@@ -1,8 +1,7 @@
-use std::net::{SocketAddr, ToSocketAddrs};
+use std::net::SocketAddr;
 
 use clap::ArgMatches;
 use failure::Error;
-use common_failures::io::{IoContextExt, Target, Operation};
 use network::Network;
 use peers::default_peers;
 
