@@ -66,7 +66,7 @@ impl Context {
             match result {
                 Ok((_, response)) => {
                     match response {
-                        Ok(_response) => panic!("ok"),
+                        Ok(_response) => (),
                         Err(e) => {
                             context.connection_counter.note_close_outbound_connection();
                             warn!("node returned invalid data: {:?}", e);
