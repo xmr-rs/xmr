@@ -3,11 +3,15 @@ extern crate serialization;
 extern crate bytes;
 extern crate serde;
 
+extern crate crypto;
+
 use std::io::Cursor;
 
 use serialization::deserializer::{Deserialize, Deserializer, DeserializeBlob};
 use serialization::serializer::{Serialize, Serializer};
 use bytes::Buf;
+
+use crypto::{fast_hash, slow_hash};
 
 /// H256 length in bytes.
 pub const H256_LENGTH: usize = 32;
@@ -19,6 +23,14 @@ pub struct H256(pub [u8; H256_LENGTH]);
 impl H256 {
     pub fn new() -> H256 {
         H256::default()
+    }
+
+    pub fn fast_hash(input: &[u8]) -> H256 {
+        H256(fast_hash(input))
+    }
+
+    pub fn slow_hash(input: &[u8]) -> H256 {
+        H256(slow_hash(input))
     }
 
     pub fn from_bytes<B: AsRef<[u8]>>(bytes: &B) -> H256 {

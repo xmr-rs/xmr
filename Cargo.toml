@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "chain",
+    "crypto",
     "db",
     "dxmr",
     "hash",
