@@ -39,16 +39,16 @@
 #[macro_export]
 macro_rules! serialize2 {
     ($struct_name:ident { $( $name:ident -> ($($discriminator:tt)*) ,)* }) => {
-        impl $crate::serializer::Serialize for $struct_name {
-            fn serialize<T: $crate::serializer::Serializer>(&self, serializer: &mut T) {
+        impl $crate::ser::Serialize for $struct_name {
+            fn serialize<T: $crate::ser::Serializer>(&self, serializer: &mut T) {
                 $(
                     serialize2!(__serialize self, serializer, $name -> $($discriminator)*);
                 )*
             }
         }
 
-        impl $crate::deserializer::Deserialize for $struct_name {
-            fn deserialize<T: $crate::deserializer::Deserializer>(deserializer: &mut T) -> Self {
+        impl $crate::de::Deserialize for $struct_name {
+            fn deserialize<T: $crate::de::Deserializer>(deserializer: &mut T) -> Self {
                 let mut st = Self::default();
                 $(
                     serialize2!(__deserialize st, deserializer, $name -> $($discriminator)*);
@@ -122,8 +122,8 @@ macro_rules! serialize2 {
 #[macro_export]
 macro_rules! serialize2_variant {
     ($enum_name:ident { $( $variant:path => ($deser:expr, $tag:expr) ,)+ }) => {
-        impl $crate::serializer::Serialize for $enum_name {
-            fn serialize<T: $crate::serializer::Serializer>(&self, serializer: &mut T) {
+        impl $crate::ser::Serialize for $enum_name {
+            fn serialize<T: $crate::ser::Serializer>(&self, serializer: &mut T) {
                 match self {
                 $(
                     &$variant(ref v) => {
@@ -136,8 +136,8 @@ macro_rules! serialize2_variant {
             }
         }
 
-        impl $crate::deserializer::Deserialize for $enum_name {
-            fn deserialize<T: $crate::deserializer::Deserializer>(deserializer: &mut T) -> $enum_name {
+        impl $crate::de::Deserialize for $enum_name {
+            fn deserialize<T: $crate::de::Deserializer>(deserializer: &mut T) -> $enum_name {
                 let tag: u8 = deserializer.deserialize_num();
                 match tag {
                 $(
