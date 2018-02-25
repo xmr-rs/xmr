@@ -10,12 +10,21 @@ use bytes::{BytesMut, Buf, BufMut};
 use num::cast::ToPrimitive;
 
 /// An error occurred during reading.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum ReadError {
     /// The integer is too large to fit in the current type.
     Overflow,
     /// The integer cannot be represented.
     Represent,
+}
+
+impl std::fmt::Display for ReadError {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match *self {
+            Overflow => write!(fmt, "the integer is too large"),
+            Represent => write!(fmt, "the integer cannot be represented"),
+        }
+    }
 }
 
 pub fn read<B: Buf>(buf: &mut B) -> Result<usize, ReadError> {
