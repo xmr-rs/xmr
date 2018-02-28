@@ -4,6 +4,7 @@ members = [
     "crypto",
     "db",
     "dxmr",
+    "format",
     "hash",
     "keys",
     "network",
@@ -11,5 +12,4 @@ members = [
     "portable-storage-utils",
     "portable-storage",
     "rct",
-    "serialization",
 ]

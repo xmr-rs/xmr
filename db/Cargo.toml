@@ -6,7 +6,7 @@ authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 [dependencies]
 chain = { path = "../chain" }
 hash = { path = "../hash" }
-serialization = { path = "../serialization" }
+format = { path = "../format" }
 bytes = "0.4.6"
 sanakirja = "0.8"
 rand = "0.4.2"

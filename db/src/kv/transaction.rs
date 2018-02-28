@@ -1,7 +1,7 @@
-use bytes::Bytes;
+use bytes::{BytesMut, Bytes, Buf, BufMut, IntoBuf, LittleEndian};
 use hash::H256;
 use chain::BlockHeader;
-use serialization::{binary_serialize as serialize, binary_deserialize as deserialize};
+use format::{to_binary, from_binary};
 
 pub const COL_META: usize = 0;
 pub const COL_BLOCKS: usize = 1;
@@ -54,8 +54,15 @@ impl Value {
     pub fn for_key(key: &Key, bytes: &[u8]) -> Value {
         match *key {
             Key::Meta(_) => Value::Meta(bytes.into()),
-            Key::Block(_) => Value::Block(deserialize(&bytes)),
-            Key::BlockHeight(_) => Value::BlockHeight(deserialize(&bytes)),
+            Key::Block(_) => Value::Block(from_binary(bytes).unwrap()),
+            Key::BlockHeight(_) => {
+                if bytes.len() != 8 {
+                    unimplemented!();
+                }
+
+                let mut buf = bytes.into_buf();
+                Value::BlockHeight(buf.get_u64::<LittleEndian>())
+            },
             Key::BlockHash(_) => Value::BlockHash(H256::from_bytes(&bytes)),
         }
     }
@@ -157,9 +164,17 @@ impl<'a> From<&'a KeyValue> for RawKeyValue {
     fn from(kv: &'a KeyValue) -> RawKeyValue {
         let (location, key, value) = match *kv {
             KeyValue::Meta(ref k, ref v) => (COL_META, Bytes::from(k.as_bytes()), v.clone()),
-            KeyValue::Block(ref k, ref v) => (COL_BLOCKS, Bytes::from(k.as_bytes()), serialize(v)),
-            KeyValue::BlockHeight(ref k, ref v) => (COL_BLOCK_HEIGHTS, Bytes::from(k.as_bytes()), serialize(v)),
-            KeyValue::BlockHash(ref k, ref v) => (COL_BLOCK_HASHES, serialize(k), Bytes::from(v.as_bytes())),
+            KeyValue::Block(ref k, ref v) => (COL_BLOCKS, Bytes::from(k.as_bytes()), to_binary(v)),
+            KeyValue::BlockHeight(ref k, ref v) => {
+                let mut buf = BytesMut::with_capacity(8);
+                buf.put_u64::<LittleEndian>(*v);
+                (COL_BLOCK_HEIGHTS, Bytes::from(k.as_bytes()), buf.freeze())
+            },
+            KeyValue::BlockHash(ref k, ref v) => {
+                let mut buf = BytesMut::with_capacity(8);
+                buf.put_u64::<LittleEndian>(*k);
+                (COL_BLOCK_HASHES, buf.freeze(), Bytes::from(v.as_bytes()))
+            }
         };
         
         RawKeyValue {
@@ -182,7 +197,11 @@ impl<'a> From<&'a Key> for RawKey {
             Key::Meta(ref k) => (COL_META, Bytes::from(k.as_bytes())),
             Key::Block(ref k) => (COL_BLOCKS, Bytes::from(k.as_bytes())),
             Key::BlockHeight(ref k) => (COL_BLOCK_HEIGHTS, Bytes::from(k.as_bytes())),
-            Key::BlockHash(ref k) => (COL_BLOCK_HASHES, serialize(k)),
+            Key::BlockHash(ref k) => {
+                let mut buf = BytesMut::with_capacity(8);
+                buf.put_u64::<LittleEndian>(*k);
+                (COL_BLOCK_HASHES, buf.freeze())
+            },
         };
 
         RawKey {

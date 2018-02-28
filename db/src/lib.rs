@@ -4,7 +4,7 @@ extern crate hash;
 extern crate rand;
 extern crate linked_hash_map;
 extern crate parking_lot;
-extern crate serialization;
+extern crate format;
 extern crate chain;
 
 extern crate failure;

@@ -7,4 +7,4 @@ authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 hash = { path = "../hash" }
 keys = { path = "../keys" }
 rct = { path = "../rct" }
-serialization = { path = "../serialization" }
+format = { path = "../format" }

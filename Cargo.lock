@@ -75,10 +75,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "chain"
 version = "0.1.0"
 dependencies = [
+ "format 0.1.0",
  "hash 0.1.0",
  "keys 0.1.0",
  "rct 0.1.0",
- "serialization 0.1.0",
 ]
 
 [[package]]
@@ -119,12 +119,12 @@ dependencies = [
  "chain 0.1.0",
  "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure_derive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "format 0.1.0",
  "hash 0.1.0",
  "linked-hash-map 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "parking_lot 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "sanakirja 0.8.16 (registry+https://github.com/rust-lang/crates.io-index)",
- "serialization 0.1.0",
  "tempdir 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -172,6 +172,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "format"
+version = "0.1.0"
+dependencies = [
+ "bytes 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "failure_derive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "varint 0.1.0",
+]
+
+[[package]]
 name = "fs2"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -212,10 +222,8 @@ dependencies = [
 name = "hash"
 version = "0.1.0"
 dependencies = [
- "bytes 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "crypto 0.1.0",
  "serde 1.0.27 (registry+https://github.com/rust-lang/crates.io-index)",
- "serialization 0.1.0",
 ]
 
 [[package]]
@@ -239,10 +247,6 @@ dependencies = [
 [[package]]
 name = "keys"
 version = "0.1.0"
-dependencies = [
- "bytes 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "serialization 0.1.0",
-]
 
 [[package]]
 name = "lazy_static"
@@ -608,15 +612,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "syn 0.11.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "synom 0.11.3 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "serialization"
-version = "0.1.0"
-dependencies = [
- "bytes 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "num 0.1.41 (registry+https://github.com/rust-lang/crates.io-index)",
- "varint 0.1.0",
 ]
 
 [[package]]

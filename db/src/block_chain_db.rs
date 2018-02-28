@@ -6,7 +6,7 @@ use parking_lot::RwLock;
 
 use chain::BlockHeader;
 use hash::H256;
-use serialization::binary_deserialize as deserialize;
+use bytes::{Buf, IntoBuf, LittleEndian};
 
 use block_chain::BlockChain;
 use block_provider::BlockProvider;
@@ -57,10 +57,17 @@ impl<DB> BlockChainDatabase<DB> where DB: KeyValueDatabase {
 
 		match (best_height, best_id) {
 			(Ok(None), Ok(None)) => None,
-			(Ok(Some(height)), Ok(Some(id))) => Some(BestBlock {
-				height: deserialize(&height),
-				id: deserialize(&id),
-			}),
+			(Ok(Some(height)), Ok(Some(id))) => {
+                let mut buf = height.into_buf();
+                let height = buf.get_u64::<LittleEndian>();
+
+                let id = H256::from_bytes(id);
+
+                Some(BestBlock {
+                    height,
+                    id,
+                })
+            },
 			_ => panic!("Inconsistent DB"),
 		}
 	}
