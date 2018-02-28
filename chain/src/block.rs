@@ -7,7 +7,10 @@ use format::{
     Error,
     Serialize,
     SerializerStream,
+    to_binary,
 };
+use bytes::{Bytes, BytesMut, BufMut};
+use varint;
 
 /// A block.
 pub struct Block {
@@ -17,7 +20,19 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn transaction_tree_hash(&self) -> H256 {
+    /// Calculate block PoW (CryptoNight) hash.
+    pub fn long_hash(&self) -> H256 {
+        H256::slow_hash(self.hashable_blob())
+    }
+
+    fn hashable_blob(&self) -> Bytes {
+        let mut buf: BytesMut = to_binary(&self.header).into();
+        buf.put(self.transaction_tree_hash().as_bytes());
+        varint::write(&mut buf, self.tx_hashes.len() + 1);
+        buf.freeze()
+    }
+
+    fn transaction_tree_hash(&self) -> H256 {
         H256::tree_hash(self.build_tree_ids())
     }
 

@@ -86,10 +86,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "chain"
 version = "0.1.0"
 dependencies = [
+ "bytes 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "format 0.1.0",
  "hash 0.1.0",
  "keys 0.1.0",
  "rct 0.1.0",
+ "varint 0.1.0",
 ]
 
 [[package]]

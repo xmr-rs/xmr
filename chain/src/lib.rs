@@ -1,7 +1,9 @@
 extern crate format;
+extern crate bytes;
 extern crate hash;
 extern crate keys;
 extern crate rct;
+extern crate varint;
 
 pub mod transaction;
 

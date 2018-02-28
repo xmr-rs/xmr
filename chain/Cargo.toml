@@ -8,3 +8,5 @@ hash = { path = "../hash" }
 keys = { path = "../keys" }
 rct = { path = "../rct" }
 format = { path = "../format" }
+varint = { path = "../varint" }
+bytes = "0.4.6"
