@@ -1,6 +1,6 @@
 extern crate format;
 extern crate bytes;
-extern crate hash;
+extern crate primitives;
 extern crate keys;
 extern crate rct;
 extern crate varint;

@@ -7,7 +7,7 @@ authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 portable-storage = { path = "../portable-storage" }
 portable-storage-utils = { path = "../portable-storage-utils" }
 network = { path = "../network" }
-hash = { path = "../hash" }
+primitives = { path = "../primitives" }
 db = { path = "../db" }
 
 futures = "0.1.17"

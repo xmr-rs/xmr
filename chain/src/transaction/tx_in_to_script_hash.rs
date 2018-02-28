@@ -1,4 +1,4 @@
-use hash::{H256, H256_LENGTH};
+use primitives::{H256, H256_LENGTH};
 use transaction::TxOutToScript;
 use format::{
     Deserialize,

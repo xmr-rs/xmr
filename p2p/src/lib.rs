@@ -5,7 +5,7 @@ extern crate failure;
 extern crate bytes;
 extern crate uuid;
 extern crate rand;
-extern crate hash;
+extern crate primitives;
 extern crate db;
 
 extern crate serde;

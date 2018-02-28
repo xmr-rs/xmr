@@ -5,7 +5,7 @@ use sanakirja;
 use parking_lot::RwLock;
 
 use chain::BlockHeader;
-use hash::H256;
+use primitives::H256;
 use bytes::{Buf, IntoBuf, LittleEndian};
 
 use block_chain::BlockChain;

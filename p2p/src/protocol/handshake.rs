@@ -38,7 +38,7 @@ pub mod tests {
     use cryptonote::CoreSyncData;
     use levin::{Command, Storage};
     use network::Network;
-    use hash::H256;
+    use primitives::H256;
     use bytes::BytesMut;
     use portable_storage;
 

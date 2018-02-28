@@ -1,4 +1,4 @@
-use hash::H256;
+use primitives::H256;
 
 /// A BlockChain interface.
 pub trait BlockChain {

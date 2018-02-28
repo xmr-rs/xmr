@@ -1,4 +1,4 @@
-use hash::H256;
+use primitives::H256;
 
 /// The best block in the blockchain.
 #[derive(Debug, Default, Clone, Eq, PartialEq)]

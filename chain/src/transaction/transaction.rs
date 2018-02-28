@@ -1,7 +1,7 @@
 use keys::{Signature, SIGNATURE_LENGTH};
 use rct::Signature as RctSignature;
 use transaction::TransactionPrefix;
-use hash::H256;
+use primitives::H256;
 use format::{
     Deserialize,
     DeserializerStream,

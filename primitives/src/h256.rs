@@ -1,8 +1,6 @@
-extern crate serde;
-
-extern crate crypto;
-
 use crypto::{fast_hash, slow_hash};
+use serde;
+use std;
 
 /// H256 length in bytes.
 pub const H256_LENGTH: usize = 32;

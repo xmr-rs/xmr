@@ -1,4 +1,4 @@
-use hash::H256;
+use primitives::H256;
 
 /// Synchronization information between nodes.
 #[derive(Debug, Default, Clone, Deserialize, Serialize)]

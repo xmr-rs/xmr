@@ -1,6 +1,6 @@
 extern crate sanakirja;
 extern crate bytes;
-extern crate hash;
+extern crate primitives;
 extern crate rand;
 extern crate linked_hash_map;
 extern crate parking_lot;

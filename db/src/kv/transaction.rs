@@ -1,5 +1,5 @@
 use bytes::{BytesMut, Bytes, Buf, BufMut, IntoBuf, LittleEndian};
-use hash::H256;
+use primitives::H256;
 use chain::BlockHeader;
 use format::{to_binary, from_binary};
 

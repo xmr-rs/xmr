@@ -5,12 +5,12 @@ members = [
     "db",
     "dxmr",
     "format",
-    "hash",
     "keys",
     "network",
     "p2p",
     "portable-storage-utils",
     "portable-storage",
+    "primitives",
     "rct",
     "verification",
 ]

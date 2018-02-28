@@ -1,5 +1,5 @@
 use transaction::{TxIn, TxOut};
-use hash::H256;
+use primitives::H256;
 use format::{
     Deserialize,
     DeserializerStream,
