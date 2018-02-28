@@ -358,6 +358,7 @@ dependencies = [
 name = "network"
 version = "0.1.0"
 dependencies = [
+ "chain 0.1.0",
  "uuid 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

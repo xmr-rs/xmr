@@ -1,6 +1,8 @@
 extern crate uuid;
+extern crate chain;
 
 use uuid::Uuid;
+use chain::transaction::Transaction;
 
 pub const MAINNET_NETWORK_ID: [u8; 16] = [
     0x12 ,0x30, 0xF1, 0x71, 0x61, 0x04, 0x41, 0x61, 0x17, 0x31, 0x00, 0x82,
@@ -90,10 +92,19 @@ impl Network {
         HardForks::from(parameters)
     }
 
-    pub fn genesis_tx(&self) -> (&'static [u8], u32) {
+    pub fn genesis_tx(&self) -> Transaction {
+        let tx = match *self {
+            Network::Mainnet => Transaction::from_bytes(MAINNET_GENESIS_TX),
+            Network::Testnet => Transaction::from_bytes(TESTNET_GENESIS_TX),
+        };
+
+        tx.expect("couldn't parse transaction from hard coded blob")
+    }
+
+    pub fn genesis_nonce(&self) -> u32 {
         match *self {
-            Network::Mainnet => (MAINNET_GENESIS_TX, MAINNET_GENESIS_NONCE),
-            Network::Testnet => (TESTNET_GENESIS_TX, TESTNET_GENESIS_NONCE),
+            Network::Mainnet => MAINNET_GENESIS_NONCE,
+            Network::Testnet => TESTNET_GENESIS_NONCE,
         }
     }
 }
