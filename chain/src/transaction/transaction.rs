@@ -1,18 +1,34 @@
 use keys::{Signature, SIGNATURE_LENGTH};
 use rct::Signature as RctSignature;
 use transaction::TransactionPrefix;
+use hash::H256;
 use format::{
     Deserialize,
     DeserializerStream,
     Error,
     Serialize,
     SerializerStream,
+    from_binary,
+    to_binary,
 };
 
 /// A transaction.
 pub struct Transaction {
     pub prefix: TransactionPrefix,
     pub signature_type: SignatureType,
+}
+
+impl Transaction {
+    pub fn from_bytes<T: AsRef<[u8]>>(v: T) -> Result<Self, Error> {
+        from_binary::<Self>(v.as_ref())
+    }
+
+    pub fn hash(&self) -> H256 {
+        match self.prefix.version {
+            1 => H256::fast_hash(to_binary(self)),
+            2 => unimplemented!();
+        }
+    }
 }
 
 pub enum SignatureType {
