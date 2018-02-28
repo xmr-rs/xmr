@@ -4,8 +4,6 @@ version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 
 [dependencies]
-serialization = { path = "../serialization" }
 crypto = { path = "../crypto" }
 
-bytes = "0.4.6"
 serde = "1.0.27"

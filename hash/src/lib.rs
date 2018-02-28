@@ -1,15 +1,6 @@
-extern crate serialization;
-
-extern crate bytes;
 extern crate serde;
 
 extern crate crypto;
-
-use std::io::Cursor;
-
-use serialization::deserializer::{Deserialize, Deserializer, DeserializeBlob};
-use serialization::serializer::{Serialize, Serializer};
-use bytes::Buf;
 
 use crypto::{fast_hash, slow_hash};
 
@@ -33,7 +24,7 @@ impl H256 {
         H256(slow_hash(input))
     }
 
-    pub fn from_bytes<B: AsRef<[u8]>>(bytes: &B) -> H256 {
+    pub fn from_bytes<B: AsRef<[u8]>>(bytes: B) -> H256 {
         let bytes = bytes.as_ref();
         assert!(bytes.len() == H256_LENGTH, "invalid hash length");
 
@@ -89,25 +80,5 @@ impl serde::Serialize for H256 {
 impl AsRef<[u8]> for H256 {
     fn as_ref(&self) -> &[u8] {
         self.as_bytes()
-    }
-}
-
-impl DeserializeBlob for H256 {
-    fn deserialize_blob(v: &mut Cursor<&[u8]>) -> H256 {
-        let mut hash = H256::new();
-        v.copy_to_slice(&mut hash.0);
-        hash
-    }
-}
-
-impl Serialize for H256 {
-    fn serialize<T: Serializer>(&self, serializer: &mut T) {
-        serializer.serialize_blob(self)
-    }
-}
-
-impl Deserialize for H256 {
-    fn deserialize<T: Deserializer>(deserializer: &mut T) -> Self {
-        deserializer.deserialize_blob()
     }
 }
