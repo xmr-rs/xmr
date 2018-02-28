@@ -16,6 +16,19 @@ pub struct Block {
     pub tx_hashes: Vec<H256>,
 }
 
+impl Block {
+    pub fn transaction_tree_hash(&self) -> H256 {
+        H256::tree_hash(self.build_tree_ids())
+    }
+
+    fn build_tree_ids(&self) -> Vec<H256> {
+        let mut txids = Vec::with_capacity(self.tx_hashes.len() + 1);
+        txids.push(self.miner_tx.hash());
+        txids.extend_from_slice(self.tx_hashes.as_slice());
+        txids
+    }
+}
+
 impl Deserialize for Block {
     fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
         let header = deserializer.get_deserializable()?;
