@@ -10,7 +10,7 @@ use tokio_core::reactor::{Handle, Remote};
 use rand::OsRng;
 
 use network::Network;
-use db::Store;
+use db::{SharedStore, Store};
 
 use config::Config;
 use protocol::PeerId;
@@ -122,7 +122,7 @@ impl P2P {
         }
     }
 
-    pub fn run<S>(&self, store: &S) -> Result<(), Error> where S: Store {
+    pub fn run(&self, store: SharedStore) -> Result<(), Error> {
         type Request = <Handshake as Command>::Request;
 
         trace!("running p2p");
@@ -130,7 +130,7 @@ impl P2P {
         for addr in self.context.config.peers.iter() {
             let req = Request {
                 node_data: self.context.basic_node_data(),
-                payload_data: core_sync_data(store, &self.context.config.network),
+                payload_data: core_sync_data(store.clone(), &self.context.config.network),
             };
 
             Context::connect(self.context.clone(), addr.clone(), req)
@@ -140,7 +140,7 @@ impl P2P {
     }
 }
 
-fn core_sync_data<S>(store: &S, network: &Network) -> CoreSyncData where S: Store {
+fn core_sync_data(store: SharedStore, network: &Network) -> CoreSyncData {
     let best_block = store.best_block();
     CoreSyncData {
         current_height: best_block.height,

@@ -4,14 +4,16 @@ use clap::ArgMatches;
 use failure::Error;
 use network::Network;
 use peers::default_peers;
+use db::SharedStore;
+use utils;
 
-#[derive(Debug)]
 pub struct Config {
     pub network: Network,
     pub peers: Vec<SocketAddr>,
     pub threads: usize,
     pub listen_port: Option<u32>,
     pub hide_my_port: bool,
+    pub db: SharedStore,
 }
 
 pub fn parse(matches: &ArgMatches) -> Result<Config, Error> {
@@ -36,6 +38,8 @@ pub fn parse(matches: &ArgMatches) -> Result<Config, Error> {
     let listen_port = value_t!(matches.value_of("listenport"), u32).ok();
 
     let hide_my_port = matches.is_present("hidemyport");
+    
+    let db = utils::open_db();
 
     Ok(Config {
         network,
@@ -43,5 +47,6 @@ pub fn parse(matches: &ArgMatches) -> Result<Config, Error> {
         threads,
         listen_port,
         hide_my_port,
+        db,
     })
 }

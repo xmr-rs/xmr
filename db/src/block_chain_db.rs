@@ -13,7 +13,7 @@ use block_provider::BlockProvider;
 
 use kv::{Key, Value, KeyState, KeyValueDatabase, DiskDb};
 
-use store::Store;
+use store::{CanonStore, Store};
 use best_block::BestBlock;
 
 use error::Error;
@@ -97,5 +97,11 @@ impl<DB> BlockProvider for BlockChainDatabase<DB> where DB: KeyValueDatabase {
     fn block_hash(&self, height: u64) -> Option<H256> {
         self.get(Key::BlockHash(height))
             .and_then(Value::as_block_hash)
+    }
+}
+
+impl<DB> CanonStore for BlockChainDatabase<DB> where DB: KeyValueDatabase {
+    fn as_store(&self) -> &Store {
+        &*self
     }
 }

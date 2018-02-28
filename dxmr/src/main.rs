@@ -3,15 +3,19 @@ extern crate clap;
 extern crate failure;
 extern crate log;
 extern crate env_logger;
+extern crate app_dirs;
 extern crate p2p;
 extern crate db;
 extern crate network;
 
 mod config;
 mod peers;
+mod utils;
 
-use std::sync::Arc;
 use failure::Error;
+use app_dirs::AppInfo;
+
+pub const APP_INFO: AppInfo = AppInfo { name: "dxmr", author: "Jean Pierre Dudey" };
 
 fn main() {
     env_logger::init();
@@ -47,13 +51,13 @@ fn start(cfg: config::Config) -> Result<(), Error> {
         hide_my_port: cfg.hide_my_port,
     };
 
-    // TODO: add a function called open_db for this.
-    let blockchain = Arc::new(db::BlockChainDatabase::open("/home/jeandudey/.xmr")?);
-
     let p2p = p2p::P2P::new(config, el.handle());
 
-    p2p.run(&*blockchain).expect("couldn't start p2p");
-    el.run(p2p::forever()).expect("couldn't run event loop");
+    p2p.run(cfg.db.clone())
+        .expect("couldn't start p2p");
+
+    el.run(p2p::forever())
+        .expect("couldn't run event loop");
 
     Ok(())
 }
