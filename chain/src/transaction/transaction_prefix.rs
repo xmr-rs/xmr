@@ -1,10 +1,12 @@
 use transaction::{TxIn, TxOut};
+use hash::H256;
 use format::{
     Deserialize,
     DeserializerStream,
     Error,
     Serialize,
-    SerializerStream
+    SerializerStream,
+    to_binary,
 };
 
 /// Transaction prefix.
@@ -15,6 +17,12 @@ pub struct TransactionPrefix {
     pub vin: Vec<TxIn>,
     pub vout: Vec<TxOut>,
     pub extra: Vec<u8>,
+}
+
+impl TransactionPrefix {
+    pub fn hash(&self) -> H256 {
+        H256::fast_hash(to_binary(self))
+    }
 }
 
 impl Deserialize for TransactionPrefix {

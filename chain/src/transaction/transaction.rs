@@ -26,7 +26,8 @@ impl Transaction {
     pub fn hash(&self) -> H256 {
         match self.prefix.version {
             1 => H256::fast_hash(to_binary(self)),
-            2 => unimplemented!();
+            2 => unimplemented!(),
+            _ => panic!("invalid tx version"),
         }
     }
 }
