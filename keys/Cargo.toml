@@ -4,5 +4,3 @@ version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 
 [dependencies]
-serialization = { path = "../serialization" }
-bytes = "0.4.6"

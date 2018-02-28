@@ -1,15 +1,7 @@
-extern crate serialization;
-extern crate bytes;
-
-use std::io::Cursor;
-use bytes::Buf;
-
-use serialization::serializer::{Serialize, Serializer};
-use serialization::deserializer::{Deserialize, DeserializeBlob, Deserializer};
-
-
 /// Key image length.
 pub const KEY_IMAGE_LENGTH: usize = 32;
+/// Signature lenght.
+pub const SIGNATURE_LENGTH: usize = 64;
 /// Public Key length in bytes.
 pub const PUBLIC_KEY_LENGTH: usize = 32;
 /// Secret Key length in bytes.
@@ -18,61 +10,77 @@ pub const SECRET_KEY_LENGTH: usize = 32;
 #[derive(Debug, Default, Clone)]
 pub struct KeyImage(pub [u8; KEY_IMAGE_LENGTH]);
 
+impl KeyImage {
+    pub fn new() -> KeyImage {
+        KeyImage::default()
+    }
+
+    pub fn from_bytes<B: AsRef<[u8]>>(bytes: B) -> KeyImage {
+        let bytes = bytes.as_ref();
+        assert!(bytes.len() == KEY_IMAGE_LENGTH, "invalid key image length");
+
+        let mut h = Self::new();
+        h.0.clone_from_slice(bytes);
+        h
+    }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 impl AsRef<[u8]> for KeyImage {
     fn as_ref(&self) -> &[u8] {
         &self.0
     }
 }
 
-impl DeserializeBlob for KeyImage {
-    fn deserialize_blob(v: &mut Cursor<&[u8]>) -> KeyImage {
-        let mut key = KeyImage::default();
-        v.copy_to_slice(&mut key.0);
-        key
+pub struct Signature([u8; SIGNATURE_LENGTH]);
+
+impl Signature {
+    pub fn new() -> Signature {
+        Signature([0u8; 64])
     }
-}
 
-impl Serialize for KeyImage {
-    fn serialize<T: Serializer>(&self, serializer: &mut T) {
-        serializer.serialize_blob(self);
+    pub fn from_bytes<B: AsRef<[u8]>>(bytes: B) -> Signature {
+        let bytes = bytes.as_ref();
+        assert!(bytes.len() == SIGNATURE_LENGTH, "invalid signature length");
+
+        let mut h = Self::new();
+        h.0.clone_from_slice(bytes);
+        h
     }
-}
 
-impl Deserialize for KeyImage {
-    fn deserialize<T: Deserializer>(deserializer: &mut T) -> Self {
-        deserializer.deserialize_blob()
-    }
-}
-
-#[derive(Debug, Default, Clone)]
-pub struct Signature;
-
-#[derive(Debug, Default, Clone)]
-pub struct PublicKey(pub [u8; PUBLIC_KEY_LENGTH]);
-
-impl AsRef<[u8]> for PublicKey {
-    fn as_ref(&self) -> &[u8] {
+    pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }
 }
 
-impl DeserializeBlob for PublicKey {
-    fn deserialize_blob(v: &mut Cursor<&[u8]>) -> PublicKey {
-        let mut key = PublicKey::default();
-        v.copy_to_slice(&mut key.0);
-        key
+#[derive(Debug, Default, Clone)]
+pub struct PublicKey(pub [u8; PUBLIC_KEY_LENGTH]);
+
+impl PublicKey {
+    pub fn new() -> PublicKey {
+        PublicKey::default()
+    }
+
+    pub fn from_bytes<B: AsRef<[u8]>>(bytes: B) -> PublicKey {
+        let bytes = bytes.as_ref();
+        assert!(bytes.len() == PUBLIC_KEY_LENGTH, "invalid public key length");
+
+        let mut h = Self::new();
+        h.0.clone_from_slice(bytes);
+        h
+    }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.0
     }
 }
 
-impl Serialize for PublicKey {
-    fn serialize<T: Serializer>(&self, serializer: &mut T) {
-        serializer.serialize_blob(self);
-    }
-}
-
-impl Deserialize for PublicKey {
-    fn deserialize<T: Deserializer>(deserializer: &mut T) -> Self {
-        deserializer.deserialize_blob()
+impl AsRef<[u8]> for PublicKey {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
     }
 }
 
@@ -82,25 +90,5 @@ pub struct SecretKey(pub [u8; SECRET_KEY_LENGTH]);
 impl AsRef<[u8]> for SecretKey {
     fn as_ref(&self) -> &[u8] {
         &self.0
-    }
-}
-
-impl DeserializeBlob for SecretKey {
-    fn deserialize_blob(v: &mut Cursor<&[u8]>) -> SecretKey {
-        let mut key = SecretKey::default();
-        v.copy_to_slice(&mut key.0);
-        key
-    }
-}
-
-impl Serialize for SecretKey {
-    fn serialize<T: Serializer>(&self, serializer: &mut T) {
-        serializer.serialize_blob(self);
-    }
-}
-
-impl Deserialize for SecretKey {
-    fn deserialize<T: Deserializer>(deserializer: &mut T) -> Self {
-        deserializer.deserialize_blob()
     }
 }
