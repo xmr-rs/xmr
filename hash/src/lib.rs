@@ -16,12 +16,12 @@ impl H256 {
         H256::default()
     }
 
-    pub fn fast_hash(input: &[u8]) -> H256 {
-        H256(fast_hash(input))
+    pub fn fast_hash<T: AsRef<[u8]>>(input: T) -> H256 {
+        H256(fast_hash(input.as_ref()))
     }
 
-    pub fn slow_hash(input: &[u8]) -> H256 {
-        H256(slow_hash(input))
+    pub fn slow_hash<T: AsRef<[u8]>>(input: T) -> H256 {
+        H256(slow_hash(input.as_ref()))
     }
 
     pub fn from_bytes<B: AsRef<[u8]>>(bytes: B) -> H256 {
