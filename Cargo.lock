@@ -822,6 +822,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "verification"
 version = "0.1.0"
+dependencies = [
+ "primitives 0.1.0",
+]
 
 [[package]]
 name = "void"

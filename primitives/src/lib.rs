@@ -1,6 +1,6 @@
-extern crate serde;
 extern crate crypto;
 extern crate bytes;
+extern crate serde;
 
 mod h256;
 
