@@ -6,6 +6,7 @@ members = [
     "dxmr",
     "format",
     "keys",
+    "miner",
     "network",
     "p2p",
     "portable-storage-utils",

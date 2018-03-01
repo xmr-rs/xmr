@@ -1,0 +1,8 @@
+[package]
+name = "miner"
+version = "0.1.0"
+authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
+
+[dependencies]
+verification = { path = "../verification" }
+chain = { path = "../chain" }

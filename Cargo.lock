@@ -308,6 +308,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "miner"
+version = "0.1.0"
+dependencies = [
+ "chain 0.1.0",
+ "verification 0.1.0",
+]
+
+[[package]]
 name = "mio"
 version = "0.6.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
