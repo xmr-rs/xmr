@@ -360,8 +360,11 @@ dependencies = [
 name = "network"
 version = "0.1.0"
 dependencies = [
+ "bytes 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "chain 0.1.0",
+ "primitives 0.1.0",
  "uuid 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "verification 0.1.0",
 ]
 
 [[package]]

@@ -1,7 +1,10 @@
 use primitives::H256;
 use std::u64;
 
-pub fn is_valid_proof_of_work(hash: H256, difficulty: u64) -> bool {
+#[derive(Debug)]
+pub struct Difficulty(pub u64);
+
+pub fn is_valid_proof_of_work(hash: H256, Difficulty(difficulty): Difficulty) -> bool {
     let comps = hash.u64_components();
 
     let (top, high0) = mul(comps.3, difficulty);

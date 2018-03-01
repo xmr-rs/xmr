@@ -2,4 +2,4 @@ extern crate primitives;
 
 mod pow;
 
-pub use pow::is_valid_proof_of_work;
+pub use pow::{Difficulty, is_valid_proof_of_work};
