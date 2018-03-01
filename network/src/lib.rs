@@ -1,8 +1,15 @@
+extern crate bytes;
 extern crate uuid;
 extern crate chain;
+extern crate verification;
+extern crate primitives;
 
-use uuid::Uuid;
 use chain::transaction::Transaction;
+use chain::{Block, BlockHeader};
+use uuid::Uuid;
+use bytes::{LittleEndian, ByteOrder};
+use primitives::H256;
+use verification::{Difficulty, is_valid_proof_of_work};
 
 pub const MAINNET_NETWORK_ID: [u8; 16] = [
     0x12 ,0x30, 0xF1, 0x71, 0x61, 0x04, 0x41, 0x61, 0x17, 0x31, 0x00, 0x82,
@@ -92,7 +99,7 @@ impl Network {
         HardForks::from(parameters)
     }
 
-    pub fn genesis_tx(&self) -> Transaction {
+    pub fn genesis_transaction(&self) -> Transaction {
         let tx = match *self {
             Network::Mainnet => Transaction::from_bytes(MAINNET_GENESIS_TX),
             Network::Testnet => Transaction::from_bytes(TESTNET_GENESIS_TX),
@@ -106,6 +113,28 @@ impl Network {
             Network::Mainnet => MAINNET_GENESIS_NONCE,
             Network::Testnet => TESTNET_GENESIS_NONCE,
         }
+    }
+
+    pub fn genesis_block(&self) -> Block {
+        let mut nonce = [0u8; 4];
+        LittleEndian::write_u32(&mut nonce, self.genesis_nonce());
+
+        let bl = Block {
+            header: BlockHeader {
+                major_version: 1,
+                minor_version: 0,
+                timestamp: 0,
+                prev_id: H256::new(),
+                nonce,
+            },
+            miner_tx: self.genesis_transaction(),
+            tx_hashes: vec![],
+        };
+
+        assert!(is_valid_proof_of_work(bl.long_hash(), Difficulty(1)),
+                "proof of work for genesis block isn't valid");
+
+        bl
     }
 }
 
