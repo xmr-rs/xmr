@@ -1,4 +1,5 @@
 use crypto::{fast_hash, slow_hash};
+use bytes::{LittleEndian, ByteOrder};
 use serde;
 use std;
 
@@ -106,6 +107,15 @@ impl H256 {
         let mut h = Self::new();
         h.0.clone_from_slice(bytes);
         h
+    }
+
+    pub fn u64_components(&self) -> (u64, u64, u64, u64) {
+        let v1 = LittleEndian::read_u64(&self.0[..8]);
+        let v2 = LittleEndian::read_u64(&(&self.0[8..])[..8]);
+        let v3 = LittleEndian::read_u64(&(&self.0[15..])[..8]);
+        let v4 = LittleEndian::read_u64(&self.0[23..]);
+
+        (v1, v2, v3, v4)
     }
 
     pub fn as_bytes(&self) -> &[u8] {

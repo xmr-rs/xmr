@@ -516,6 +516,7 @@ dependencies = [
 name = "primitives"
 version = "0.1.0"
 dependencies = [
+ "bytes 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "crypto 0.1.0",
  "serde 1.0.27 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

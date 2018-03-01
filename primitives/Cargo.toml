@@ -7,3 +7,4 @@ authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 crypto = { path = "../crypto" }
 
 serde = "1.0.27"
+bytes = "0.4.6"
