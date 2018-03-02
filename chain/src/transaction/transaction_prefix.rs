@@ -38,7 +38,7 @@ impl Deserialize for TransactionPrefix {
         }
 
         let vout_length = deserializer.get_u64_varint()? as usize;
-        let mut vout = Vec::with_capacity(vin_length);
+        let mut vout = Vec::with_capacity(vout_length);
 
         for _ in 0..vout_length {
             vout.push(deserializer.get_deserializable()?);
