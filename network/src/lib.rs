@@ -29,6 +29,7 @@ pub const MAINNET_GENESIS_TX: &'static [u8] = &[
     0x5e, 0xbc, 0xf7, 0xf4, 0x10, 0xda, 0xeb, 0xc5, 0x82, 0xfd, 0xa6, 0x9d,
     0x24, 0xa2, 0x8e, 0x9d, 0x0b, 0xc8, 0x90, 0xd1
 ];
+
 pub const MAINNET_GENESIS_NONCE: u32 = 10000;
 
 pub const TESTNET_GENESIS_TX: &'static [u8] = &[
@@ -170,4 +171,27 @@ pub struct HardForkParameters {
     pub threshold: u8,
     /// Time since epoch.
     pub time: u64,
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    fn is_valid_network_id() {
+        Network::Mainnet.id();
+        Network::Testnet.id();
+    }
+
+    #[test]
+    fn is_valid_genesis_transaction() {
+        Network::Mainnet.genesis_transaction();
+        Network::Testnet.genesis_transaction();
+    }
+
+    #[test]
+    fn is_valid_genesis_block() {
+        Network::Mainnet.genesis_block();
+        Network::Testnet.genesis_block();
+    }
 }
