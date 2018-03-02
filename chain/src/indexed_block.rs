@@ -4,7 +4,7 @@ use block::Block;
 
 pub struct IndexedBlock {
     pub id: H256,
-    pub block: Block,
+    pub raw: Block,
 }
 
 impl IndexedBlock {
