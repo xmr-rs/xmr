@@ -21,7 +21,7 @@ pub struct Block {
 
 impl Block {
     /// Calculate block PoW (CryptoNight) hash.
-    pub fn long_hash(&self) -> H256 {
+    pub fn hash(&self) -> H256 {
         H256::slow_hash(self.hashable_blob())
     }
 

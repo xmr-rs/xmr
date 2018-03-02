@@ -131,7 +131,7 @@ impl Network {
             tx_hashes: vec![],
         };
 
-        assert!(is_valid_proof_of_work(bl.long_hash(), Difficulty(1)),
+        assert!(is_valid_proof_of_work(bl.hash(), Difficulty(1)),
                 "proof of work for genesis block isn't valid");
 
         bl
