@@ -94,9 +94,9 @@ impl<DB> Store for BlockChainDatabase<DB> where DB: KeyValueDatabase {
 }
 
 impl<DB> BlockProvider for BlockChainDatabase<DB> where DB: KeyValueDatabase {
-    fn block_hash(&self, height: u64) -> Option<H256> {
-        self.get(Key::BlockHash(height))
-            .and_then(Value::as_block_hash)
+    fn block_id(&self, height: u64) -> Option<H256> {
+        self.get(Key::BlockId(height))
+            .and_then(Value::as_block_id)
     }
 }
 

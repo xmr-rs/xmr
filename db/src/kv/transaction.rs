@@ -16,38 +16,26 @@ pub enum Operation {
 
 #[derive(Debug)]
 pub enum KeyValue {
-    /// Database metadata.
     Meta(&'static str, Bytes),
-    /// The block header.
     Block(H256, BlockHeader),
-    /// Block hash to height mapping.
     BlockHeight(H256, u64),
-    /// Block heigh to hash mapping.
-    BlockHash(u64, H256),
+    BlockId(u64, H256),
 }
 
 #[derive(Debug)]
 pub enum Key {
-    /// Database metadata.
     Meta(&'static str),
-    /// The block hash height.
     Block(H256),
-    /// Block hash to height mapping.
     BlockHeight(H256),
-    /// Block heigh to hash mapping.
-    BlockHash(u64),
+    BlockId(u64),
 }
 
 #[derive(Debug, Clone)]
 pub enum Value {
-    /// Database metadata.
     Meta(Bytes),
-    /// The block hash.
     Block(BlockHeader),
-    /// Block hash to height mapping.
     BlockHeight(u64),
-    /// Block heigh to hash mapping.
-    BlockHash(H256),
+    BlockId(H256),
 }
 
 impl Value {
@@ -63,7 +51,7 @@ impl Value {
                 let mut buf = bytes.into_buf();
                 Value::BlockHeight(buf.get_u64::<LittleEndian>())
             },
-            Key::BlockHash(_) => Value::BlockHash(H256::from_bytes(&bytes)),
+            Key::BlockId(_) => Value::BlockId(H256::from_bytes(&bytes)),
         }
     }
 
@@ -88,9 +76,9 @@ impl Value {
         }
     }
 
-    pub fn as_block_hash(self) -> Option<H256> {
+    pub fn as_block_id(self) -> Option<H256> {
         match self {
-            Value::BlockHash(hash) => Some(hash),
+            Value::BlockId(hash) => Some(hash),
             _ => None,
         }
     }
@@ -170,7 +158,7 @@ impl<'a> From<&'a KeyValue> for RawKeyValue {
                 buf.put_u64::<LittleEndian>(*v);
                 (COL_BLOCK_HEIGHTS, Bytes::from(k.as_bytes()), buf.freeze())
             },
-            KeyValue::BlockHash(ref k, ref v) => {
+            KeyValue::BlockId(ref k, ref v) => {
                 let mut buf = BytesMut::with_capacity(8);
                 buf.put_u64::<LittleEndian>(*k);
                 (COL_BLOCK_HASHES, buf.freeze(), Bytes::from(v.as_bytes()))
@@ -197,7 +185,7 @@ impl<'a> From<&'a Key> for RawKey {
             Key::Meta(ref k) => (COL_META, Bytes::from(k.as_bytes())),
             Key::Block(ref k) => (COL_BLOCKS, Bytes::from(k.as_bytes())),
             Key::BlockHeight(ref k) => (COL_BLOCK_HEIGHTS, Bytes::from(k.as_bytes())),
-            Key::BlockHash(ref k) => {
+            Key::BlockId(ref k) => {
                 let mut buf = BytesMut::with_capacity(8);
                 buf.put_u64::<LittleEndian>(*k);
                 (COL_BLOCK_HASHES, buf.freeze())
