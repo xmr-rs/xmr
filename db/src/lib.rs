@@ -17,6 +17,7 @@ mod best_block;
 mod block_chain;
 mod block_chain_db;
 mod block_provider;
+mod block_ref;
 mod error;
 mod store;
 
