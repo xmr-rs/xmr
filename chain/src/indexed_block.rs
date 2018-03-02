@@ -1,0 +1,31 @@
+use std::cmp;
+use primitives::H256;
+use block::Block;
+
+pub struct IndexedBlock {
+    pub id: H256,
+    pub block: Block,
+}
+
+impl IndexedBlock {
+    pub fn id(&self) -> &H256 {
+        &self.id
+    }
+}
+
+impl From<Block> for IndexedBlock {
+    fn from(block: Block) -> IndexedBlock {
+        IndexedBlock {
+            id: block.id(),
+            block,
+        }
+    }
+}
+
+impl cmp::PartialEq for IndexedBlock {
+    fn eq(&self, other: &IndexedBlock) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for IndexedBlock {}
