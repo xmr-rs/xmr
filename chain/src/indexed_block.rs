@@ -8,6 +8,13 @@ pub struct IndexedBlock {
 }
 
 impl IndexedBlock {
+    pub fn new(block: Block, id: H256) -> IndexedBlock {
+        IndexedBlock {
+            id,
+            raw: block,
+        }
+    }
+
     pub fn id(&self) -> &H256 {
         &self.id
     }
