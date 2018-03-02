@@ -25,6 +25,11 @@ impl Block {
         H256::slow_hash(self.hashable_blob())
     }
 
+    /// Calculate the block identifier.
+    pub fn id(&self) -> H256 {
+        H256::fast_hash(self.hashable_blob())
+    }
+
     fn hashable_blob(&self) -> Bytes {
         let mut buf: BytesMut = to_binary(&self.header).into();
         buf.put(self.transaction_tree_hash().as_bytes());
