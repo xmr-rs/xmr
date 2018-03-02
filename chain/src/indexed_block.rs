@@ -17,7 +17,7 @@ impl From<Block> for IndexedBlock {
     fn from(block: Block) -> IndexedBlock {
         IndexedBlock {
             id: block.id(),
-            block,
+            raw: block,
         }
     }
 }
