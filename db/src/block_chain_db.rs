@@ -4,14 +4,15 @@ use sanakirja;
 
 use parking_lot::RwLock;
 
-use chain::BlockHeader;
+use chain::{BlockHeader, IndexedBlock};
 use primitives::H256;
 use bytes::{Buf, IntoBuf, LittleEndian};
 
 use block_chain::BlockChain;
-use block_provider::BlockProvider;
+use block_provider::{BlockProvider, IndexedBlockProvider};
+use block_ref::BlockRef;
 
-use kv::{Key, Value, KeyState, KeyValueDatabase, DiskDb};
+use kv::{Key, Value, KeyValue, KeyState, KeyValueDatabase, DiskDb, Transaction};
 
 use store::{CanonStore, Store};
 use best_block::BestBlock;
@@ -75,11 +76,83 @@ impl<DB> BlockChainDatabase<DB> where DB: KeyValueDatabase {
     fn get(&self, key: Key) -> Option<Value> {
         self.db.get(&key).expect("db value to be fine").into_option()
     }
+
+	pub fn insert(&self, block: IndexedBlock) -> Result<(), Error> {
+		if self.contains_block(block.id().clone().into()) {
+			return Ok(())
+		}
+
+		let parent_id = block.raw.header.prev_id.clone();
+		if !self.contains_block(parent_id.clone().into()) && !parent_id.is_zero() {
+			return Err(Error::UnknownParent);
+		}
+
+		let mut update = Transaction::new();
+		update.insert(KeyValue::Block(block.id().clone(), block.raw.clone()));
+
+        // TODO: transactions?
+
+		self.db.write(update).map_err(Error::DatabaseError)
+	}
+
+	fn contains_block(&self, block_ref: BlockRef) -> bool {
+		self.resolve_id(block_ref)
+			.and_then(|id| self.get(Key::Block(id)))
+			.is_some()
+	}
+
+	pub fn canonize(&self, id: &H256) -> Result<(), Error> {
+		let mut best_block = self.best_block.write();
+		let block = match self.indexed_block(id.clone().into()) {
+			Some(block) => block,
+			None => return Err(Error::CannotCanonize),
+		};
+
+		if best_block.id != block.raw.header.prev_id {
+			return Err(Error::CannotCanonize);
+		}
+
+		let new_best_block = BestBlock {
+			id: id.clone(),
+			height: if block.raw.header.prev_id.is_zero() {
+				assert_eq!(best_block.height, 0);
+				0
+			} else {
+				best_block.height + 1
+			}
+		};
+
+		let mut update = Transaction::new();
+		update.insert(KeyValue::BlockId(new_best_block.height, new_best_block.id.clone()));
+		update.insert(KeyValue::BlockHeight(new_best_block.id.clone(), new_best_block.height));
+        /*
+		update.insert(KeyValue::Meta(KEY_BEST_BLOCK_HASH, serialize(&new_best_block.hash)));
+		update.insert(KeyValue::Meta(KEY_BEST_BLOCK_NUMBER, serialize(&new_best_block.number)));
+        */
+
+        // TODO: transactions
+
+		self.db.write(update).map_err(Error::DatabaseError)?;
+		*best_block = new_best_block;
+		Ok(())
+	}
+
+
+    fn resolve_id(&self, block_ref: BlockRef) -> Option<H256> {
+        match block_ref {
+            BlockRef::Height(height) => self.block_id(height),
+            BlockRef::Id(id) => Some(id),
+        }
+    }
 }
 
 impl<DB> BlockChain for BlockChainDatabase<DB> where DB: KeyValueDatabase {
-    fn top_id(&self) -> H256 {
-        unimplemented!();
+    fn insert(&self, block: IndexedBlock) -> Result<(), Error> {
+        BlockChainDatabase::insert(self, block)
+    }
+
+    fn canonize(&self, id: &H256) -> Result<(), Error> {
+        BlockChainDatabase::canonize(self, id)
     }
 }
 
@@ -89,7 +162,13 @@ impl<DB> Store for BlockChainDatabase<DB> where DB: KeyValueDatabase {
     }
 
     fn best_header(&self) -> BlockHeader {
-        BlockHeader::default()
+        unimplemented!()
+    }
+}
+
+impl<DB> CanonStore for BlockChainDatabase<DB> where DB: KeyValueDatabase {
+    fn as_store(&self) -> &Store {
+        &*self
     }
 }
 
@@ -100,8 +179,13 @@ impl<DB> BlockProvider for BlockChainDatabase<DB> where DB: KeyValueDatabase {
     }
 }
 
-impl<DB> CanonStore for BlockChainDatabase<DB> where DB: KeyValueDatabase {
-    fn as_store(&self) -> &Store {
-        &*self
+impl<DB> IndexedBlockProvider for BlockChainDatabase<DB> where DB: KeyValueDatabase {
+    fn indexed_block(&self, block_ref: BlockRef) -> Option<IndexedBlock> {
+		self.resolve_id(block_ref)
+			.and_then(|id| {
+				self.get(Key::Block(id.clone()))
+					.and_then(Value::as_block)
+					.map(|block| IndexedBlock::new(block, id))
+			})
     }
 }

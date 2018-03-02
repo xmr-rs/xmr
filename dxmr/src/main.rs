@@ -7,6 +7,7 @@ extern crate app_dirs;
 extern crate p2p;
 extern crate db;
 extern crate network;
+extern crate chain;
 
 mod config;
 mod peers;
@@ -41,6 +42,8 @@ fn main() {
 }
 
 fn start(cfg: config::Config) -> Result<(), Error> {
+    utils::init_db(&cfg);
+
     let mut el = p2p::event_loop();
 
     let config = p2p::Config {

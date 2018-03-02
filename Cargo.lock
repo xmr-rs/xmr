@@ -146,6 +146,7 @@ name = "dxmr"
 version = "0.1.0"
 dependencies = [
  "app_dirs 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "chain 0.1.0",
  "clap 2.29.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "db 0.1.0",
  "env_logger 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",

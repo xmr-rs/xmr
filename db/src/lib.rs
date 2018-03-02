@@ -24,6 +24,6 @@ mod store;
 pub use self::best_block::BestBlock;
 pub use self::block_chain::BlockChain;
 pub use self::block_chain_db::BlockChainDatabase;
-pub use self::block_provider::BlockProvider;
-pub use self::store::{CanonStore, SharedStore, Store};
+pub use self::block_provider::{BlockProvider, IndexedBlockProvider};
+pub use self::store::{AsSubstore, CanonStore, SharedStore, Store};
 pub use self::error::Error;
