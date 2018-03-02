@@ -7,7 +7,7 @@ use format::{
     SerializerStream
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TxOutToScriptHash {
     pub hash: H256,
 }

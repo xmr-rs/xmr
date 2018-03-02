@@ -56,6 +56,14 @@ impl Signature {
     }
 }
 
+impl Clone for Signature {
+    fn clone(&self) -> Signature {
+        let mut s = Signature::new();
+        s.0.copy_from_slice(&self.0);
+        s
+    }
+}
+
 #[derive(Debug, Default, Clone)]
 pub struct PublicKey(pub [u8; PUBLIC_KEY_LENGTH]);
 

@@ -7,7 +7,7 @@ use format::{
     SerializerStream
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TxOutToScript {
     pub keys: Vec<PublicKey>,
     pub script: Vec<u8>,

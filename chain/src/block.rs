@@ -13,6 +13,7 @@ use bytes::{Bytes, BytesMut, BufMut};
 use varint;
 
 /// A block.
+#[derive(Clone)]
 pub struct Block {
     pub header: BlockHeader,
     pub miner_tx: Transaction,

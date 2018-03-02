@@ -6,7 +6,7 @@ use format::{
     SerializerStream
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TxInGen {
     pub height: u64,
 }

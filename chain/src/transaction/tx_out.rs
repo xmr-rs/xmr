@@ -8,7 +8,7 @@ use format::{
 };
 
 /// Transaction output.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TxOut {
     pub amount: u64,
     pub target: TxOutTarget,

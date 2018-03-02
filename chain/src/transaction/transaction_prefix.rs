@@ -10,7 +10,7 @@ use format::{
 };
 
 /// Transaction prefix.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TransactionPrefix {
     pub version: u8,
     pub unlock_time: u64,

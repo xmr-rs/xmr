@@ -12,7 +12,7 @@ const TO_SCRIPT: u8 = 0x0;
 const TO_SCRIPT_HASH: u8 = 0x1;
 
 /// Transaction output target.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TxOutTarget {
     ToKey(TxOutToKey),
     ToScript(TxOutToScript),

@@ -13,7 +13,7 @@ const TO_SCRIPT: u8 = 0;
 const TO_SCRIPT_HASH: u8 = 1;
 
 /// Transaction input.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TxIn {
     Gen(TxInGen),
     ToKey(TxInToKey),

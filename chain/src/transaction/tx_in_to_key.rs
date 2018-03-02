@@ -7,7 +7,7 @@ use format::{
     SerializerStream
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TxInToKey {
     pub amount: u64,
     pub key_offsets: Vec<u64>,

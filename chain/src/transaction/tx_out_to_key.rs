@@ -7,7 +7,7 @@ use format::{
     SerializerStream
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TxOutToKey {
     pub key: PublicKey,
 }

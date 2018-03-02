@@ -7,7 +7,7 @@ use format::{
     SerializerStream
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TxInToScript {
     pub prev: H256,
     pub prevout: u64,
