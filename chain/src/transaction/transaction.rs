@@ -13,7 +13,7 @@ use format::{
 };
 
 /// A transaction.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Transaction {
     pub prefix: TransactionPrefix,
     pub signature_type: SignatureType,
@@ -33,7 +33,7 @@ impl Transaction {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum SignatureType {
     Normal(Vec<Vec<Signature>>),
     RingCt(RctSignature),

@@ -1,3 +1,5 @@
+use std::fmt;
+
 /// Key image length.
 pub const KEY_IMAGE_LENGTH: usize = 32;
 /// Signature lenght.
@@ -53,6 +55,18 @@ impl Signature {
 
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
+    }
+}
+
+impl fmt::Debug for Signature {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "Signature([")?;
+
+        for b in self.0.iter() {
+            write!(fmt, "{:?},", b)?;
+        }
+
+        write!(fmt, "])")
     }
 }
 
