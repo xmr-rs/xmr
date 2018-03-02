@@ -21,8 +21,8 @@ pub enum ReadError {
 impl std::fmt::Display for ReadError {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
-            Overflow => write!(fmt, "the integer is too large"),
-            Represent => write!(fmt, "the integer cannot be represented"),
+            ReadError::Overflow => write!(fmt, "the integer is too large"),
+            ReadError::Represent => write!(fmt, "the integer cannot be represented"),
         }
     }
 }
@@ -43,7 +43,7 @@ pub fn read<B: Buf>(buf: &mut B) -> Result<usize, ReadError> {
         }
         
         // Does the actualy placing into output, stripping the first bit
-        output |= ((byte & 0x7f) as usize) << shift as usize;
+        output |= ((byte & 0x7f) as usize) << shift;
 
         /* If there is no next */
         if (byte & 0x80) == 0 {
