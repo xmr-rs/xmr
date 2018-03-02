@@ -1,6 +1,6 @@
 use bytes::{BytesMut, Bytes, Buf, BufMut, IntoBuf, LittleEndian};
 use primitives::H256;
-use chain::BlockHeader;
+use chain::Block;
 use format::{to_binary, from_binary};
 
 pub const COL_META: usize = 0;
@@ -17,7 +17,7 @@ pub enum Operation {
 #[derive(Debug)]
 pub enum KeyValue {
     Meta(&'static str, Bytes),
-    Block(H256, BlockHeader),
+    Block(H256, Block),
     BlockHeight(H256, u64),
     BlockId(u64, H256),
 }
@@ -33,7 +33,7 @@ pub enum Key {
 #[derive(Debug, Clone)]
 pub enum Value {
     Meta(Bytes),
-    Block(BlockHeader),
+    Block(Block),
     BlockHeight(u64),
     BlockId(H256),
 }
@@ -62,7 +62,7 @@ impl Value {
         }
     }
 
-    pub fn as_block(self) -> Option<BlockHeader> {
+    pub fn as_block(self) -> Option<Block> {
         match self {
             Value::Block(block) => Some(block),
             _ => None,
