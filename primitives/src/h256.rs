@@ -15,6 +15,11 @@ impl H256 {
         H256::default()
     }
 
+    pub fn is_zero(&self) -> bool {
+        let zero = Self::new();
+        *self == zero
+    }
+
     pub fn fast_hash<T: AsRef<[u8]>>(input: T) -> H256 {
         H256(fast_hash(input.as_ref()))
     }
