@@ -60,13 +60,7 @@ impl Signature {
 
 impl fmt::Debug for Signature {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "Signature([")?;
-
-        for b in self.0.iter() {
-            write!(fmt, "{:?},", b)?;
-        }
-
-        write!(fmt, "])")
+        fmt_byte_slice(&self.0, fmt)
     }
 }
 
@@ -102,13 +96,7 @@ impl PublicKey {
 
 impl fmt::Debug for PublicKey {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "\"")?;
-
-        for b in self.0.iter() {
-            write!(fmt, "{:02x}", b)?;
-        }
-
-        write!(fmt, "\"")
+        fmt_byte_slice(&self.0, fmt)
     }
 }
 
@@ -125,6 +113,16 @@ impl AsRef<[u8]> for SecretKey {
     fn as_ref(&self) -> &[u8] {
         &self.0
     }
+}
+
+fn fmt_byte_slice(slice: &[u8], fmt: &mut fmt::Formatter) -> fmt::Result {
+    write!(fmt, "\"")?;
+
+    for b in slice.iter() {
+        write!(fmt, "{:02x}", b)?;
+    }
+
+    write!(fmt, "\"")
 }
 
 #[cfg(test)]
