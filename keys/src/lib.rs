@@ -9,7 +9,7 @@ pub const PUBLIC_KEY_LENGTH: usize = 32;
 /// Secret Key length in bytes.
 pub const SECRET_KEY_LENGTH: usize = 32;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Default, Clone)]
 pub struct KeyImage(pub [u8; KEY_IMAGE_LENGTH]);
 
 impl KeyImage {
@@ -34,6 +34,12 @@ impl KeyImage {
 impl AsRef<[u8]> for KeyImage {
     fn as_ref(&self) -> &[u8] {
         &self.0
+    }
+}
+
+impl fmt::Debug for KeyImage {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt_byte_slice(&self.0, fmt)
     }
 }
 
@@ -106,12 +112,18 @@ impl AsRef<[u8]> for PublicKey {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Default, Clone)]
 pub struct SecretKey(pub [u8; SECRET_KEY_LENGTH]);
 
 impl AsRef<[u8]> for SecretKey {
     fn as_ref(&self) -> &[u8] {
         &self.0
+    }
+}
+
+impl fmt::Debug for SecretKey {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt_byte_slice(&self.0, fmt)
     }
 }
 
@@ -129,13 +141,23 @@ fn fmt_byte_slice(slice: &[u8], fmt: &mut fmt::Formatter) -> fmt::Result {
 pub mod tests {
     use super::*;
 
+    use std::fmt;
+
     #[test]
-    fn public_key_debug() {
-        let pk = PublicKey::new();
+    fn fmt_byte_slice_() {
+        struct Blob([u8; 32]);
+        impl fmt::Debug for Blob {
+            fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+                fmt_byte_slice(&self.0, fmt)
+            }
+        }
 
-        let pk_str = format!("{:?}", pk);
+        let blob = Blob([0u8; 32]);
 
-        assert_eq!(&*pk_str,
+
+        let blob_str = format!("{:?}", blob);
+
+        assert_eq!(&*blob_str,
                    "\"0000000000000000000000000000000000000000000000000000000000000000\"");
     }
 }
