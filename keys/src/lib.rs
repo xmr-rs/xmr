@@ -78,7 +78,7 @@ impl Clone for Signature {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Default, Clone)]
 pub struct PublicKey(pub [u8; PUBLIC_KEY_LENGTH]);
 
 impl PublicKey {
@@ -100,6 +100,18 @@ impl PublicKey {
     }
 }
 
+impl fmt::Debug for PublicKey {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "\"")?;
+
+        for b in self.0.iter() {
+            write!(fmt, "{:02x}", b)?;
+        }
+
+        write!(fmt, "\"")
+    }
+}
+
 impl AsRef<[u8]> for PublicKey {
     fn as_ref(&self) -> &[u8] {
         &self.0
@@ -112,5 +124,20 @@ pub struct SecretKey(pub [u8; SECRET_KEY_LENGTH]);
 impl AsRef<[u8]> for SecretKey {
     fn as_ref(&self) -> &[u8] {
         &self.0
+    }
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    fn public_key_debug() {
+        let pk = PublicKey::new();
+
+        let pk_str = format!("{:?}", pk);
+
+        assert_eq!(&*pk_str,
+                   "\"0000000000000000000000000000000000000000000000000000000000000000\"");
     }
 }
