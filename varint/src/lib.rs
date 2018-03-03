@@ -27,10 +27,10 @@ impl std::fmt::Display for ReadError {
     }
 }
 
-pub fn read<B: Buf>(buf: &mut B) -> Result<usize, ReadError> {
-    let bits = size_of::<usize>() * 8;
-    let mut output = 0usize;
-    let mut shift = 0usize;
+pub fn read<B: Buf>(buf: &mut B) -> Result<u64, ReadError> {
+    let bits = (size_of::<u64>() * 8) as u64;
+    let mut output = 0u64;
+    let mut shift = 0u64;
     loop {
         let byte = buf.get_u8();
         
@@ -43,7 +43,7 @@ pub fn read<B: Buf>(buf: &mut B) -> Result<usize, ReadError> {
         }
         
         // Does the actualy placing into output, stripping the first bit
-        output |= ((byte & 0x7f) as usize) << shift;
+        output |= ((byte & 0x7f) as u64) << shift;
 
         /* If there is no next */
         if (byte & 0x80) == 0 {

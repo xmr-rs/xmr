@@ -54,7 +54,7 @@ impl<'buf> DeserializerStream<'buf> {
         varint::read(&mut self.0)
             .map_err(Error::from)
             .and_then(|v| {
-                if v > u8::max_value() as usize {
+                if v > u8::max_value() as u64 {
                     Err(varint::ReadError::Overflow.into())
                 } else {
                     Ok(v as u8)
@@ -65,13 +65,6 @@ impl<'buf> DeserializerStream<'buf> {
     pub fn get_u64_varint(&mut self) -> Result<u64, Error> {
         varint::read(&mut self.0)
             .map_err(Error::from)
-            .and_then(|v| {
-                if v > u64::max_value() as usize {
-                    Err(varint::ReadError::Overflow.into())
-                } else {
-                    Ok(v as u64)
-                }
-            })
     }
 
     pub fn get_blob(&mut self, length: usize) -> Result<&[u8], Error> {
