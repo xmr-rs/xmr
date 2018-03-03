@@ -15,7 +15,7 @@ pub struct TxOut {
 }
 
 impl Deserialize for TxOut {
-    fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let amount = deserializer.get_u64_varint()?;
         let target = deserializer.get_deserializable()?;
 

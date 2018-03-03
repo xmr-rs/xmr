@@ -51,7 +51,7 @@ impl Block {
 }
 
 impl Deserialize for Block {
-    fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let header = deserializer.get_deserializable()?;
         let miner_tx = deserializer.get_deserializable()?;
 

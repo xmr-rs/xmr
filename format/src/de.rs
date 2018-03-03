@@ -3,11 +3,12 @@ use bytes::{IntoBuf, Buf};
 use varint;
 
 pub fn from_binary<T: Deserialize>(v: &[u8]) -> Result<T, Error> {
-    T::deserialize(DeserializerStream::new(v))
+    let mut deserializer = DeserializerStream::new(v);
+    T::deserialize(&mut deserializer)
 }
 
 pub trait Deserialize: Sized {
-    fn deserialize(stream: DeserializerStream) -> Result<Self, Error>;
+    fn deserialize(stream: &mut DeserializerStream) -> Result<Self, Error>;
 }
 
 #[derive(Debug, Fail)]
@@ -82,6 +83,6 @@ impl<'buf> DeserializerStream<'buf> {
     }
 
     pub fn get_deserializable<T: Deserialize>(&mut self) -> Result<T, Error> {
-        T::deserialize(DeserializerStream::new(self.0.bytes()))
+        T::deserialize(self)
     }
 }

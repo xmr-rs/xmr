@@ -26,7 +26,7 @@ impl TransactionPrefix {
 }
 
 impl Deserialize for TransactionPrefix {
-    fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let version = deserializer.get_u8_varint()?;
         let unlock_time = deserializer.get_u64_varint()?;
 

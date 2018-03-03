@@ -33,7 +33,7 @@ impl TxIn {
 }
 
 impl Deserialize for TxIn {
-    fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let tag = deserializer.get_u8()?;
         let target = match tag {
             GEN => {

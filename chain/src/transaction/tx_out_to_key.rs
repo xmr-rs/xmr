@@ -13,7 +13,7 @@ pub struct TxOutToKey {
 }
 
 impl Deserialize for TxOutToKey {
-    fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let key = PublicKey::from_bytes(deserializer.get_blob(PUBLIC_KEY_LENGTH)?);
 
         Ok(TxOutToKey { key })

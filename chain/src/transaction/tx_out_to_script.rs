@@ -14,7 +14,7 @@ pub struct TxOutToScript {
 }
 
 impl Deserialize for TxOutToScript {
-    fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let keys_length = deserializer.get_u64_varint()?;
         let mut keys = Vec::new();
         keys.reserve(keys_length as usize);

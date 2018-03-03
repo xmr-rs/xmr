@@ -40,7 +40,7 @@ pub enum SignatureType {
 }
 
 impl Deserialize for Transaction {
-    fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let prefix: TransactionPrefix = deserializer.get_deserializable()?;
 
         let signature_type = match prefix.version {

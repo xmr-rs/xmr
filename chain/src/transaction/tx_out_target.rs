@@ -20,7 +20,7 @@ pub enum TxOutTarget {
 }
 
 impl Deserialize for TxOutTarget {
-    fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let tag = deserializer.get_u8()?;
         let target = match tag {
             TO_KEY => {

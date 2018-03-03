@@ -23,7 +23,7 @@ pub struct BlockHeader {
 }
 
 impl Deserialize for BlockHeader {
-    fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let major_version = deserializer.get_u8_varint()?;
         let minor_version = deserializer.get_u8_varint()?;
         let timestamp = deserializer.get_u64_varint()?;

@@ -12,7 +12,7 @@ pub struct TxInGen {
 }
 
 impl Deserialize for TxInGen {
-    fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         deserializer.get_u64_varint()
             .map(|height| TxInGen { height })
     }

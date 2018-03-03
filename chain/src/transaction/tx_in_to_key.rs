@@ -15,7 +15,7 @@ pub struct TxInToKey {
 }
 
 impl Deserialize for TxInToKey {
-    fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let amount = deserializer.get_u64_varint()?;
 
         let key_offsets_length = deserializer.get_u64_varint()? as usize;

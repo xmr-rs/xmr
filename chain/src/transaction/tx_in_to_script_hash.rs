@@ -17,7 +17,7 @@ pub struct TxInToScriptHash {
 }
 
 impl Deserialize for TxInToScriptHash {
-    fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let prev = H256::from_bytes(deserializer.get_blob(H256_LENGTH)?);
         let prevout = deserializer.get_u64_varint()?;
         let script = deserializer.get_deserializable()?;

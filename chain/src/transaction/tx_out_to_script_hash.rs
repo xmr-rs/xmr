@@ -13,7 +13,7 @@ pub struct TxOutToScriptHash {
 }
 
 impl Deserialize for TxOutToScriptHash {
-    fn deserialize(mut deserializer: DeserializerStream) -> Result<Self, Error> {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let hash = H256::from_bytes(deserializer.get_blob(H256_LENGTH)?);
 
         Ok(TxOutToScriptHash { hash })
