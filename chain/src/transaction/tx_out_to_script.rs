@@ -25,7 +25,7 @@ impl Deserialize for TxOutToScript {
         }
 
         let script_length = deserializer.get_u64_varint()? as usize;
-        let script = deserializer.get_blob(script_length)?.to_vec();
+        let script = deserializer.get_blob(script_length)?;
 
 
         Ok(TxOutToScript {

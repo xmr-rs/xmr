@@ -31,7 +31,7 @@ impl Deserialize for BlockHeader {
         let nonce = match deserializer.get_blob(4) {
             Ok(v) => {
                 let mut n = [0u8; 4];
-                n.copy_from_slice(v);
+                n.copy_from_slice(v.as_slice());
                 n
             }
             Err(e) => return Err(e),

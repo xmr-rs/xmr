@@ -67,12 +67,16 @@ impl<'buf> DeserializerStream<'buf> {
             .map_err(Error::from)
     }
 
-    pub fn get_blob(&mut self, length: usize) -> Result<&[u8], Error> {
+    pub fn get_blob(&mut self, length: usize) -> Result<Vec<u8>, Error> {
         if self.0.remaining() < length {
             return Err(Error::UnexpectedEof(length))
         }
 
-        Ok(&(self.0.bytes()[..length]))
+        let blob = (&(self.0.bytes()[..length])).to_vec();
+
+        self.0.advance(length);
+
+        Ok(blob)
     }
 
     pub fn get_deserializable<T: Deserialize>(&mut self) -> Result<T, Error> {

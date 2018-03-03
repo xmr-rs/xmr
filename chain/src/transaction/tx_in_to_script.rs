@@ -20,7 +20,7 @@ impl Deserialize for TxInToScript {
         let prevout = deserializer.get_u64_varint()?;
 
         let sigset_length = deserializer.get_u64_varint()? as usize;
-        let sigset = deserializer.get_blob(sigset_length)?.to_vec();
+        let sigset = deserializer.get_blob(sigset_length)?;
 
         Ok(TxInToScript {
             prev,

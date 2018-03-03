@@ -45,7 +45,7 @@ impl Deserialize for TransactionPrefix {
         }
 
         let extra_length = deserializer.get_u64_varint()? as usize;
-        let extra = deserializer.get_blob(extra_length)?.to_vec();
+        let extra = deserializer.get_blob(extra_length)?;
 
         Ok(TransactionPrefix {
             version,

@@ -23,7 +23,7 @@ impl Deserialize for TxInToScriptHash {
         let script = deserializer.get_deserializable()?;
 
         let sigset_length = deserializer.get_u64_varint()? as usize;
-        let sigset = deserializer.get_blob(sigset_length)?.to_vec();
+        let sigset = deserializer.get_blob(sigset_length)?;
 
         Ok(TxInToScriptHash {
             prev,
