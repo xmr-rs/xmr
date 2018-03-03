@@ -19,6 +19,7 @@ impl<'buf> SerializerStream<'buf> {
     }
 
     pub fn put_u8(&mut self, v: u8) {
+        self.0.reserve(1);
         self.0.put_u8(v);
     }
 
@@ -31,6 +32,7 @@ impl<'buf> SerializerStream<'buf> {
     }
 
     pub fn put_blob(&mut self, v: &[u8]) {
+        self.0.reserve(v.len());
         self.0.put(v)
     }
 
