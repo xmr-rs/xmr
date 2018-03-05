@@ -1,6 +1,7 @@
 extern crate libc;
 
 use std::mem::transmute;
+use std::thread;
 use libc::{c_void, c_char, size_t};
 
 mod ffi;
@@ -30,14 +31,23 @@ pub fn slow_hash(data: &[u8]) -> [u8; SLOW_HASH_LENGTH] {
 
     debug_assert!(SLOW_HASH_LENGTH == ffi::HASH_SIZE);
 
-    let output = &mut [0u8; FAST_HASH_LENGTH];    
-    unsafe {
-        cn_slow_hash(
-            data.as_ptr() as *const c_void,
-            data.len() as size_t,
-            transmute::<*mut u8, *mut c_char>(output.as_mut_ptr()),
-        )
-    }
+    // FIXME: this is stupid, do it the safe way
+    // *const u8 can't be sent between threads.
+    let data_ptr = unsafe { transmute::<*const u8, usize>(data.as_ptr()) };
+    let data_len = data.len() as size_t;
 
-    *output
+    let child = thread::Builder::new().stack_size(4194304).spawn(move || {
+        let output = &mut [0u8; FAST_HASH_LENGTH];    
+        unsafe {
+            cn_slow_hash(
+                transmute::<usize, *const c_void>(data_ptr),
+                data_len,
+                transmute::<*mut u8, *mut c_char>(output.as_mut_ptr()),
+            )
+        }
+
+        *output
+    }).unwrap();
+
+    child.join().unwrap()
 }
