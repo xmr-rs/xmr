@@ -4,5 +4,8 @@ version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 build = "build.rs"
 
+[dependencies]
+libc = "0.2.36"
+
 [build-dependencies]
 cc = "1.0"

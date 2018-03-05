@@ -1,8 +1,6 @@
 #![allow(non_camel_case_types)]
 
-use std::os::raw::{c_void, c_char, c_ulonglong};
-
-pub type size_t = c_ulonglong;
+use libc::{c_void, c_char, size_t};
 
 pub const HASH_SIZE: usize = 32;
 
