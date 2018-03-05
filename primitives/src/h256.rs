@@ -1,13 +1,13 @@
 use crypto::{fast_hash, slow_hash};
 use bytes::{LittleEndian, ByteOrder};
 use serde;
-use std;
+use std::{self, fmt};
 
 /// H256 length in bytes.
 pub const H256_LENGTH: usize = 32;
 
 /// A 256-bit hash.
-#[derive(Debug, Default, Clone, Eq, PartialEq)]
+#[derive(Default, Clone, Eq, PartialEq)]
 pub struct H256(pub [u8; H256_LENGTH]);
 
 impl H256 {
@@ -125,6 +125,18 @@ impl H256 {
 
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
+    }
+}
+
+impl fmt::Debug for H256 {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+            write!(fmt, "\"")?;
+
+            for b in self.0.iter() {
+                write!(fmt, "{:02x}", b)?;
+            }
+
+            write!(fmt, "\"")
     }
 }
 
