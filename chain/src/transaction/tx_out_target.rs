@@ -19,6 +19,24 @@ pub enum TxOutTarget {
     ToScriptHash(TxOutToScriptHash),
 }
 
+impl From<TxOutToKey> for TxOutTarget {
+    fn from(target: TxOutToKey) -> TxOutTarget {
+        TxOutTarget::ToKey(target)
+    }
+}
+
+impl From<TxOutToScript> for TxOutTarget {
+    fn from(target: TxOutToScript) -> TxOutTarget {
+        TxOutTarget::ToScript(target)
+    }
+}
+
+impl From<TxOutToScriptHash> for TxOutTarget {
+    fn from(target: TxOutToScriptHash) -> TxOutTarget {
+        TxOutTarget::ToScriptHash(target)
+    }
+}
+
 impl Deserialize for TxOutTarget {
     fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let tag = deserializer.get_u8()?;

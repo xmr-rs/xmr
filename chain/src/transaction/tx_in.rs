@@ -32,6 +32,30 @@ impl TxIn {
     }
 }
 
+impl From<TxInGen> for TxIn {
+    fn from(tx: TxInGen) -> TxIn {
+        TxIn::Gen(tx)
+    }
+}
+
+impl From<TxInToKey> for TxIn {
+    fn from(tx: TxInToKey) -> TxIn {
+        TxIn::ToKey(tx)
+    }
+}
+
+impl From<TxInToScript> for TxIn {
+    fn from(tx: TxInToScript) -> TxIn {
+        TxIn::ToScript(tx)
+    }
+}
+
+impl From<TxInToScriptHash> for TxIn {
+    fn from(tx: TxInToScriptHash) -> TxIn {
+        TxIn::ToScriptHash(tx)
+    }
+}
+
 impl Deserialize for TxIn {
     fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let tag = deserializer.get_u8()?;
