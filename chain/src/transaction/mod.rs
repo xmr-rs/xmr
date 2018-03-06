@@ -1,7 +1,7 @@
 mod transaction;
 mod transaction_prefix;
 
-pub use self::transaction::Transaction;
+pub use self::transaction::{Transaction, SignatureType};
 pub use self::transaction_prefix::TransactionPrefix;
 
 mod tx_in;
