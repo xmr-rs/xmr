@@ -6,6 +6,7 @@ use format::{
     Serialize,
     SerializerStream,
 };
+use bytes::{ByteOrder, LittleEndian};
 
 /// The metadata at the beginning of each block.
 #[derive(Debug, Default, Clone)]
@@ -19,7 +20,7 @@ pub struct BlockHeader {
     /// Identifier of the previous block.
     pub prev_id: H256,
     /// Any value which is used in the network consensus algorithm.
-    pub nonce: [u8; 4],
+    pub nonce: u32,
 }
 
 impl Deserialize for BlockHeader {
@@ -30,9 +31,7 @@ impl Deserialize for BlockHeader {
         let prev_id = H256::from_bytes(deserializer.get_blob(H256_LENGTH)?);
         let nonce = match deserializer.get_blob(4) {
             Ok(v) => {
-                let mut n = [0u8; 4];
-                n.copy_from_slice(v.as_slice());
-                n
+                LittleEndian::read_u32(&v)
             }
             Err(e) => return Err(e),
         };
@@ -53,6 +52,8 @@ impl Serialize for BlockHeader {
         serializer.put_u8_varint(self.minor_version);
         serializer.put_u64_varint(self.timestamp);
         serializer.put_blob(self.prev_id.as_ref());
-        serializer.put_blob(&self.nonce)
+        let nonce = &mut [0u8; 4];
+        LittleEndian::write_u32(nonce, self.nonce);
+        serializer.put_blob(nonce)
     }
 }
