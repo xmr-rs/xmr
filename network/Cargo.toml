@@ -8,4 +8,4 @@ chain = { path = "../chain" }
 verification = { path = "../verification" }
 primitives = { path = "../primitives" }
 uuid = "0.5.0"
-bytes = "0.4.6"
+log = "0.4.1"

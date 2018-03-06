@@ -1,13 +1,13 @@
-extern crate bytes;
 extern crate uuid;
 extern crate chain;
 extern crate verification;
 extern crate primitives;
+#[macro_use]
+extern crate log;
 
 use chain::transaction::Transaction;
 use chain::{Block, BlockHeader};
 use uuid::Uuid;
-use bytes::{LittleEndian, ByteOrder};
 use primitives::H256;
 use verification::{Difficulty, is_valid_proof_of_work};
 
@@ -117,20 +117,21 @@ impl Network {
     }
 
     pub fn genesis_block(&self) -> Block {
-        let mut nonce = [0u8; 4];
-        LittleEndian::write_u32(&mut nonce, self.genesis_nonce());
-
         let bl = Block {
             header: BlockHeader {
                 major_version: 1,
                 minor_version: 0,
                 timestamp: 0,
                 prev_id: H256::new(),
-                nonce,
+                nonce: self.genesis_nonce(),
             },
             miner_tx: self.genesis_transaction(),
             tx_hashes: vec![],
         };
+
+        trace!("genesis block - {:?}", bl);
+        trace!("genesis block hash - {:?}", bl.hash());
+        trace!("genesis block id- {:?}", bl.id());
 
         assert!(is_valid_proof_of_work(bl.hash(), Difficulty(1)),
                 "proof of work for genesis block isn't valid");
