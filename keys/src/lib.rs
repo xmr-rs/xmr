@@ -100,6 +100,12 @@ impl PublicKey {
     }
 }
 
+impl From<[u8; PUBLIC_KEY_LENGTH]> for PublicKey {
+    fn from(key: [u8; PUBLIC_KEY_LENGTH]) -> PublicKey {
+        PublicKey(key)
+    }
+}
+
 impl fmt::Debug for PublicKey {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt_byte_slice(&self.0, fmt)
