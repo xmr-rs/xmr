@@ -68,3 +68,26 @@ pub fn write<I: ToPrimitive>(output: &mut BytesMut, i: I) {
     output.reserve(1);
     output.put_u8(i as u8);
 }
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+    use std::u16::MAX;
+    use bytes::{BytesMut, IntoBuf};
+
+    #[test]
+    fn read_write_is_equal() {
+        let mut write_buf = BytesMut::with_capacity(64);
+        for input in 0..MAX {
+            write(&mut write_buf, input as u16);
+            
+            {
+                let mut read_buf = write_buf.as_ref().into_buf();
+                let output = read(&mut read_buf).expect("reading should be fine") as u16;
+                assert_eq!(input, output);
+            }
+
+            write_buf.clear();
+        }
+    }
+}
