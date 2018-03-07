@@ -46,7 +46,7 @@ impl Block {
 
     fn build_tree_ids(&self) -> Vec<H256> {
         let mut txids = Vec::with_capacity(self.tx_hashes.len() + 1);
-        txids.push(self.miner_tx.hash());
+        txids.push(self.miner_tx.id());
         txids.extend_from_slice(self.tx_hashes.as_slice());
         txids
     }
@@ -87,7 +87,6 @@ impl Serialize for Block {
 
 #[cfg(test)]
 pub mod tests {
-    use primitives::H256;
     use format::to_binary;
     use block::Block;
     use block_header::BlockHeader;

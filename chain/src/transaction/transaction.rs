@@ -24,7 +24,7 @@ impl Transaction {
         from_binary::<Self>(v.as_ref())
     }
 
-    pub fn hash(&self) -> H256 {
+    pub fn id(&self) -> H256 {
         match self.prefix.version {
             1 => H256::fast_hash(to_binary(self)),
             2 => unimplemented!(),
