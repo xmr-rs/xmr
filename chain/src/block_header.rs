@@ -6,7 +6,6 @@ use format::{
     Serialize,
     SerializerStream,
 };
-use bytes::{ByteOrder, LittleEndian};
 
 /// The metadata at the beginning of each block.
 #[derive(Debug, Default, Clone)]
@@ -29,12 +28,7 @@ impl Deserialize for BlockHeader {
         let minor_version = deserializer.get_u8_varint()?;
         let timestamp = deserializer.get_u64_varint()?;
         let prev_id = H256::from_bytes(deserializer.get_blob(H256_LENGTH)?);
-        let nonce = match deserializer.get_blob(4) {
-            Ok(v) => {
-                LittleEndian::read_u32(&v)
-            }
-            Err(e) => return Err(e),
-        };
+        let nonce = deserializer.get_u32()?;
 
         Ok(BlockHeader {
             major_version,
@@ -52,8 +46,6 @@ impl Serialize for BlockHeader {
         serializer.put_u8_varint(self.minor_version);
         serializer.put_u64_varint(self.timestamp);
         serializer.put_blob(self.prev_id.as_ref());
-        let nonce = &mut [0u8; 4];
-        LittleEndian::write_u32(nonce, self.nonce);
-        serializer.put_blob(nonce)
+        serializer.put_u32(self.nonce)
     }
 }

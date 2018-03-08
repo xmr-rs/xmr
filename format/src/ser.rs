@@ -23,6 +23,17 @@ impl<'buf> SerializerStream<'buf> {
         self.0.put_u8(v);
     }
 
+    pub fn put_u32(&mut self, mut v: u32) {
+        use std::mem::size_of;
+
+        let bytes = size_of::<u32>();
+        self.0.reserve(bytes);
+        for _ in 0..bytes {
+            self.0.put_u8((v & 0xff) as u8);
+            v >>= 8;
+        }
+    }
+
     pub fn put_u8_varint(&mut self, v: u8) {
         varint::write(self.0, v)
     }
