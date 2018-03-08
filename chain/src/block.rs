@@ -33,15 +33,10 @@ impl Block {
 
     fn hashable_blob(&self) -> Bytes {
         let mut buf: BytesMut = to_binary(&self.header).into();
-        println!("buf: {:?}", buf);
         let tree_hash = self.transaction_tree_hash();
-        println!("buf: {:?}", buf);
         buf.reserve(tree_hash.as_bytes().len());
-        println!("buf: {:?}", buf);
         buf.put(tree_hash.as_bytes());
-        println!("buf: {:?}", buf);
         varint::write(&mut buf, self.tx_hashes.len() + 1);
-        println!("buf: {:?}", buf);
         buf.freeze()
     }
 
