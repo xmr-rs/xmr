@@ -1,5 +1,5 @@
 use crypto::{fast_hash, slow_hash};
-use bytes::{LittleEndian, ByteOrder};
+use bytes::{Buf, IntoBuf, LittleEndian};
 use serde;
 use std::{self, fmt};
 
@@ -115,10 +115,11 @@ impl H256 {
     }
 
     pub fn u64_components(&self) -> (u64, u64, u64, u64) {
-        let v1 = LittleEndian::read_u64(&self.0[..8]);
-        let v2 = LittleEndian::read_u64(&(&self.0[8..])[..8]);
-        let v3 = LittleEndian::read_u64(&(&self.0[15..])[..8]);
-        let v4 = LittleEndian::read_u64(&self.0[23..]);
+        let mut buf = self.0.into_buf();
+        let v1 = buf.get_u64::<LittleEndian>();
+        let v2 = buf.get_u64::<LittleEndian>();
+        let v3 = buf.get_u64::<LittleEndian>();
+        let v4 = buf.get_u64::<LittleEndian>();
 
         (v1, v2, v3, v4)
     }
