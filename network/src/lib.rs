@@ -150,6 +150,16 @@ impl HardForks {
         let back = self.parameters.len() - 1;
         self.parameters[back].version
     }
+    
+    pub fn ideal_version_for_height(&self, height: u64) -> u8 {
+        for hard_fork in self.parameters {
+            if height >= hard_fork.height {
+                return hard_fork.version;
+            }
+        }
+
+        unreachable!();
+    }
 }
 
 impl From<&'static [HardForkParameters]> for HardForks {
