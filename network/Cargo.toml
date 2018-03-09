@@ -9,3 +9,6 @@ verification = { path = "../verification" }
 primitives = { path = "../primitives" }
 uuid = "0.5.0"
 log = "0.4.1"
+
+[dev-dependencies]
+format = { path = "../format" }
