@@ -15,7 +15,7 @@ pub fn is_valid_proof_of_work(hash: H256, Difficulty(difficulty): Difficulty) ->
     let (low2, high2) = mul(comps.1, difficulty);
     let (low3, high3) = mul(comps.2, difficulty);
 
-    cadc(high3, top, cadc(high2, low3, cadd(high1, low2)))
+    !cadc(high3, top, cadc(high2, low3, cadd(high1, low2)))
 }
 
 fn cadd(a: u64, b: u64) -> bool {
