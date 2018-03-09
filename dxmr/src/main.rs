@@ -30,6 +30,8 @@ fn main() {
         (@arg connect: --connect +takes_value "Connect only to the given peer")
         (@arg listenport: --listenport +takes_value )
         (@arg hidemyport: --hidemyport)
+        (@arg outpeers: --outpeers +takes_value "Maximum of outbound peers")
+        (@arg inpeers: --inpeers +takes_value "Maximum of outbound peers")
     ).get_matches();
     
     // TODO: no unwrap
@@ -52,6 +54,8 @@ fn start(cfg: config::Config) -> Result<(), Error> {
         peers: cfg.peers,
         listen_port: cfg.listen_port,
         hide_my_port: cfg.hide_my_port,
+        out_peers: cfg.out_peers,
+        in_peers: cfg.in_peers,
     };
 
     let p2p = p2p::P2P::new(config, el.handle());

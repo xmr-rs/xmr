@@ -38,7 +38,7 @@ impl Context {
         let peer_id = PeerId::random(&mut rng);
         Context {
             // TODO: Add a cfg for max inbound/outbound connections
-            connection_counter: ConnectionCounter::new(5, 5),
+            connection_counter: ConnectionCounter::new(config.in_peers, config.out_peers),
             remote: remote,
             pool: pool_handle,
             config,

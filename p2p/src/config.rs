@@ -14,6 +14,10 @@ pub struct Config {
     pub listen_port: Option<u32>,
     /// Hide my port.
     pub hide_my_port: bool,
+    /// Maximum of outbound peers.
+    pub out_peers: u32,
+    /// Maximum of inbound peers.
+    pub in_peers: u32,
 }
 
 pub const P2P_SUPPORT_FLAG_FLUFFY_BLOCKS: u32 = 0x01;
