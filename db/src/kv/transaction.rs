@@ -6,7 +6,7 @@ use format::{to_binary, from_binary};
 pub const COL_META: usize = 0;
 pub const COL_BLOCKS: usize = 1;
 pub const COL_BLOCK_HEIGHTS: usize = 2;
-pub const COL_BLOCK_HASHES: usize = 2;
+pub const COL_BLOCK_IDS: usize = 3;
 
 #[derive(Debug)]
 pub enum Operation {
@@ -161,7 +161,7 @@ impl<'a> From<&'a KeyValue> for RawKeyValue {
             KeyValue::BlockId(ref k, ref v) => {
                 let mut buf = BytesMut::with_capacity(8);
                 buf.put_u64::<LittleEndian>(*k);
-                (COL_BLOCK_HASHES, buf.freeze(), Bytes::from(v.as_bytes()))
+                (COL_BLOCK_IDS, buf.freeze(), Bytes::from(v.as_bytes()))
             }
         };
         
@@ -188,7 +188,7 @@ impl<'a> From<&'a Key> for RawKey {
             Key::BlockId(ref k) => {
                 let mut buf = BytesMut::with_capacity(8);
                 buf.put_u64::<LittleEndian>(*k);
-                (COL_BLOCK_HASHES, buf.freeze())
+                (COL_BLOCK_IDS, buf.freeze())
             },
         };
 
