@@ -9,7 +9,7 @@ use format::{
     SerializerStream,
     to_binary,
 };
-use bytes::{Bytes, BytesMut, BufMut};
+use bytes::{BytesMut, BufMut};
 use varint;
 
 /// A block.
@@ -28,16 +28,21 @@ impl Block {
 
     /// Calculate the block identifier.
     pub fn id(&self) -> H256 {
-        H256::fast_hash(self.hashable_blob())
+        let hashable_blob = self.hashable_blob();
+        let mut id_blob = BytesMut::with_capacity(hashable_blob.len() + 4);
+        varint::write(&mut id_blob, hashable_blob.len());
+        id_blob.unsplit(hashable_blob);
+
+        H256::fast_hash(id_blob)
     }
 
-    fn hashable_blob(&self) -> Bytes {
+    fn hashable_blob(&self) -> BytesMut {
         let mut buf: BytesMut = to_binary(&self.header).into();
         let tree_hash = self.transaction_tree_hash();
         buf.reserve(tree_hash.as_bytes().len());
         buf.put(tree_hash.as_bytes());
         varint::write(&mut buf, self.tx_hashes.len() + 1);
-        buf.freeze()
+        buf
     }
 
     fn transaction_tree_hash(&self) -> H256 {
