@@ -1,8 +1,7 @@
 use bytes::{BytesMut, Buf, BufMut, LittleEndian, IntoBuf};
-
 use portable_storage_utils::stl::{StlElement, Error};
-
 use protocol::{Ipv4Address, PeerId};
+use std::cmp::{Eq, PartialEq};
 
 #[derive(Debug, Default, Clone)]
 pub struct PeerlistEntry {
@@ -10,6 +9,14 @@ pub struct PeerlistEntry {
     pub id: PeerId,
     pub last_seen: i64,
 }
+
+impl PartialEq for PeerlistEntry {
+    fn eq(&self, other: &PeerlistEntry) -> bool {
+        self.id == other.id && self.adr == other.adr
+    }
+}
+
+impl Eq for PeerlistEntry {}
 
 impl StlElement for PeerlistEntry {
     const LENGTH: usize = Ipv4Address::LENGTH + 8 + 8;

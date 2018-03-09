@@ -28,6 +28,7 @@ pub mod p2p;
 pub mod net;
 pub mod config;
 pub mod levin;
+pub mod utils;
 
 pub use p2p::P2P;
 pub use event_loop::{event_loop, forever};

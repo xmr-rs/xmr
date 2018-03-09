@@ -19,6 +19,7 @@ use levin::Command;
 use cryptonote::CoreSyncData;
 use protocol::BasicNodeData;
 use protocol::handshake::Handshake;
+use utils::Peerlist;
 
 pub type BoxedEmptyFuture = Box<Future<Item=(), Error=()> + Send>;
 
@@ -26,6 +27,7 @@ pub struct Context {
     connection_counter: ConnectionCounter,
     remote: Remote,
     pool: CpuPool,
+    pub(crate) peerlist: Peerlist,
     pub(crate) config: Config,
     pub(crate) peer_id: PeerId,
 }
@@ -41,6 +43,7 @@ impl Context {
             connection_counter: ConnectionCounter::new(config.in_peers, config.out_peers),
             remote: remote,
             pool: pool_handle,
+            peerlist: Peerlist::new(),
             config,
             peer_id,
         }
@@ -67,7 +70,9 @@ impl Context {
             match result {
                 Ok((_, response)) => {
                     match response {
-                        Ok(_response) => (),
+                        Ok(response) => {
+                            trace!("peer sync info - {:?}", response.payload_data);
+                        },
                         Err(e) => {
                             context.connection_counter.note_close_outbound_connection();
                             warn!("node returned invalid data: {:?}", e);
