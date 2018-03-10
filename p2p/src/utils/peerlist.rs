@@ -3,13 +3,8 @@ use std::net::SocketAddr;
 use protocol::PeerlistEntry;
 
 #[derive(Debug)]
-pub struct Peer {
-    pub entry: PeerlistEntry,
-}
-
-#[derive(Debug)]
 pub struct Peerlist {
-    pub list: HashMap<SocketAddr, Peer>,
+    pub list: HashMap<SocketAddr, PeerlistEntry>,
 }
 
 impl Peerlist {
