@@ -116,3 +116,16 @@ pub fn response_bucket(command: u32, cb: usize) -> BucketHead {
         flags: LEVIN_PACKET_RESPONSE,
     }
 }
+
+/// A levin bucket used to send notify commands.
+pub fn notify_bucket(command: u32, cb: usize) -> BucketHead {
+    BucketHead {
+        signature: LEVIN_SIGNATURE,
+        cb: cb as u64,
+        have_to_return_data: false,
+        command,
+        return_code: LEVIN_OK,
+        protocol_version: LEVIN_PROTOCOL_VER_1,
+        flags: LEVIN_PACKET_REQUEST,
+    }
+}

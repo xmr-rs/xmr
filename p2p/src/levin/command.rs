@@ -13,7 +13,7 @@ pub trait Command {
 }
 
 pub trait Notify {
-    type Request: Storage;
+    type Request: Storage + Send + Sync + 'static;
 
     const ID: u32;
 }
