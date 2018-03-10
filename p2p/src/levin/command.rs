@@ -12,6 +12,12 @@ pub trait Command {
     const ID: u32;
 }
 
+pub trait Notify {
+    type Request: Storage;
+
+    const ID: u32;
+}
+
 pub trait Storage: Sized {
     fn from_section(section: Section) -> Result<Self, Error>;
     fn to_section(&self) -> Result<Section, Error>;
