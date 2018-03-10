@@ -324,6 +324,14 @@ impl Array {
     }
 }
 
+impl Index<usize> for Array {
+    type Output = StorageEntry;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.array[index]
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Section {
     pub entries: LinkedHashMap<String, StorageEntry>,
