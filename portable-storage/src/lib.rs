@@ -270,6 +270,10 @@ impl Array {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.array.len()
+    }
+
     pub fn push(&mut self, entry: StorageEntry) -> std::result::Result<(), ()> {
         match self.serialize_type {
             Some(serialize_type) => {
