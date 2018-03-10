@@ -16,9 +16,9 @@ use config::Config;
 use types::PeerId;
 use net::{connect, ConnectionCounter};
 use levin::Command;
-use cryptonote::CoreSyncData;
 use types::BasicNodeData;
 use types::cmd::Handshake;
+use types::cn::CoreSyncData;
 use utils::Peerlist;
 
 pub type BoxedEmptyFuture = Box<Future<Item=(), Error=()> + Send>;

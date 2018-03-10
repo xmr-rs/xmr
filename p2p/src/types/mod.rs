@@ -3,6 +3,7 @@ use levin::COMMAND_BASE_ID;
 pub const P2P_COMMAND_BASE_ID: u32 = COMMAND_BASE_ID;
 
 pub mod cmd;
+pub mod cn;
 
 mod basic_node_data;
 mod ipv4_address;

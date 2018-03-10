@@ -1,3 +1,5 @@
+//! CryptoNote types.
+
 use primitives::H256;
 
 /// Synchronization information between nodes.

@@ -23,7 +23,6 @@ extern crate log;
 
 pub mod event_loop;
 pub mod types;
-pub mod cryptonote;
 pub mod p2p;
 pub mod net;
 pub mod config;
