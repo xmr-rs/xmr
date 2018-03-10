@@ -14,7 +14,7 @@ use db::{SharedStore, Store};
 
 use config::Config;
 use types::PeerId;
-use net::{connect, ConnectionCounter};
+use net::{connect, ConnectionCounter, Connections};
 use levin::Command;
 use types::BasicNodeData;
 use types::cmd::Handshake;
@@ -25,8 +25,9 @@ pub type BoxedEmptyFuture = Box<Future<Item=(), Error=()> + Send>;
 
 pub struct Context {
     connection_counter: ConnectionCounter,
-    remote: Remote,
-    pool: CpuPool,
+    pub(crate) remote: Remote,
+    pub(crate) pool: CpuPool,
+    pub(crate) connections: Connections,
     pub(crate) peerlist: Peerlist,
     pub(crate) config: Config,
     pub(crate) peer_id: PeerId,
@@ -39,10 +40,10 @@ impl Context {
         let mut rng = OsRng::new().expect("Cannot open OS random.");
         let peer_id = PeerId::random(&mut rng);
         Context {
-            // TODO: Add a cfg for max inbound/outbound connections
             connection_counter: ConnectionCounter::new(config.in_peers, config.out_peers),
             remote: remote,
             pool: pool_handle,
+            connections: Connections::new(),
             peerlist: Peerlist::new(),
             config,
             peer_id,

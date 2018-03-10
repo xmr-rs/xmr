@@ -17,6 +17,7 @@ extern crate futures;
 extern crate futures_cpupool;
 extern crate tokio_core;
 extern crate tokio_io;
+extern crate parking_lot;
 
 #[macro_use]
 extern crate log;
@@ -25,6 +26,7 @@ pub mod event_loop;
 pub mod types;
 pub mod p2p;
 pub mod net;
+pub mod protocol;
 pub mod config;
 pub mod levin;
 pub mod utils;
