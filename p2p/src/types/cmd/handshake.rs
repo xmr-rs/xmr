@@ -35,7 +35,7 @@ pub mod tests {
     use super::*;
 
     use types::BasicNodeData;
-    use cryptonote::CoreSyncData;
+    use types::cn::CoreSyncData;
     use levin::{Command, Storage};
     use network::Network;
     use primitives::H256;
@@ -46,7 +46,7 @@ pub mod tests {
     fn test_vector() {
         type Request = <Handshake as Command>::Request;
         let test_vector =
-            include_bytes!("../../../compat/test-vectors/data/COMMAND_HANDSHAKE_T_TEST_VECTOR").to_vec();
+            include_bytes!("../../../../compat/test-vectors/data/COMMAND_HANDSHAKE_T_TEST_VECTOR").to_vec();
         let network = Network::Testnet;
 
         let req = Request {

@@ -8,5 +8,8 @@ extern crate failure_derive;
 
 pub mod stl;
 
+mod blob;
 mod bytes_uuid;
+
+pub use blob::Blob;
 pub use bytes_uuid::BytesUuid;
