@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use protocol::PeerlistEntry;
+use types::PeerlistEntry;
 
 #[derive(Debug)]
 pub struct Peerlist {

@@ -11,8 +11,8 @@ use uuid::Uuid;
 use p2p::Context;
 use config::P2P_SUPPORT_FLAGS;
 
-use protocol::handshake::Handshake;
-use protocol::request_support_flags::RequestSupportFlags;
+use types::handshake::Handshake;
+use types::request_support_flags::RequestSupportFlags;
 
 use levin::{
     LevinError,

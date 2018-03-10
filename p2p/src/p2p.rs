@@ -13,12 +13,12 @@ use network::Network;
 use db::{SharedStore, Store};
 
 use config::Config;
-use protocol::PeerId;
+use types::PeerId;
 use net::{connect, ConnectionCounter};
 use levin::Command;
 use cryptonote::CoreSyncData;
-use protocol::BasicNodeData;
-use protocol::handshake::Handshake;
+use types::BasicNodeData;
+use types::handshake::Handshake;
 use utils::Peerlist;
 
 pub type BoxedEmptyFuture = Box<Future<Item=(), Error=()> + Send>;

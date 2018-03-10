@@ -22,7 +22,7 @@ extern crate tokio_io;
 extern crate log;
 
 pub mod event_loop;
-pub mod protocol;
+pub mod types;
 pub mod cryptonote;
 pub mod p2p;
 pub mod net;

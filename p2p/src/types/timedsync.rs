@@ -1,6 +1,6 @@
 use portable_storage_utils::stl::StlLinkedList;
 
-use protocol::{P2P_COMMAND_BASE_ID, PeerlistEntry};
+use types::{P2P_COMMAND_BASE_ID, PeerlistEntry};
 use cryptonote::CoreSyncData;
 use levin::Command;
 

@@ -1,6 +1,6 @@
 use bytes::{BytesMut, Buf, BufMut, LittleEndian, IntoBuf};
 use portable_storage_utils::stl::{StlElement, Error};
-use protocol::{Ipv4Address, PeerId};
+use types::{Ipv4Address, PeerId};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Debug, Default, Clone)]

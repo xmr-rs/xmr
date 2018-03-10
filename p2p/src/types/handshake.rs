@@ -1,6 +1,6 @@
 use portable_storage_utils::stl::StlLinkedList;
 
-use protocol::{P2P_COMMAND_BASE_ID, BasicNodeData, PeerlistEntry};
+use types::{P2P_COMMAND_BASE_ID, BasicNodeData, PeerlistEntry};
 use cryptonote::CoreSyncData;
 use levin::Command;
 
@@ -34,7 +34,7 @@ pub struct HandshakeResponse {
 pub mod tests {
     use super::*;
 
-    use protocol::BasicNodeData;
+    use types::BasicNodeData;
     use cryptonote::CoreSyncData;
     use levin::{Command, Storage};
     use network::Network;

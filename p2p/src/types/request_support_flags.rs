@@ -1,4 +1,4 @@
-use protocol::P2P_COMMAND_BASE_ID;
+use types::P2P_COMMAND_BASE_ID;
 use levin::{Command, Empty};
 
 #[derive(Debug)]
