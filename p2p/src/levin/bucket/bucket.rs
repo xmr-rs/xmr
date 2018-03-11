@@ -1,6 +1,6 @@
 use std::io;
 
-use levin::{Command, Storage};
+use levin::{Command, Notify, Storage};
 use bytes::{Bytes, BytesMut};
 
 use futures::{Future, Poll};
@@ -57,6 +57,25 @@ impl Bucket {
         }
     }
 
+    pub fn notify<N>(body: &N::Request) -> Bucket where N: Notify, {
+        let body_section = body.to_section().expect("invalid portable storage type");
+        let mut body_buf = BytesMut::new();
+        portable_storage::write(&mut body_buf, &body_section);
+
+        Bucket {
+            head: BucketHead {
+                signature: LEVIN_SIGNATURE,
+                cb: body_buf.len() as u64,
+                have_to_return_data: false,
+                command: N::ID,
+                return_code: LEVIN_OK,
+                protocol_version: LEVIN_PROTOCOL_VER_1,
+                flags: LEVIN_PACKET_REQUEST,
+            },
+            body: body_buf,
+        }
+    }
+
     pub fn request_future<A, C>(a: A, body: &C::Request) -> Request<A>
         where A: AsyncWrite,
               C: Command,
@@ -72,6 +91,15 @@ impl Bucket {
     {
         Response {
             future: write_all(a, Self::response::<C>(body).to_bytes())
+        }
+    }
+
+    pub fn notify_future<A, N>(a: A, body: &N::Request) -> Request<A>
+        where A: AsyncWrite,
+              N: Notify,
+    {
+        Request {
+            future: write_all(a, Self::notify::<N>(body).to_bytes())
         }
     }
 

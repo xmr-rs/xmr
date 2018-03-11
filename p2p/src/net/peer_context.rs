@@ -1,8 +1,10 @@
 use std::sync::Arc;
 use types::PeerlistEntry;
 use p2p::Context;
-use levin::{Notify, notify};
+
 use futures::Future;
+use levin::bucket::Bucket;
+use levin::Notify;
 
 pub struct PeerContext {
     context: Arc<Context>,
@@ -29,7 +31,7 @@ impl PeerContext {
             return;
         };
 
-        let future = Box::new(notify::<N, _>(channel, req)
+        let future = Box::new(Bucket::notify_future::<_, N>(channel, req)
                                 .map_err(|_| ())
                                 .map(|_| ()));
 
