@@ -1,5 +1,5 @@
-mod notify_new_block;
-mod notify_new_fluffy_block;
+mod new_block;
+mod new_fluffy_block;
 
-pub use self::notify_new_block::{NotifyNewBlock, NotifyNewBlockRequest};
-pub use self::notify_new_fluffy_block::{NotifyNewFluffyBlock, NotifyNewFluffyBlockRequest};
+pub use self::new_block::{NewBlock, NewBlockRequest};
+pub use self::new_fluffy_block::{NewFluffyBlock, NewFluffyBlockRequest};
