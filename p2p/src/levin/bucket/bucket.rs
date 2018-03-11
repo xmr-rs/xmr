@@ -1,17 +1,17 @@
 use std::io;
 
-use levin::{Command, Notify, Storage};
-use bytes::{Bytes, BytesMut};
+use bytes::{Bytes, BytesMut, IntoBuf};
 
 use futures::{Future, Poll};
-use tokio_io::AsyncWrite;
-use tokio_io::io::{WriteAll, write_all};
+use tokio_io::{AsyncWrite, AsyncRead};
+use tokio_io::io::{Read, WriteAll, read, write_all};
 
+use levin::{Command, Notify, Storage, LevinResult, LevinError};
 use levin::bucket::bucket_head::{BucketHead, LEVIN_SIGNATURE, LEVIN_PROTOCOL_VER_1, LEVIN_OK,
                                  LEVIN_PACKET_REQUEST, LEVIN_PACKET_RESPONSE,
                                  BUCKET_HEAD_LENGTH};
 
-use portable_storage;
+use portable_storage::{self, Section};
 
 pub struct Bucket {
     pub head: BucketHead,
@@ -103,6 +103,54 @@ impl Bucket {
         }
     }
 
+    pub fn receive_future<A>(a: A) -> Receive<A> where A: AsyncRead {
+        let buf = vec![0u8; BUCKET_HEAD_LENGTH];
+        Receive {
+            state: ReceiveState::ReadBucket {
+                reader: read(a, buf),
+            },
+        }
+    }
+
+    pub fn into_request<C>(&self) -> LevinResult<C::Request> where C: Command {
+        if C::ID != self.head.command {
+            return Err(LevinError::InvalidCommandId(self.head.command));
+        }
+
+        let section = self.body_into_section();
+
+        // TODO: remove unwrap and add error to LevinError.
+        let req = C::Request::from_section(section).unwrap();
+
+        Ok(req)
+    }
+
+    pub fn into_response<C>(&self) -> LevinResult<C::Response> where C: Command {
+        if C::ID != self.head.command {
+            return Err(LevinError::InvalidCommandId(self.head.command));
+        }
+
+        let section = self.body_into_section();
+
+        // TODO: remove unwrap and add error to LevinError.
+        let req = C::Response::from_section(section).unwrap();
+
+        Ok(req)
+    }
+
+    pub fn into_notify<N>(&self) -> LevinResult<N::Request> where N: Notify {
+        if N::ID != self.head.command {
+            return Err(LevinError::InvalidCommandId(self.head.command));
+        }
+
+        let section = self.body_into_section();
+
+        // TODO: remove unwrap and add error to LevinError.
+        let req = N::Request::from_section(section).unwrap();
+
+        Ok(req)
+    }
+
     pub fn to_bytes(self) -> Bytes {
         let mut blob = BytesMut::with_capacity(self.body.len() + BUCKET_HEAD_LENGTH);
         BucketHead::write(&mut blob, &self.head);
@@ -113,6 +161,13 @@ impl Bucket {
 
         blob.freeze()
     }
+    
+    fn body_into_section(&self) -> Section {
+        use std::io::Cursor;
+        // TODO: remove unwrap and add error to LevinError.
+        let mut buf = Cursor::new(self.body.as_ref());
+        portable_storage::read(&mut buf).unwrap()
+    } 
 }
 
 pub struct Request<A> {
@@ -145,15 +200,70 @@ impl<A> Future for Response<A>
     }
 }
 
-/// A levin bucket used to send notify commands.
-pub fn notify_bucket(command: u32, cb: usize) -> BucketHead {
-    BucketHead {
-        signature: LEVIN_SIGNATURE,
-        cb: cb as u64,
-        have_to_return_data: false,
-        command,
-        return_code: LEVIN_OK,
-        protocol_version: LEVIN_PROTOCOL_VER_1,
-        flags: LEVIN_PACKET_REQUEST,
+#[derive(Debug)]
+pub struct Receive<A: AsyncRead> {
+    state: ReceiveState<A>,
+}
+
+#[derive(Debug)]
+enum ReceiveState<A> {
+    ReadBucket {
+        reader: Read<A, Vec<u8>>,
+    },
+    ReadStorage {
+        bucket_head: BucketHead,
+        reader: Read<A, Vec<u8>>,
+    },
+}
+
+impl<A> Future for Receive<A> where A: AsyncRead {
+    type Item = (A, LevinResult<Bucket>);
+    type Error = io::Error;
+
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+        loop {
+            let next_state = match self.state {
+                ReceiveState::ReadBucket { ref mut reader } => {
+                    trace!("receive poll - reading bucket");
+                    let (stream, buf, size) = try_ready!(reader.poll());
+                    if buf.len() != size {
+                        return Ok((stream, Err(LevinError::UnfinishedRead(buf.len()))).into());
+                    }
+
+                    let mut buf = buf.into_buf();
+                    let bucket_head = match BucketHead::read(&mut buf) { 
+                        Ok(b) => b,
+                        Err(e) => {
+                            return Ok((stream, Err(e)).into());
+                        },
+                    };
+
+                    trace!("receive poll - bucket received: {:?}", bucket_head);
+
+                    let buf = vec![0u8; bucket_head.cb as usize];
+                    ReceiveState::ReadStorage {
+                        bucket_head,
+                        reader: read(stream, buf)
+                    }
+                },
+                ReceiveState::ReadStorage { ref bucket_head, ref mut reader } => {
+                    trace!("receive poll - reading response");
+
+                    let (stream, buf, size) = try_ready!(reader.poll());
+                    if buf.len() != size {
+                        return Ok((stream, Err(LevinError::UnfinishedRead(buf.len()))).into());
+                    }
+
+                    let bucket = Bucket {
+                        head: bucket_head.clone(),
+                        body: buf.into(),
+                    };
+
+                    return Ok((stream, Ok(bucket)).into());
+                },
+            };
+
+            self.state = next_state;
+        }
     }
 }

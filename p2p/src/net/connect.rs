@@ -13,8 +13,8 @@ use config::P2P_SUPPORT_FLAGS;
 
 use types::cmd::{Handshake, RequestSupportFlags};
 
-use levin::bucket::{Bucket, Request, Response};
-use levin::{LevinError, Command, Receive, receive};
+use levin::bucket::{Bucket, Request, Response, Receive};
+use levin::{LevinError, Command};
 
 pub type HandshakeRequest = <Handshake as Command>::Request;
 pub type HandshakeResponse = <Handshake as Command>::Response;
@@ -47,13 +47,13 @@ enum ConnectState {
         future: Request<TcpStream>,
     },
     ReceiveRequestSupportFlags {
-        future: Receive<TcpStream, <RequestSupportFlags as Command>::Request>,
+        future: Receive<TcpStream>,
     },
     SendSupportFlags {
         future: Response<TcpStream>,
     },
     ReceiveHandshakeResponse {
-        future: Receive<TcpStream, <Handshake as Command>::Response>,
+        future: Receive<TcpStream>,
     }
 }
 
@@ -75,13 +75,18 @@ impl Future for Connect {
                     let (stream, _) = try_ready!(future.poll());
 
                     ConnectState::ReceiveRequestSupportFlags {
-                        future: receive(stream),
+                        future: Bucket::receive_future(stream),
                     }
                 },
                 ConnectState::ReceiveRequestSupportFlags { ref mut future } => {
-                    let (stream, request) = try_ready!(future.poll());
-                    if let Err(e) = request {
+                    let (stream, bucket) = try_ready!(future.poll());
+                    if let Err(e) = bucket {
                         return Ok((stream, Err(e.into())).into());
+                    }
+
+                    match bucket.unwrap().into_request::<RequestSupportFlags>() {
+                        Ok(_req) => {},
+                        Err(e) => return Ok((stream, Err(e.into())).into()),
                     }
 
                     let res = SupportFlagsResponse {
@@ -98,14 +103,19 @@ impl Future for Connect {
                     let (stream, _) = try_ready!(future.poll());
 
                     ConnectState::ReceiveHandshakeResponse {
-                        future: receive(stream),
+                        future: Bucket::receive_future(stream),
                     }
                 },
                 ConnectState::ReceiveHandshakeResponse { ref mut future } => {
-                    let (stream, response) = try_ready!(future.poll());
+                    let (stream, bucket) = try_ready!(future.poll());
 
-                    let response = match response {
-                        Ok((_, rsp)) => rsp,
+                    let response = match bucket {
+                        Ok(bucket) => {
+                            match bucket.into_response::<Handshake>() {
+                                Ok(res) => res,
+                                Err(e) => return Ok((stream, Err(e.into())).into()),
+                            }
+                        }
                         Err(e) => return Ok((stream, Err(e.into())).into()),
                     };
 
