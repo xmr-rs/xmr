@@ -2,6 +2,7 @@
 name = "verification"
 version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
+license = "MIT/Apache-2.0"
 
 [dependencies]
 primitives = { path = "../primitives" }
