@@ -97,7 +97,7 @@ pub struct Bucket {
 }
 
 impl Bucket {
-    pub fn invoke<C>(body: &C::Request) -> Bucket where C: Command, {
+    pub fn request<C>(body: &C::Request) -> Bucket where C: Command, {
         let body_section = body.to_section().expect("invalid portable storage type");
         let mut body_buf = BytesMut::new();
         portable_storage::write(&mut body_buf, &body_section);
@@ -125,19 +125,6 @@ impl Bucket {
         blob.unsplit(self.body);
 
         blob.freeze()
-    }
-}
-
-/// Create a `BucketHead` used for invoke.
-pub fn invoke_bucket(command: u32, cb: usize) -> BucketHead {
-    BucketHead {
-        signature: LEVIN_SIGNATURE,
-        cb: cb as u64,
-        have_to_return_data: true,
-        command,
-        return_code: LEVIN_OK,
-        protocol_version: LEVIN_PROTOCOL_VER_1,
-        flags: LEVIN_PACKET_REQUEST,
     }
 }
 

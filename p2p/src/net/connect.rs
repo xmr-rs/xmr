@@ -75,7 +75,7 @@ impl Future for Connect {
             let next_state = match self.state {
                 ConnectState::TcpConnect { ref mut future, ref request } => {
                     let stream = try_ready!(future.poll());
-                    let bucket = Bucket::invoke::<Handshake>(request);
+                    let bucket = Bucket::request::<Handshake>(request);
 
                     ConnectState::InvokeHandshake {
                         future: write_all(stream, bucket.to_bytes()),
