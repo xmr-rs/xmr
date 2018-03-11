@@ -1,9 +1,18 @@
+[package]
+name = "xmr"
+version = "0.1.0"
+authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
+license = "MIT/Apache-2.0"
+
+[[bin]]
+name = "dxmr"
+path = "dxmr/main.rs"
+
 [workspace]
 members = [
     "chain",
     "crypto",
     "db",
-    "dxmr",
     "format",
     "keys",
     "miner",
@@ -15,3 +24,14 @@ members = [
     "rct",
     "verification",
 ]
+
+[dependencies]
+clap = "2.29.2"
+failure = "0.1.1"
+log = "0.4.1"
+env_logger = "0.5.0"
+app_dirs = "1.1.1"
+p2p = { path = "./p2p" }
+db = { path = "./db" }
+network = { path = "./network" }
+chain = { path  = "./chain" }
