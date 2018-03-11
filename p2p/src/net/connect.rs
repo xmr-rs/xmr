@@ -13,11 +13,10 @@ use config::P2P_SUPPORT_FLAGS;
 
 use types::cmd::{Handshake, RequestSupportFlags};
 
+use levin::bucket::{Bucket, Request};
 use levin::{
     LevinError,
     Command,
-    Bucket,
-    Request,
     Receive,
     Response as LevinResponse,
     receive,

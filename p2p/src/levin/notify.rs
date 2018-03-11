@@ -7,12 +7,8 @@ use bytes::BytesMut;
 
 use portable_storage;
 
-use levin::{
-    Notify,
-    Storage,
-    BucketHead,
-    notify_bucket,
-};
+use levin::{Notify, Storage};
+use levin::bucket::{BucketHead, notify_bucket};
 
 pub fn notify<N, A>(a: A, request: &N::Request) -> NotifyFuture<A>
     where N: Notify,

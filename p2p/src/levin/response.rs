@@ -8,13 +8,8 @@ use tokio_io::io::{WriteAll, write_all};
 
 use portable_storage;
 
-use levin::{
-    BUCKET_HEAD_LENGTH,
-    BucketHead,
-    Command,
-    Storage,
-    response_bucket,
-};
+use levin::{Command, Storage};
+use levin::bucket::{BUCKET_HEAD_LENGTH, BucketHead, response_bucket};
 
 pub fn response<A, C>(a: A, response: C::Response) -> Response<A>
     where A: AsyncWrite,

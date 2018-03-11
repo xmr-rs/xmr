@@ -9,13 +9,8 @@ use tokio_io::io::{Read, read};
 
 use portable_storage;
 
-use levin::{
-    BUCKET_HEAD_LENGTH,
-    BucketHead,
-    Storage,
-    LevinResult,
-    LevinError,
-};
+use levin::{Storage, LevinResult, LevinError};
+use levin::bucket::{BUCKET_HEAD_LENGTH, BucketHead};
 
 pub fn receive<A, S>(a: A) -> Receive<A, S>
     where A: AsyncRead,
