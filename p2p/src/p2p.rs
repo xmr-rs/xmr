@@ -69,10 +69,14 @@ impl Context {
         let connection = connect(&address, handle, context.clone(), req);
         Box::new(connection.then(move |result| {
             match result {
-                Ok((_, response)) => {
+                Ok((stream, response)) => {
                     match response {
                         Ok(response) => {
                             trace!("peer sync info - {:?}", response.payload_data);
+                            context.connections.store(
+                                response.node_data.peer_id,
+                                stream.into()
+                            );
                         },
                         Err(e) => {
                             context.connection_counter.note_close_outbound_connection();
