@@ -28,7 +28,7 @@ pub fn notify<N, A>(a: A, request: &N::Request) -> NotifyFuture<A>
     portable_storage::write(&mut notify_buf, &section);
 
     let mut buf = BytesMut::new();
-    BucketHead::write(&mut buf, notify_bucket(N::ID, notify_buf.len()));
+    BucketHead::write(&mut buf, &notify_bucket(N::ID, notify_buf.len()));
     buf.unsplit(notify_buf);
 
     NotifyFuture {

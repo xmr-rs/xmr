@@ -27,7 +27,7 @@ pub fn response<A, C>(a: A, response: C::Response) -> Response<A>
     portable_storage::write(&mut response_buf, &section);
 
     let mut buf = BytesMut::with_capacity(BUCKET_HEAD_LENGTH);
-    BucketHead::write(&mut buf, response_bucket(C::ID, response_buf.len()));
+    BucketHead::write(&mut buf, &response_bucket(C::ID, response_buf.len()));
 
     // XXX: unsplit is a bad and confusing name. In this context it mean's
     // "concatenate".

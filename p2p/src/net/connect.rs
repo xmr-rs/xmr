@@ -5,6 +5,8 @@ use std::net::SocketAddr;
 use futures::{Future, Poll};
 use tokio_core::reactor::Handle;
 use tokio_core::net::{TcpStream, TcpStreamNew};
+use tokio_io::io::{WriteAll, write_all};
+use bytes::Bytes;
 
 use uuid::Uuid;
 
@@ -16,10 +18,9 @@ use types::cmd::{Handshake, RequestSupportFlags};
 use levin::{
     LevinError,
     Command,
-    Invoke,
+    Bucket,
     Receive,
     Response as LevinResponse,
-    invoke,
     receive,
     response,
 };
@@ -52,7 +53,7 @@ enum ConnectState {
         request: Request,
     },
     InvokeHandshake {
-        future: Invoke<TcpStream>,
+        future: WriteAll<TcpStream, Bytes>,
     },
     ReceiveRequestSupportFlags {
         future: Receive<TcpStream, <RequestSupportFlags as Command>::Request>,
@@ -74,12 +75,14 @@ impl Future for Connect {
             let next_state = match self.state {
                 ConnectState::TcpConnect { ref mut future, ref request } => {
                     let stream = try_ready!(future.poll());
+                    let bucket = Bucket::invoke::<Handshake>(request);
+
                     ConnectState::InvokeHandshake {
-                        future: invoke::<Handshake, TcpStream>(stream, request),
+                        future: write_all(stream, bucket.to_bytes()),
                     }
                 },
                 ConnectState::InvokeHandshake { ref mut future } => {
-                    let stream = try_ready!(future.poll());
+                    let (stream, _) = try_ready!(future.poll());
 
                     ConnectState::ReceiveRequestSupportFlags {
                         future: receive(stream),

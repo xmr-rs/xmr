@@ -1,6 +1,6 @@
-use bytes::{Buf, BufMut, BytesMut, LittleEndian};
-
-use levin::{LevinResult, LevinError, BucketHeadError};
+use bytes::{Buf, BufMut, Bytes, BytesMut, LittleEndian};
+use levin::{Command, Storage, LevinResult, LevinError, BucketHeadError};
+use portable_storage;
 
 /// BucketHead signature.
 pub const LEVIN_SIGNATURE: u64 = 0x0101010101012101;
@@ -78,7 +78,7 @@ impl BucketHead {
     }
 
     /// Write a `BucketHead` to a buffer.
-    pub fn write(buf: &mut BytesMut, bucket_head: BucketHead) {
+    pub fn write(buf: &mut BytesMut, bucket_head: &BucketHead) {
         buf.reserve(BUCKET_HEAD_LENGTH);
 
         buf.put_u64::<LittleEndian>(bucket_head.signature);
@@ -88,6 +88,43 @@ impl BucketHead {
         buf.put_i32::<LittleEndian>(bucket_head.return_code);
         buf.put_u32::<LittleEndian>(bucket_head.flags);
         buf.put_u32::<LittleEndian>(bucket_head.protocol_version);
+    }
+}
+
+pub struct Bucket {
+    head: BucketHead,
+    body: BytesMut,
+}
+
+impl Bucket {
+    pub fn invoke<C>(body: &C::Request) -> Bucket where C: Command, {
+        let body_section = body.to_section().expect("invalid portable storage type");
+        let mut body_buf = BytesMut::new();
+        portable_storage::write(&mut body_buf, &body_section);
+
+        Bucket {
+            head: BucketHead {
+                signature: LEVIN_SIGNATURE,
+                cb: body_buf.len() as u64,
+                have_to_return_data: true,
+                command: C::ID,
+                return_code: LEVIN_OK,
+                protocol_version: LEVIN_PROTOCOL_VER_1,
+                flags: LEVIN_PACKET_REQUEST,
+            },
+            body: body_buf,
+        }
+    }
+
+    pub fn to_bytes(self) -> Bytes {
+        let mut blob = BytesMut::with_capacity(self.body.len() + BUCKET_HEAD_LENGTH);
+        BucketHead::write(&mut blob, &self.head);
+
+        // unsplit is a bad and confusing name for this :(,
+        // in this context it means "concatenate".
+        blob.unsplit(self.body);
+
+        blob.freeze()
     }
 }
 

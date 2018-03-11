@@ -29,7 +29,7 @@ pub fn invoke<C, A>(a: A, request: &C::Request) -> Invoke<A>
     portable_storage::write(&mut command_buf, &section);
 
     let mut buf = BytesMut::new();
-    BucketHead::write(&mut buf, invoke_bucket(C::ID, command_buf.len()));
+    BucketHead::write(&mut buf, &invoke_bucket(C::ID, command_buf.len()));
     buf.unsplit(command_buf);
 
     Invoke {
