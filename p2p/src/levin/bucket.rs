@@ -92,8 +92,8 @@ impl BucketHead {
 }
 
 pub struct Bucket {
-    head: BucketHead,
-    body: BytesMut,
+    pub head: BucketHead,
+    pub body: BytesMut,
 }
 
 impl Bucket {
