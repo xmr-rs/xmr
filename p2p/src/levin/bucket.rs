@@ -1,5 +1,9 @@
 use bytes::{Buf, BufMut, Bytes, BytesMut, LittleEndian};
 use levin::{Command, Storage, LevinResult, LevinError, BucketHeadError};
+use futures::{Future, Poll};
+use tokio_io::io::{WriteAll, write_all};
+use tokio_io::AsyncWrite;
+use std::io;
 use portable_storage;
 
 /// BucketHead signature.
@@ -116,6 +120,15 @@ impl Bucket {
         }
     }
 
+    pub fn request_future<A, C>(a: A, body: &C::Request) -> Request<A>
+        where A: AsyncWrite,
+              C: Command,
+    {
+        Request {
+            future: write_all(a, Self::request::<C>(body).to_bytes())
+        }
+    }
+
     pub fn to_bytes(self) -> Bytes {
         let mut blob = BytesMut::with_capacity(self.body.len() + BUCKET_HEAD_LENGTH);
         BucketHead::write(&mut blob, &self.head);
@@ -125,6 +138,21 @@ impl Bucket {
         blob.unsplit(self.body);
 
         blob.freeze()
+    }
+}
+
+pub struct Request<A> {
+    future: WriteAll<A, Bytes>,
+}
+
+impl<A> Future for Request<A>
+    where A: AsyncWrite,
+{
+    type Item = (A, Bytes);
+    type Error = io::Error;
+
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+        self.future.poll()
     }
 }
 

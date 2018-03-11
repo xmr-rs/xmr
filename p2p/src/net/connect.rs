@@ -5,8 +5,6 @@ use std::net::SocketAddr;
 use futures::{Future, Poll};
 use tokio_core::reactor::Handle;
 use tokio_core::net::{TcpStream, TcpStreamNew};
-use tokio_io::io::{WriteAll, write_all};
-use bytes::Bytes;
 
 use uuid::Uuid;
 
@@ -19,20 +17,21 @@ use levin::{
     LevinError,
     Command,
     Bucket,
+    Request,
     Receive,
     Response as LevinResponse,
     receive,
     response,
 };
 
-pub type Request = <Handshake as Command>::Request;
-pub type Response = <Handshake as Command>::Response;
+pub type HandshakeRequest = <Handshake as Command>::Request;
+pub type HandshakeResponse = <Handshake as Command>::Response;
 type SupportFlagsResponse = <RequestSupportFlags as Command>::Response;
 
 pub fn connect(address: &SocketAddr,
                handle: &Handle,
                context: Arc<Context>,
-               request: Request) -> Connect {
+               request: HandshakeRequest) -> Connect {
     Connect {
         context,
         state: ConnectState::TcpConnect {
@@ -50,10 +49,10 @@ pub struct Connect {
 enum ConnectState {
     TcpConnect {
         future: TcpStreamNew,
-        request: Request,
+        request: HandshakeRequest,
     },
     InvokeHandshake {
-        future: WriteAll<TcpStream, Bytes>,
+        future: Request<TcpStream>,
     },
     ReceiveRequestSupportFlags {
         future: Receive<TcpStream, <RequestSupportFlags as Command>::Request>,
@@ -67,7 +66,7 @@ enum ConnectState {
 }
 
 impl Future for Connect {
-    type Item = (TcpStream, Result<Response, ConnectError>);
+    type Item = (TcpStream, Result<HandshakeResponse, ConnectError>);
     type Error = io::Error;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
@@ -75,10 +74,9 @@ impl Future for Connect {
             let next_state = match self.state {
                 ConnectState::TcpConnect { ref mut future, ref request } => {
                     let stream = try_ready!(future.poll());
-                    let bucket = Bucket::request::<Handshake>(request);
 
                     ConnectState::InvokeHandshake {
-                        future: write_all(stream, bucket.to_bytes()),
+                        future: Bucket::request_future::<_, Handshake>(stream, request),
                     }
                 },
                 ConnectState::InvokeHandshake { ref mut future } => {
