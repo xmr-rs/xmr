@@ -13,15 +13,8 @@ use config::P2P_SUPPORT_FLAGS;
 
 use types::cmd::{Handshake, RequestSupportFlags};
 
-use levin::bucket::{Bucket, Request};
-use levin::{
-    LevinError,
-    Command,
-    Receive,
-    Response as LevinResponse,
-    receive,
-    response,
-};
+use levin::bucket::{Bucket, Request, Response};
+use levin::{LevinError, Command, Receive, receive};
 
 pub type HandshakeRequest = <Handshake as Command>::Request;
 pub type HandshakeResponse = <Handshake as Command>::Response;
@@ -57,7 +50,7 @@ enum ConnectState {
         future: Receive<TcpStream, <RequestSupportFlags as Command>::Request>,
     },
     SendSupportFlags {
-        future: LevinResponse<TcpStream>,
+        future: Response<TcpStream>,
     },
     ReceiveHandshakeResponse {
         future: Receive<TcpStream, <Handshake as Command>::Response>,
@@ -96,11 +89,13 @@ impl Future for Connect {
                     };
 
                     ConnectState::SendSupportFlags {
-                        future: response::<TcpStream, RequestSupportFlags>(stream, res)
+                        future: Bucket::response_future::<_, RequestSupportFlags>(
+                                    stream,
+                                    &res),
                     }
                 },
                 ConnectState::SendSupportFlags { ref mut future } => {
-                    let stream = try_ready!(future.poll());
+                    let (stream, _) = try_ready!(future.poll());
 
                     ConnectState::ReceiveHandshakeResponse {
                         future: receive(stream),

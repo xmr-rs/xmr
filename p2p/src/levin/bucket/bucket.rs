@@ -38,12 +38,40 @@ impl Bucket {
         }
     }
 
+    pub fn response<C>(body: &C::Response) -> Bucket where C: Command {
+        let body_section = body.to_section().expect("invalid portable storage type");
+        let mut body_buf = BytesMut::new();
+        portable_storage::write(&mut body_buf, &body_section);
+
+        Bucket {
+            head: BucketHead {
+                signature: LEVIN_SIGNATURE,
+                cb: body_buf.len() as u64,
+                have_to_return_data: false,
+                command: C::ID,
+                return_code: LEVIN_OK,
+                protocol_version: LEVIN_PROTOCOL_VER_1,
+                flags: LEVIN_PACKET_RESPONSE,
+            },
+            body: body_buf,
+        }
+    }
+
     pub fn request_future<A, C>(a: A, body: &C::Request) -> Request<A>
         where A: AsyncWrite,
               C: Command,
     {
         Request {
             future: write_all(a, Self::request::<C>(body).to_bytes())
+        }
+    }
+
+    pub fn response_future<A, C>(a: A, body: &C::Response) -> Response<A>
+        where A: AsyncWrite,
+              C: Command,
+    {
+        Response {
+            future: write_all(a, Self::response::<C>(body).to_bytes())
         }
     }
 
@@ -74,16 +102,18 @@ impl<A> Future for Request<A>
     }
 }
 
-/// A levin bucket used to send responses.
-pub fn response_bucket(command: u32, cb: usize) -> BucketHead {
-    BucketHead {
-        signature: LEVIN_SIGNATURE,
-        cb: cb as u64,
-        have_to_return_data: false,
-        command,
-        return_code: LEVIN_OK,
-        protocol_version: LEVIN_PROTOCOL_VER_1,
-        flags: LEVIN_PACKET_RESPONSE,
+pub struct Response<A> {
+    future: WriteAll<A, Bytes>,
+}
+
+impl<A> Future for Response<A>
+    where A: AsyncWrite,
+{
+    type Item = (A, Bytes);
+    type Error = io::Error;
+
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+        self.future.poll()
     }
 }
 
