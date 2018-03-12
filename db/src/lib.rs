@@ -1,15 +1,15 @@
-extern crate sanakirja;
 extern crate bytes;
-extern crate primitives;
-extern crate rand;
-extern crate linked_hash_map;
 extern crate parking_lot;
-extern crate format;
-extern crate chain;
+extern crate sanakirja;
+extern crate rand;
 
 extern crate failure;
 #[macro_use]
 extern crate failure_derive;
+
+extern crate xmr_chain as chain;
+extern crate xmr_format as format;
+extern crate xmr_primitives as primitives;
 
 pub mod kv;
 

@@ -1,8 +1,10 @@
 extern crate bytes;
-extern crate varint;
+
 extern crate failure;
 #[macro_use]
 extern crate failure_derive;
+
+extern crate xmr_varint as varint;
 
 mod de;
 mod ser;

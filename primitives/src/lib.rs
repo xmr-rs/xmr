@@ -1,6 +1,7 @@
-extern crate crypto;
 extern crate bytes;
 extern crate serde;
+
+extern crate xmr_crypto as crypto;
 
 mod h256;
 

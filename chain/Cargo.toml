@@ -1,13 +1,14 @@
 [package]
-name = "chain"
+name = "xmr-chain"
 version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 license = "MIT/Apache-2.0"
 
 [dependencies]
-primitives = { path = "../primitives" }
-keys = { path = "../keys" }
-rct = { path = "../rct" }
-format = { path = "../format" }
-varint = { path = "../varint" }
 bytes = "0.4.6"
+
+xmr-primitives = { path = "../primitives" }
+xmr-keys = { path = "../keys" }
+xmr-rct = { path = "../rct" }
+xmr-format = { path = "../format" }
+xmr-varint = { path = "../varint" }

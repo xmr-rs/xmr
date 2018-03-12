@@ -1,9 +1,9 @@
 [package]
-name = "miner"
+name = "xmr-miner"
 version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 license = "MIT/Apache-2.0"
 
 [dependencies]
-verification = { path = "../verification" }
-chain = { path = "../chain" }
+xmr-chain = { path = "../chain" }
+xmr-verification = { path = "../verification" }

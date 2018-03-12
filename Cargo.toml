@@ -3,6 +3,10 @@ name = "xmr"
 version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 license = "MIT/Apache-2.0"
+description = "Monero node implementation in Rust."
+documentation = "https://github.com/xmr-rs/xmr"
+homepage = "https://github.com/xmr-rs/xmr"
+repository = "https://github.com/xmr-rs/xmr.git"
 
 [[bin]]
 name = "dxmr"
@@ -26,12 +30,15 @@ members = [
 ]
 
 [dependencies]
-clap = "2.29.2"
-failure = "0.1.1"
-log = "0.4.1"
-env_logger = "0.5.0"
 app_dirs = "1.1.1"
-p2p = { path = "./p2p" }
-db = { path = "./db" }
-network = { path = "./network" }
-chain = { path  = "./chain" }
+clap = "2.29.2"
+
+env_logger = "0.5.0"
+log = "0.4.1"
+
+failure = "0.1.1"
+
+xmr-chain = { path  = "./chain" }
+xmr-db = { path = "./db" }
+xmr-network = { path = "./network" }
+xmr-p2p = { path = "./p2p" }

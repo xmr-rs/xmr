@@ -1,11 +1,11 @@
 [package]
-name = "primitives"
+name = "xmr-primitives"
 version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 license = "MIT/Apache-2.0"
 
 [dependencies]
-crypto = { path = "../crypto" }
+xmr-crypto = { path = "../crypto" }
 
 serde = "1.0.27"
 bytes = "0.4.6"

@@ -1,13 +1,16 @@
+extern crate app_dirs;
 #[macro_use]
 extern crate clap;
-extern crate failure;
-extern crate log;
+
 extern crate env_logger;
-extern crate app_dirs;
-extern crate p2p;
-extern crate db;
-extern crate network;
-extern crate chain;
+extern crate log;
+
+extern crate failure;
+
+extern crate xmr_chain as chain;
+extern crate xmr_db as db;
+extern crate xmr_network as network;
+extern crate xmr_p2p as p2p;
 
 mod config;
 mod peers;

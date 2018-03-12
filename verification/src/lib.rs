@@ -1,4 +1,4 @@
-extern crate primitives;
+extern crate xmr_primitives as primitives;
 
 mod pow;
 

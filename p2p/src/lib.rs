@@ -1,26 +1,27 @@
-extern crate portable_storage;
-extern crate portable_storage_utils;
-extern crate network;
-extern crate failure;
-extern crate bytes;
-extern crate uuid;
-extern crate rand;
-extern crate primitives;
-extern crate db;
-
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-
 #[macro_use]
 extern crate futures;
 extern crate futures_cpupool;
 extern crate tokio_core;
 extern crate tokio_io;
-extern crate parking_lot;
 
+extern crate bytes;
+extern crate parking_lot;
+extern crate rand;
+extern crate uuid;
+
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+
+extern crate failure;
 #[macro_use]
 extern crate log;
+
+extern crate xmr_db as db;
+extern crate xmr_network as network;
+extern crate xmr_portable_storage as portable_storage;
+extern crate xmr_portable_storage_utils as portable_storage_utils;
+extern crate xmr_primitives as primitives;
 
 pub mod event_loop;
 pub mod types;

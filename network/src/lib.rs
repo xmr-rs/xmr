@@ -1,9 +1,10 @@
-extern crate uuid;
-extern crate chain;
-extern crate verification;
-extern crate primitives;
 #[macro_use]
 extern crate log;
+extern crate uuid;
+
+extern crate xmr_chain as chain;
+extern crate xmr_primitives as primitives;
+extern crate xmr_verification as verification;
 
 use chain::transaction::Transaction;
 use chain::{Block, BlockHeader};
@@ -186,7 +187,7 @@ pub struct HardForkParameters {
 
 #[cfg(test)]
 pub mod tests {
-    extern crate format;
+    extern crate xmr_format as format;
 
     use super::*;
     use primitives::H256;
