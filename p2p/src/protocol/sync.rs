@@ -4,6 +4,7 @@ use types::cn::cmd::{NewBlock, NewBlockRequest};
 use types::cn::cmd::{NewFluffyBlock, NewFluffyBlockRequest};
 use types::cn::cmd::{NewTransactions, NewTransactionsRequest};
 use types::cn::cmd::{RequestChain, RequestChainRequest};
+use types::cn::cmd::{RequestFluffyMissingTx, RequestFluffyMissingTxRequest};
 use types::cn::cmd::{RequestGetObjects, RequestGetObjectsRequest};
 use types::cn::cmd::{ResponseChainEntry, ResponseChainEntryRequest};
 use types::cn::cmd::{ResponseGetObjects, ResponseGetObjectsRequest};
@@ -13,6 +14,7 @@ pub trait OutboundSyncConnection {
     fn notify_new_fluffy_block(&self, req: &NewFluffyBlockRequest);
     fn notify_new_transactions(&self, req: &NewTransactionsRequest);
     fn notify_request_chain(&self, req: &RequestChainRequest);
+    fn notify_request_fluffy_missing_tx(&self, req: &RequestFluffyMissingTxRequest);
     fn notify_request_get_objects(&self, req: &RequestGetObjectsRequest);
     fn notify_response_chain_entry(&self, req: &ResponseChainEntryRequest);
     fn notify_response_get_objects(&self, req: &ResponseGetObjectsRequest);
@@ -42,6 +44,11 @@ impl OutboundSyncConnection for OutboundSync {
     fn notify_request_chain(&self, req: &RequestChainRequest) {
         trace!("outbound sync - {:?}", req);
         self.context.notify::<RequestChain>(req)
+    }
+
+    fn notify_request_fluffy_missing_tx(&self, req: &RequestFluffyMissingTxRequest) {
+        trace!("outbound sync - {:?}", req);
+        self.context.notify::<RequestFluffyMissingTx>(req)
     }
 
     fn notify_request_get_objects(&self, req: &RequestGetObjectsRequest) {

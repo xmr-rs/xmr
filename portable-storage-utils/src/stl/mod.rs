@@ -1,5 +1,7 @@
+mod element;
 mod linked_list;
-mod stl_element;
+mod vector;
 
+pub use self::element::{StlElement, Error};
 pub use self::linked_list::StlLinkedList;
-pub use self::stl_element::{StlElement, Error};
+pub use self::vector::StlVector;
