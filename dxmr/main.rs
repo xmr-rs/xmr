@@ -18,6 +18,8 @@ mod utils;
 
 use failure::Error;
 use app_dirs::AppInfo;
+use p2p::SyncDataHandler;
+use p2p::types::cn::CoreSyncData;
 
 pub const APP_INFO: AppInfo = AppInfo { name: "dxmr", author: "Jean Pierre Dudey" };
 
@@ -61,7 +63,9 @@ fn start(cfg: config::Config) -> Result<(), Error> {
         in_peers: cfg.in_peers,
     };
 
-    let p2p = p2p::P2P::new(config, el.handle());
+    let sync_data_handler = Box::new(DummySyncDataHandler);
+
+    let p2p = p2p::P2P::new(config, sync_data_handler, el.handle());
 
     p2p.run(cfg.db.clone())
         .expect("couldn't start p2p");
@@ -70,4 +74,12 @@ fn start(cfg: config::Config) -> Result<(), Error> {
         .expect("couldn't run event loop");
 
     Ok(())
+}
+
+pub struct DummySyncDataHandler;
+
+impl SyncDataHandler for DummySyncDataHandler {
+    fn handle_sync_data(&self, sync_data: &CoreSyncData) {
+        println!("sync data - {:?}", sync_data);
+    }
 }

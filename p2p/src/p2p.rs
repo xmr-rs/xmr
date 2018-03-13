@@ -25,6 +25,7 @@ pub type BoxedEmptyFuture = Box<Future<Item=(), Error=()> + Send>;
 
 pub struct Context {
     connection_counter: ConnectionCounter,
+    sync_data_handler: Box<SyncDataHandler>,
     pub(crate) remote: Remote,
     pub(crate) pool: CpuPool,
     pub(crate) connections: Connections,
@@ -36,11 +37,13 @@ pub struct Context {
 impl Context {
     pub fn new(pool_handle: CpuPool,
                remote: Remote,
-               config: Config) -> Context {
+               config: Config,
+               sync_data_handler: Box<SyncDataHandler>) -> Context {
         let mut rng = OsRng::new().expect("Cannot open OS random.");
         let peer_id = PeerId::random(&mut rng);
         Context {
             connection_counter: ConnectionCounter::new(config.in_peers, config.out_peers),
+            sync_data_handler,
             remote: remote,
             pool: pool_handle,
             connections: Connections::new(),
@@ -72,7 +75,8 @@ impl Context {
                 Ok((stream, response)) => {
                     match response {
                         Ok(response) => {
-                            trace!("peer sync info - {:?}", response.payload_data);
+                            trace!("connect response - {:?}", response);
+                            context.sync_data_handler.handle_sync_data(&response.payload_data);
                             context.connections.store(
                                 response.node_data.peer_id,
                                 stream.into()
@@ -120,14 +124,14 @@ pub struct P2P {
 }
 
 impl P2P {
-    pub fn new(config: Config, handle: Handle) -> P2P {
+    pub fn new(config: Config, sync_data_handler: Box<SyncDataHandler>, handle: Handle) -> P2P {
         trace!("p2p config: {:?}", config);
 
         let pool = CpuPool::new(config.threads);
         let remote = handle.remote().clone();
         P2P {
             event_loop_handle: handle,
-            context: Arc::new(Context::new(pool.clone(), remote, config.clone())),
+            context: Arc::new(Context::new(pool.clone(), remote, config.clone(), sync_data_handler)),
             _pool: pool,
         }
     }
@@ -158,4 +162,8 @@ fn core_sync_data(store: SharedStore, network: &Network) -> CoreSyncData {
         top_id: best_block.id,
         top_version: network.hard_forks().ideal_version(),
     }
+}
+
+pub trait SyncDataHandler: Send + Sync + 'static {
+    fn handle_sync_data(&self, payload_data: &CoreSyncData);
 }
