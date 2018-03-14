@@ -1,12 +1,6 @@
 use primitives::{H256, H256_LENGTH};
 use transaction::TxOutToScript;
-use format::{
-    Deserialize,
-    DeserializerStream,
-    Error,
-    Serialize,
-    SerializerStream
-};
+use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
 #[derive(Debug, Clone)]
 pub struct TxInToScriptHash {
@@ -26,11 +20,11 @@ impl Deserialize for TxInToScriptHash {
         let sigset = deserializer.get_blob(sigset_length)?;
 
         Ok(TxInToScriptHash {
-            prev,
-            prevout,
-            script,
-            sigset,
-        })
+               prev,
+               prevout,
+               script,
+               sigset,
+           })
     }
 }
 

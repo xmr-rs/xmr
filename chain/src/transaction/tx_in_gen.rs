@@ -1,10 +1,4 @@
-use format::{
-    Deserialize,
-    DeserializerStream,
-    Error,
-    Serialize,
-    SerializerStream
-};
+use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
 #[derive(Debug, Clone)]
 pub struct TxInGen {
@@ -13,7 +7,8 @@ pub struct TxInGen {
 
 impl Deserialize for TxInGen {
     fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
-        deserializer.get_u64_varint()
+        deserializer
+            .get_u64_varint()
             .map(|height| TxInGen { height })
     }
 }

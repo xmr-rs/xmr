@@ -1,11 +1,5 @@
 use primitives::{H256, H256_LENGTH};
-use format::{
-    Deserialize,
-    DeserializerStream,
-    Error,
-    Serialize,
-    SerializerStream
-};
+use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
 #[derive(Debug, Clone)]
 pub struct TxOutToScriptHash {

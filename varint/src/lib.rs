@@ -33,7 +33,7 @@ pub fn read<B: Buf>(buf: &mut B) -> Result<u64, ReadError> {
     let mut shift = 0u64;
     loop {
         let byte = buf.get_u8();
-        
+
         if shift + 7 >= bits && byte >= 1 << (bits - shift) {
             return Err(ReadError::Overflow);
         }
@@ -41,7 +41,7 @@ pub fn read<B: Buf>(buf: &mut B) -> Result<u64, ReadError> {
         if byte == 0 && shift != 0 {
             return Err(ReadError::Represent);
         }
-        
+
         // Does the actualy placing into output, stripping the first bit
         output |= ((byte & 0x7f) as u64) << shift;
 
@@ -80,7 +80,7 @@ pub mod tests {
         let mut write_buf = BytesMut::with_capacity(64);
         for input in 0..MAX {
             write(&mut write_buf, input as u16);
-            
+
             {
                 let mut read_buf = write_buf.as_ref().into_buf();
                 let output = read(&mut read_buf).expect("reading should be fine") as u16;

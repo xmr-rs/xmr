@@ -24,7 +24,7 @@ use types::cmd::Handshake;
 use types::cn::CoreSyncData;
 use utils::Peerlist;
 
-pub type BoxedEmptyFuture = Box<Future<Item=(), Error=()> + Send>;
+pub type BoxedEmptyFuture = Box<Future<Item = (), Error = ()> + Send>;
 
 pub struct Context {
     connection_counter: ConnectionCounter,
@@ -41,7 +41,8 @@ impl Context {
     pub fn new(pool_handle: CpuPool,
                remote: Remote,
                config: Config,
-               local_sync_node: LocalSyncNodeRef) -> Context {
+               local_sync_node: LocalSyncNodeRef)
+               -> Context {
         let mut rng = OsRng::new().expect("Cannot open OS random.");
         let peer_id = PeerId::random(&mut rng);
         Context {
@@ -59,19 +60,26 @@ impl Context {
     pub fn connect(context: Arc<Context>,
                    address: SocketAddr,
                    req: <Handshake as Command>::Request) {
-        trace!("connect request: {:?}" , req);
+        trace!("connect request: {:?}", req);
         trace!("connect address: {:?}", address);
 
         context.connection_counter.note_new_outbound_connection();
-        context.remote.clone().spawn(move |handle| {
-            context.pool.clone().spawn(Self::connect_future(context.clone(), handle, address, req))
-        })
+        context
+            .remote
+            .clone()
+            .spawn(move |handle| {
+                       context
+                           .pool
+                           .clone()
+                           .spawn(Self::connect_future(context.clone(), handle, address, req))
+                   })
     }
 
     pub fn connect_future(context: Arc<Context>,
                           handle: &Handle,
                           address: SocketAddr,
-                          req: <Handshake as Command>::Request) -> BoxedEmptyFuture {
+                          req: <Handshake as Command>::Request)
+                          -> BoxedEmptyFuture {
         let connection = connect(&address, handle, context.clone(), req);
         Box::new(connection.then(move |result| {
             match result {
@@ -84,9 +92,11 @@ impl Context {
                                 SocketAddr::V6(_) => {
                                     warn!("IPv6 addresses aren't supported yet.");
                                     stream.shutdown(Shutdown::Both).ok();
-                                    context.connection_counter.note_close_outbound_connection();
+                                    context
+                                        .connection_counter
+                                        .note_close_outbound_connection();
                                     return finished(());
-                                },
+                                }
                             };
                             let info = PeerlistEntry {
                                 adr: addr.into(),
@@ -96,28 +106,30 @@ impl Context {
                             };
                             context.peerlist.write().insert(address, info.clone());
                             let peer_context = PeerContext::new(context.clone(), info);
-                            let outbound_sync_connection = Arc::new(
-                                OutboundSync::new(peer_context)
-                            );
-                            context.local_sync_node.new_sync_connection(
-                                response.node_data.peer_id,
-                                &response.payload_data,
-                                outbound_sync_connection,
-                            );
-                            context.connections.store(
-                                response.node_data.peer_id,
-                                stream.into(),
-                            );
-                        },
+                            let outbound_sync_connection =
+                                Arc::new(OutboundSync::new(peer_context));
+                            context
+                                .local_sync_node
+                                .new_sync_connection(response.node_data.peer_id,
+                                                     &response.payload_data,
+                                                     outbound_sync_connection);
+                            context
+                                .connections
+                                .store(response.node_data.peer_id, stream.into());
+                        }
                         Err(e) => {
                             stream.shutdown(Shutdown::Both).ok();
-                            context.connection_counter.note_close_outbound_connection();
+                            context
+                                .connection_counter
+                                .note_close_outbound_connection();
                             warn!("node returned invalid data: {:?}", e);
                         }
                     }
-                },
+                }
                 Err(e) => {
-                    context.connection_counter.note_close_outbound_connection();
+                    context
+                        .connection_counter
+                        .note_close_outbound_connection();
                     warn!("couldn't establish connection to node: {}", e.description());
                 }
             }
@@ -130,11 +142,15 @@ impl Context {
         let my_port = if self.config.hide_my_port {
             0
         } else {
-            self.config.listen_port.unwrap_or(self.config.network.listen_port())
+            self.config
+                .listen_port
+                .unwrap_or(self.config.network.listen_port())
         };
 
-        let local_time = SystemTime::now().duration_since(UNIX_EPOCH)
-            .expect("the system time is behind unix epoch").as_secs();
+        let local_time = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("the system time is behind unix epoch")
+            .as_secs();
 
         BasicNodeData {
             network_id: self.config.network.id().into(),

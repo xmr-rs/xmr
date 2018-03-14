@@ -12,9 +12,7 @@ pub fn read<B: Buf>(buf: &mut B) -> Result<usize> {
     let mark = buf.bytes()[0] & PORTABLE_RAW_SIZE_MARK_MASK;
 
     match mark {
-        PORTABLE_RAW_SIZE_MARK_BYTE => {
-            Ok((buf.get_u8() >> 2) as usize)
-        }
+        PORTABLE_RAW_SIZE_MARK_BYTE => Ok((buf.get_u8() >> 2) as usize),
         PORTABLE_RAW_SIZE_MARK_WORD => {
             ensure_eof!(buf, 2);
             Ok((buf.get_u16::<LittleEndian>() >> 2) as usize)

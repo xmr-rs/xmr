@@ -1,11 +1,5 @@
 use transaction::TxOutTarget;
-use format::{
-    Deserialize,
-    DeserializerStream,
-    Error,
-    Serialize,
-    SerializerStream
-};
+use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
 /// Transaction output.
 #[derive(Debug, Clone)]
@@ -19,10 +13,7 @@ impl Deserialize for TxOut {
         let amount = deserializer.get_u64_varint()?;
         let target = deserializer.get_deserializable()?;
 
-        Ok(TxOut {
-            amount,
-            target,
-        })
+        Ok(TxOut { amount, target })
     }
 }
 

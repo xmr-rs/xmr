@@ -8,7 +8,10 @@ use p2p::types::cn::CoreSyncData;
 use p2p::protocol::OutboundSyncConnectionRef;
 
 pub trait Peers: Send + Sync {
-    fn insert(&self, peer_id: PeerId, sync_data: &CoreSyncData, connection: OutboundSyncConnectionRef);
+    fn insert(&self,
+              peer_id: PeerId,
+              sync_data: &CoreSyncData,
+              connection: OutboundSyncConnectionRef);
 }
 
 pub type PeersRef = Arc<Peers>;
@@ -24,14 +27,14 @@ pub struct PeersImpl {
 
 impl PeersImpl {
     pub fn new() -> PeersImpl {
-        PeersImpl {
-            peers: RwLock::new(HashMap::new()),
-        }
+        PeersImpl { peers: RwLock::new(HashMap::new()) }
     }
 }
 
 impl Peers for PeersImpl {
-    fn insert(&self, peer_id: PeerId, sync_data: &CoreSyncData,
+    fn insert(&self,
+              peer_id: PeerId,
+              sync_data: &CoreSyncData,
               connection: OutboundSyncConnectionRef) {
         trace!("peer insertion - id - {:?}", peer_id);
         trace!("peer insertion - sync data - {:?}", sync_data);

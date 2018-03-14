@@ -19,7 +19,7 @@ impl<'de> Deserialize<'de> for BytesUuid {
         where D: Deserializer<'de>
     {
         struct UuidVisitor;
-        
+
         impl<'de> Visitor<'de> for UuidVisitor {
             type Value = BytesUuid;
 

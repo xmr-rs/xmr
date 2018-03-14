@@ -7,9 +7,7 @@ pub struct LocalNode {
 
 impl LocalNode {
     pub fn new() -> LocalNode {
-        LocalNode {
-            peers: Arc::new(PeersImpl::new()),
-        }
+        LocalNode { peers: Arc::new(PeersImpl::new()) }
     }
 
     pub fn peers(&self) -> PeersRef {

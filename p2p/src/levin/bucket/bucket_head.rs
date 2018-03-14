@@ -11,7 +11,7 @@ pub const LEVIN_PACKET_RESPONSE: u32 = 0x00000002;
 
 /// Levin maximum packet size. It's default is 100 *MB*.
 pub const LEVIN_DEFAULT_MAX_PACKET_SIZE: u64 = 100000000;
-  
+
 /// Current levin protocol version.
 pub const LEVIN_PROTOCOL_VER_1: u32 = 1;
 
@@ -57,12 +57,13 @@ impl BucketHead {
             protocol_version: buf.get_u32::<LittleEndian>(),
         };
 
-        if bucket_head.signature != LEVIN_SIGNATURE { 
+        if bucket_head.signature != LEVIN_SIGNATURE {
             return Err(BucketHeadError::InvalidSignature(bucket_head.signature).into());
         }
-        
+
         if bucket_head.protocol_version != LEVIN_PROTOCOL_VER_1 {
-            return Err(BucketHeadError::InvalidProtocolVersion(bucket_head.protocol_version).into());
+            return Err(BucketHeadError::InvalidProtocolVersion(bucket_head.protocol_version)
+                           .into());
         }
 
         if bucket_head.cb > LEVIN_DEFAULT_MAX_PACKET_SIZE {
@@ -82,7 +83,11 @@ impl BucketHead {
 
         buf.put_u64::<LittleEndian>(bucket_head.signature);
         buf.put_u64::<LittleEndian>(bucket_head.cb);
-        buf.put_u8(if bucket_head.have_to_return_data { 1u8 } else { 0u8 });
+        buf.put_u8(if bucket_head.have_to_return_data {
+                       1u8
+                   } else {
+                       0u8
+                   });
         buf.put_u32::<LittleEndian>(bucket_head.command);
         buf.put_i32::<LittleEndian>(bucket_head.return_code);
         buf.put_u32::<LittleEndian>(bucket_head.flags);

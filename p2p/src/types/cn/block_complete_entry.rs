@@ -27,12 +27,12 @@ pub mod tests {
 
         match &section["txs"] {
             &StorageEntry::Array(ref array) => {
-                assert_eq!(array.len(), 1); 
+                assert_eq!(array.len(), 1);
                 match &array[0] {
                     &StorageEntry::Buf(ref buf) => assert_eq!(buf[0], 0x20),
                     entry => panic!("invalid entry: {:?}", entry),
                 }
-            },
+            }
             entry => panic!("invalid entry: {:?}", entry),
         }
     }

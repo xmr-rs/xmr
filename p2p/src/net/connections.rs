@@ -10,9 +10,7 @@ pub struct Connections {
 
 impl Connections {
     pub fn new() -> Connections {
-        Connections {
-            channels: RwLock::new(HashMap::new()),
-        }
+        Connections { channels: RwLock::new(HashMap::new()) }
     }
 
     pub fn channel(&self, id: &PeerId) -> Option<SharedTcpStream> {
@@ -20,7 +18,7 @@ impl Connections {
     }
 
     pub fn store(&self, id: PeerId, stream: SharedTcpStream) -> SharedTcpStream {
-		self.channels.write().insert(id, stream.clone());
+        self.channels.write().insert(id, stream.clone());
         stream
     }
 }

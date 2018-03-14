@@ -30,9 +30,7 @@ pub fn parse(matches: &ArgMatches) -> Result<Config, Error> {
             peers.push(addr);
             peers
         }
-        Err(_e) => {
-            default_peers(network)
-        },
+        Err(_e) => default_peers(network),
     };
 
     let threads = value_t!(matches.value_of("threads"), usize).unwrap_or(1);
@@ -41,21 +39,19 @@ pub fn parse(matches: &ArgMatches) -> Result<Config, Error> {
 
     let hide_my_port = matches.is_present("hidemyport");
 
-    let out_peers = value_t!(matches.value_of("outpeers"), u32)
-        .unwrap_or(10);
-    let in_peers = value_t!(matches.value_of("inpeers"), u32)
-        .unwrap_or(10);
-    
+    let out_peers = value_t!(matches.value_of("outpeers"), u32).unwrap_or(10);
+    let in_peers = value_t!(matches.value_of("inpeers"), u32).unwrap_or(10);
+
     let db = utils::open_db();
 
     Ok(Config {
-        network,
-        peers,
-        threads,
-        listen_port,
-        hide_my_port,
-        out_peers,
-        in_peers,
-        db,
-    })
+           network,
+           peers,
+           threads,
+           listen_port,
+           hide_my_port,
+           out_peers,
+           in_peers,
+           db,
+       })
 }

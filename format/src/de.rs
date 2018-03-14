@@ -71,23 +71,20 @@ impl<'buf> DeserializerStream<'buf> {
     pub fn get_u8_varint(&mut self) -> Result<u8, Error> {
         varint::read(&mut self.0)
             .map_err(Error::from)
-            .and_then(|v| {
-                if v > u8::max_value() as u64 {
-                    Err(varint::ReadError::Overflow.into())
-                } else {
-                    Ok(v as u8)
-                }
-            })
+            .and_then(|v| if v > u8::max_value() as u64 {
+                          Err(varint::ReadError::Overflow.into())
+                      } else {
+                          Ok(v as u8)
+                      })
     }
 
     pub fn get_u64_varint(&mut self) -> Result<u64, Error> {
-        varint::read(&mut self.0)
-            .map_err(Error::from)
+        varint::read(&mut self.0).map_err(Error::from)
     }
 
     pub fn get_blob(&mut self, length: usize) -> Result<Vec<u8>, Error> {
         if self.0.remaining() < length {
-            return Err(Error::UnexpectedEof(length))
+            return Err(Error::UnexpectedEof(length));
         }
 
         let blob = (&(self.0.bytes()[..length])).to_vec();

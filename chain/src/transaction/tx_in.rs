@@ -1,11 +1,5 @@
 use transaction::{TxInGen, TxInToKey, TxInToScript, TxInToScriptHash};
-use format::{
-    Deserialize,
-    DeserializerStream,
-    Error,
-    Serialize,
-    SerializerStream
-};
+use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
 const GEN: u8 = 0xff;
 const TO_KEY: u8 = 2;
@@ -60,18 +54,10 @@ impl Deserialize for TxIn {
     fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
         let tag = deserializer.get_u8()?;
         let target = match tag {
-            GEN => {
-                TxIn::Gen(deserializer.get_deserializable()?)
-            },
-            TO_KEY => {
-                TxIn::ToKey(deserializer.get_deserializable()?)
-            },
-            TO_SCRIPT => {
-                TxIn::ToScript(deserializer.get_deserializable()?)
-            },
-            TO_SCRIPT_HASH => {
-                TxIn::ToScriptHash(deserializer.get_deserializable()?)
-            },
+            GEN => TxIn::Gen(deserializer.get_deserializable()?),
+            TO_KEY => TxIn::ToKey(deserializer.get_deserializable()?),
+            TO_SCRIPT => TxIn::ToScript(deserializer.get_deserializable()?),
+            TO_SCRIPT_HASH => TxIn::ToScriptHash(deserializer.get_deserializable()?),
             n => return Err(Error::custom(format!("unknown variant tag: {:X}", n))),
         };
 
@@ -85,19 +71,19 @@ impl Serialize for TxIn {
             TxIn::Gen(ref v) => {
                 serializer.put_u8(GEN);
                 serializer.put_serializable(v);
-            },
+            }
             TxIn::ToKey(ref v) => {
                 serializer.put_u8(TO_KEY);
                 serializer.put_serializable(v);
-            },
+            }
             TxIn::ToScript(ref v) => {
                 serializer.put_u8(TO_SCRIPT);
                 serializer.put_serializable(v);
-            },
+            }
             TxIn::ToScriptHash(ref v) => {
                 serializer.put_u8(TO_SCRIPT_HASH);
                 serializer.put_serializable(v);
-            },
+            }
         }
     }
 }

@@ -8,8 +8,7 @@ use tokio_io::io::{Read, WriteAll, read, write_all};
 
 use levin::{Command, Notify, Storage, LevinResult, LevinError};
 use levin::bucket::bucket_head::{BucketHead, LEVIN_SIGNATURE, LEVIN_PROTOCOL_VER_1, LEVIN_OK,
-                                 LEVIN_PACKET_REQUEST, LEVIN_PACKET_RESPONSE,
-                                 BUCKET_HEAD_LENGTH};
+                                 LEVIN_PACKET_REQUEST, LEVIN_PACKET_RESPONSE, BUCKET_HEAD_LENGTH};
 
 use portable_storage::{self, Section};
 
@@ -19,7 +18,9 @@ pub struct Bucket {
 }
 
 impl Bucket {
-    pub fn request<C>(body: &C::Request) -> Bucket where C: Command, {
+    pub fn request<C>(body: &C::Request) -> Bucket
+        where C: Command
+    {
         let body_section = body.to_section().expect("invalid portable storage type");
         let mut body_buf = BytesMut::new();
         portable_storage::write(&mut body_buf, &body_section);
@@ -38,7 +39,9 @@ impl Bucket {
         }
     }
 
-    pub fn response<C>(body: &C::Response) -> Bucket where C: Command {
+    pub fn response<C>(body: &C::Response) -> Bucket
+        where C: Command
+    {
         let body_section = body.to_section().expect("invalid portable storage type");
         let mut body_buf = BytesMut::new();
         portable_storage::write(&mut body_buf, &body_section);
@@ -57,7 +60,9 @@ impl Bucket {
         }
     }
 
-    pub fn notify<N>(body: &N::Request) -> Bucket where N: Notify, {
+    pub fn notify<N>(body: &N::Request) -> Bucket
+        where N: Notify
+    {
         let body_section = body.to_section().expect("invalid portable storage type");
         let mut body_buf = BytesMut::new();
         portable_storage::write(&mut body_buf, &body_section);
@@ -78,41 +83,35 @@ impl Bucket {
 
     pub fn request_future<A, C>(a: A, body: &C::Request) -> Request<A>
         where A: AsyncWrite,
-              C: Command,
+              C: Command
     {
-        Request {
-            future: write_all(a, Self::request::<C>(body).to_bytes())
-        }
+        Request { future: write_all(a, Self::request::<C>(body).to_bytes()) }
     }
 
     pub fn response_future<A, C>(a: A, body: &C::Response) -> Response<A>
         where A: AsyncWrite,
-              C: Command,
+              C: Command
     {
-        Response {
-            future: write_all(a, Self::response::<C>(body).to_bytes())
-        }
+        Response { future: write_all(a, Self::response::<C>(body).to_bytes()) }
     }
 
     pub fn notify_future<A, N>(a: A, body: &N::Request) -> Request<A>
         where A: AsyncWrite,
-              N: Notify,
+              N: Notify
     {
-        Request {
-            future: write_all(a, Self::notify::<N>(body).to_bytes())
-        }
+        Request { future: write_all(a, Self::notify::<N>(body).to_bytes()) }
     }
 
-    pub fn receive_future<A>(a: A) -> Receive<A> where A: AsyncRead {
+    pub fn receive_future<A>(a: A) -> Receive<A>
+        where A: AsyncRead
+    {
         let buf = vec![0u8; BUCKET_HEAD_LENGTH];
-        Receive {
-            state: ReceiveState::ReadBucket {
-                reader: read(a, buf),
-            },
-        }
+        Receive { state: ReceiveState::ReadBucket { reader: read(a, buf) } }
     }
 
-    pub fn into_request<C>(&self) -> LevinResult<C::Request> where C: Command {
+    pub fn into_request<C>(&self) -> LevinResult<C::Request>
+        where C: Command
+    {
         if C::ID != self.head.command {
             return Err(LevinError::InvalidCommandId(self.head.command));
         }
@@ -125,7 +124,9 @@ impl Bucket {
         Ok(req)
     }
 
-    pub fn into_response<C>(&self) -> LevinResult<C::Response> where C: Command {
+    pub fn into_response<C>(&self) -> LevinResult<C::Response>
+        where C: Command
+    {
         if C::ID != self.head.command {
             return Err(LevinError::InvalidCommandId(self.head.command));
         }
@@ -138,7 +139,9 @@ impl Bucket {
         Ok(req)
     }
 
-    pub fn into_notify<N>(&self) -> LevinResult<N::Request> where N: Notify {
+    pub fn into_notify<N>(&self) -> LevinResult<N::Request>
+        where N: Notify
+    {
         if N::ID != self.head.command {
             return Err(LevinError::InvalidCommandId(self.head.command));
         }
@@ -161,13 +164,13 @@ impl Bucket {
 
         blob.freeze()
     }
-    
+
     fn body_into_section(&self) -> Section {
         use std::io::Cursor;
         // TODO: remove unwrap and add error to LevinError.
         let mut buf = Cursor::new(self.body.as_ref());
         portable_storage::read(&mut buf).unwrap()
-    } 
+    }
 }
 
 pub struct Request<A> {
@@ -175,7 +178,7 @@ pub struct Request<A> {
 }
 
 impl<A> Future for Request<A>
-    where A: AsyncWrite,
+    where A: AsyncWrite
 {
     type Item = (A, Bytes);
     type Error = io::Error;
@@ -190,7 +193,7 @@ pub struct Response<A> {
 }
 
 impl<A> Future for Response<A>
-    where A: AsyncWrite,
+    where A: AsyncWrite
 {
     type Item = (A, Bytes);
     type Error = io::Error;
@@ -207,16 +210,16 @@ pub struct Receive<A: AsyncRead> {
 
 #[derive(Debug)]
 enum ReceiveState<A> {
-    ReadBucket {
-        reader: Read<A, Vec<u8>>,
-    },
+    ReadBucket { reader: Read<A, Vec<u8>> },
     ReadStorage {
         bucket_head: BucketHead,
         reader: Read<A, Vec<u8>>,
     },
 }
 
-impl<A> Future for Receive<A> where A: AsyncRead {
+impl<A> Future for Receive<A>
+    where A: AsyncRead
+{
     type Item = (A, LevinResult<Bucket>);
     type Error = io::Error;
 
@@ -231,11 +234,11 @@ impl<A> Future for Receive<A> where A: AsyncRead {
                     }
 
                     let mut buf = buf.into_buf();
-                    let bucket_head = match BucketHead::read(&mut buf) { 
+                    let bucket_head = match BucketHead::read(&mut buf) {
                         Ok(b) => b,
                         Err(e) => {
                             return Ok((stream, Err(e)).into());
-                        },
+                        }
                     };
 
                     trace!("receive poll - bucket received: {:?}", bucket_head);
@@ -243,10 +246,13 @@ impl<A> Future for Receive<A> where A: AsyncRead {
                     let buf = vec![0u8; bucket_head.cb as usize];
                     ReceiveState::ReadStorage {
                         bucket_head,
-                        reader: read(stream, buf)
+                        reader: read(stream, buf),
                     }
-                },
-                ReceiveState::ReadStorage { ref bucket_head, ref mut reader } => {
+                }
+                ReceiveState::ReadStorage {
+                    ref bucket_head,
+                    ref mut reader,
+                } => {
                     trace!("receive poll - reading response");
 
                     let (stream, buf, size) = try_ready!(reader.poll());
@@ -260,7 +266,7 @@ impl<A> Future for Receive<A> where A: AsyncRead {
                     };
 
                     return Ok((stream, Ok(bucket)).into());
-                },
+                }
             };
 
             self.state = next_state;

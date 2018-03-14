@@ -48,12 +48,9 @@ impl Serializer for RootSectionSerializer {
         Err(Error::custom("serializing `None` isn't supported"))
     }
 
-    fn serialize_some<T: ?Sized>(
-            self, 
-            _value: &T
-        ) -> Result<Self::Ok, Self::Error>
-        where
-            T: Serialize {
+    fn serialize_some<T: ?Sized>(self, _value: &T) -> Result<Self::Ok, Self::Error>
+        where T: Serialize
+    {
         Err(Error::custom("serializing `Some(_)` isn't supported"))
     }
 
@@ -65,96 +62,82 @@ impl Serializer for RootSectionSerializer {
         Err(Error::custom("serializing `()` isn't supported"))
     }
 
-    fn serialize_unit_variant(
-            self, 
-            _name: &'static str, 
-            _variant_index: u32, 
-            _variant: &'static str
-        ) -> Result<Self::Ok, Self::Error> {
+    fn serialize_unit_variant(self,
+                              _name: &'static str,
+                              _variant_index: u32,
+                              _variant: &'static str)
+                              -> Result<Self::Ok, Self::Error> {
         Err(Error::custom("serializing `()` isn't supported"))
     }
 
-    fn serialize_newtype_struct<T: ?Sized>(
-            self, 
-            _name: &'static str, 
-            _value: &T
-        ) -> Result<Self::Ok, Self::Error>
-        where
-            T: Serialize {
+    fn serialize_newtype_struct<T: ?Sized>(self,
+                                           _name: &'static str,
+                                           _value: &T)
+                                           -> Result<Self::Ok, Self::Error>
+        where T: Serialize
+    {
         Err(Error::custom("serializing a newtype struct isn't supported"))
     }
 
-    fn serialize_newtype_variant<T: ?Sized>(
-            self, 
-            _name: &'static str, 
-            _variant_index: u32, 
-            _variant: &'static str, 
-            _value: &T
-        ) -> Result<Self::Ok, Self::Error>
-        where
-            T: Serialize {
+    fn serialize_newtype_variant<T: ?Sized>(self,
+                                            _name: &'static str,
+                                            _variant_index: u32,
+                                            _variant: &'static str,
+                                            _value: &T)
+                                            -> Result<Self::Ok, Self::Error>
+        where T: Serialize
+    {
         Err(Error::custom("serializing a newtype variant isn't supported"))
     }
 
 
-    fn serialize_seq(
-        self, 
-        _len: Option<usize>
-    ) -> Result<Self::SerializeSeq, Self::Error> {
+    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
         Err(Error::custom("serializing a sequence isn't supported"))
     }
 
-    fn serialize_tuple(
-        self, 
-        _len: usize
-    ) -> Result<Self::SerializeTuple, Self::Error> {
+    fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple, Self::Error> {
         Err(Error::custom("serializing a tuple isn't supported"))
     }
 
-    fn serialize_tuple_struct(
-        self, 
-        _name: &'static str, 
-        _len: usize
-    ) -> Result<Self::SerializeTupleStruct, Self::Error> {;
+    fn serialize_tuple_struct(self,
+                              _name: &'static str,
+                              _len: usize)
+                              -> Result<Self::SerializeTupleStruct, Self::Error> {;
         Err(Error::custom("serializing a tuple struct isn't supported"))
     }
 
-    fn serialize_tuple_variant(
-        self, 
-        _name: &'static str, 
-        _variant_index: u32, 
-        _variant: &'static str, 
-        _len: usize
-    ) -> Result<Self::SerializeTupleVariant, Self::Error> {
+    fn serialize_tuple_variant(self,
+                               _name: &'static str,
+                               _variant_index: u32,
+                               _variant: &'static str,
+                               _len: usize)
+                               -> Result<Self::SerializeTupleVariant, Self::Error> {
         Err(Error::custom("serializing a tuple variant isn't supported"))
     }
 
-    fn serialize_map(
-        self, 
-        _len: Option<usize>
-    ) -> Result<Self::SerializeMap, Self::Error> {
+    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
         Err(Error::custom("serializing a map isn't supported"))
     }
 
-    fn serialize_struct(
-        self, 
-        _name: &'static str, 
-        len: usize
-    ) -> Result<Self::SerializeStruct, Self::Error> {
+    fn serialize_struct(self,
+                        _name: &'static str,
+                        len: usize)
+                        -> Result<Self::SerializeStruct, Self::Error> {
         Ok(KvSerializer(Section::with_capacity(len)))
     }
 
-    fn serialize_struct_variant(
-        self, 
-        _name: &'static str, 
-        _variant_index: u32, 
-        _variant: &'static str, 
-        _len: usize
-    ) -> Result<Self::SerializeStructVariant, Self::Error> {
+    fn serialize_struct_variant(self,
+                                _name: &'static str,
+                                _variant_index: u32,
+                                _variant: &'static str,
+                                _len: usize)
+                                -> Result<Self::SerializeStructVariant, Self::Error> {
         Err(Error::custom("serializing a struct variant isn't supported"))
     }
 
-    fn is_human_readable(&self) -> bool { false }
+    fn is_human_readable(&self) -> bool {
+        false
+    }
 }
 
 struct KvSerializer(Section);
@@ -163,13 +146,12 @@ impl SerializeStruct for KvSerializer {
     type Ok = Section;
     type Error = Error;
 
-    fn serialize_field<T: ?Sized>(
-        &mut self, 
-        key: &'static str, 
-        value: &T
-    ) -> Result<(), Self::Error>
-    where
-        T: Serialize {
+    fn serialize_field<T: ?Sized>(&mut self,
+                                  key: &'static str,
+                                  value: &T)
+                                  -> Result<(), Self::Error>
+        where T: Serialize
+    {
         let entry = value.serialize(StorageEntrySerializer)?;
         self.0.insert(key.to_string(), entry);
         Ok(())
@@ -188,9 +170,9 @@ struct ArraySerializer(Array);
 
 impl ArraySerializer {
     fn push(&mut self, entry: StorageEntry) -> Result<(), Error> {
-        self.0.push(entry).map_err(|_| {
-            Error::custom("array entries need to be of the same type.")
-        })
+        self.0
+            .push(entry)
+            .map_err(|_| Error::custom("array entries need to be of the same type."))
     }
 }
 
@@ -198,12 +180,9 @@ impl SerializeSeq for ArraySerializer {
     type Ok = StorageEntry;
     type Error = Error;
 
-    fn serialize_element<T: ?Sized>(
-            &mut self, 
-            value: &T
-        ) -> Result<(), Self::Error>
-        where
-            T: Serialize {
+    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+        where T: Serialize
+    {
         let entry = value.serialize(StorageEntrySerializer)?;
         self.push(entry)
     }
@@ -227,13 +206,12 @@ impl SerializeStruct for EntryKvSerializer {
     type Ok = StorageEntry;
     type Error = Error;
 
-    fn serialize_field<T: ?Sized>(
-        &mut self, 
-        key: &'static str, 
-        value: &T
-    ) -> Result<(), Self::Error>
-    where
-        T: Serialize {
+    fn serialize_field<T: ?Sized>(&mut self,
+                                  key: &'static str,
+                                  value: &T)
+                                  -> Result<(), Self::Error>
+        where T: Serialize
+    {
         let entry = value.serialize(StorageEntrySerializer)?;
         self.0.insert(key.to_string(), entry);
         Ok(())
@@ -283,12 +261,9 @@ impl Serializer for StorageEntrySerializer {
         Err(Error::custom("serializing `None` isn't supported"))
     }
 
-    fn serialize_some<T: ?Sized>(
-            self, 
-            _value: &T
-        ) -> Result<Self::Ok, Self::Error>
-        where
-            T: Serialize {
+    fn serialize_some<T: ?Sized>(self, _value: &T) -> Result<Self::Ok, Self::Error>
+        where T: Serialize
+    {
         Err(Error::custom("serializing `Some(_)` isn't supported"))
     }
 
@@ -300,42 +275,36 @@ impl Serializer for StorageEntrySerializer {
         Err(Error::custom("serializing `()` isn't supported"))
     }
 
-    fn serialize_unit_variant(
-            self, 
-            _name: &'static str, 
-            _variant_index: u32, 
-            _variant: &'static str
-        ) -> Result<Self::Ok, Self::Error> {
+    fn serialize_unit_variant(self,
+                              _name: &'static str,
+                              _variant_index: u32,
+                              _variant: &'static str)
+                              -> Result<Self::Ok, Self::Error> {
         Err(Error::custom("serializing `()` isn't supported"))
     }
 
-    fn serialize_newtype_struct<T: ?Sized>(
-            self, 
-            _name: &'static str, 
-            _value: &T
-        ) -> Result<Self::Ok, Self::Error>
-        where
-            T: Serialize {
+    fn serialize_newtype_struct<T: ?Sized>(self,
+                                           _name: &'static str,
+                                           _value: &T)
+                                           -> Result<Self::Ok, Self::Error>
+        where T: Serialize
+    {
         Err(Error::custom("serializing a newtype struct isn't supported"))
     }
 
-    fn serialize_newtype_variant<T: ?Sized>(
-            self, 
-            _name: &'static str, 
-            _variant_index: u32, 
-            _variant: &'static str, 
-            _value: &T
-        ) -> Result<Self::Ok, Self::Error>
-        where
-            T: Serialize {
+    fn serialize_newtype_variant<T: ?Sized>(self,
+                                            _name: &'static str,
+                                            _variant_index: u32,
+                                            _variant: &'static str,
+                                            _value: &T)
+                                            -> Result<Self::Ok, Self::Error>
+        where T: Serialize
+    {
         Err(Error::custom("serializing a newtype variant isn't supported"))
     }
 
 
-    fn serialize_seq(
-        self, 
-        len: Option<usize>
-    ) -> Result<Self::SerializeSeq, Self::Error> {
+    fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
         if let Some(len) = len {
             Ok(ArraySerializer(Array::with_capacity(len)))
         } else {
@@ -343,57 +312,49 @@ impl Serializer for StorageEntrySerializer {
         }
     }
 
-    fn serialize_tuple(
-        self, 
-        _len: usize
-    ) -> Result<Self::SerializeTuple, Self::Error> {
+    fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple, Self::Error> {
         Err(Error::custom("serializing a tuple isn't supported"))
     }
 
-    fn serialize_tuple_struct(
-        self, 
-        _name: &'static str, 
-        _len: usize
-    ) -> Result<Self::SerializeTupleStruct, Self::Error> {;
+    fn serialize_tuple_struct(self,
+                              _name: &'static str,
+                              _len: usize)
+                              -> Result<Self::SerializeTupleStruct, Self::Error> {;
         Err(Error::custom("serializing a tuple struct isn't supported"))
     }
 
-    fn serialize_tuple_variant(
-        self, 
-        _name: &'static str, 
-        _variant_index: u32, 
-        _variant: &'static str, 
-        _len: usize
-    ) -> Result<Self::SerializeTupleVariant, Self::Error> {
+    fn serialize_tuple_variant(self,
+                               _name: &'static str,
+                               _variant_index: u32,
+                               _variant: &'static str,
+                               _len: usize)
+                               -> Result<Self::SerializeTupleVariant, Self::Error> {
         Err(Error::custom("serializing a tuple variant isn't supported"))
     }
 
-    fn serialize_map(
-        self, 
-        _len: Option<usize>
-    ) -> Result<Self::SerializeMap, Self::Error> {
+    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
         Err(Error::custom("serializing a map isn't supported"))
     }
 
-    fn serialize_struct(
-        self, 
-        _name: &'static str, 
-        len: usize
-    ) -> Result<Self::SerializeStruct, Self::Error> {
+    fn serialize_struct(self,
+                        _name: &'static str,
+                        len: usize)
+                        -> Result<Self::SerializeStruct, Self::Error> {
         Ok(EntryKvSerializer(Section::with_capacity(len)))
     }
 
-    fn serialize_struct_variant(
-        self, 
-        _name: &'static str, 
-        _variant_index: u32, 
-        _variant: &'static str, 
-        _len: usize
-    ) -> Result<Self::SerializeStructVariant, Self::Error> {
+    fn serialize_struct_variant(self,
+                                _name: &'static str,
+                                _variant_index: u32,
+                                _variant: &'static str,
+                                _len: usize)
+                                -> Result<Self::SerializeStructVariant, Self::Error> {
         Err(Error::custom("serializing a struct variant isn't supported"))
     }
 
-    fn is_human_readable(&self) -> bool { false }
+    fn is_human_readable(&self) -> bool {
+        false
+    }
 }
 
 #[cfg(test)]

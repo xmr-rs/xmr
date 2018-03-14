@@ -88,7 +88,8 @@ impl PublicKey {
 
     pub fn from_bytes<B: AsRef<[u8]>>(bytes: B) -> PublicKey {
         let bytes = bytes.as_ref();
-        assert!(bytes.len() == PUBLIC_KEY_LENGTH, "invalid public key length");
+        assert!(bytes.len() == PUBLIC_KEY_LENGTH,
+                "invalid public key length");
 
         let mut h = Self::new();
         h.0.clone_from_slice(bytes);

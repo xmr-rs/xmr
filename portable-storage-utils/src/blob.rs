@@ -17,7 +17,7 @@ impl<'de> Deserialize<'de> for Blob {
         where D: Deserializer<'de>
     {
         struct BlobVisitor;
-        
+
         impl<'de> Visitor<'de> for BlobVisitor {
             type Value = Blob;
 

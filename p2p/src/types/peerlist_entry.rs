@@ -23,7 +23,7 @@ impl StlElement for PeerlistEntry {
 
     fn from_bytes(v: &[u8]) -> Result<PeerlistEntry, Error> {
         if v.len() != Self::LENGTH {
-            return Err(Error::InvalidLength(v.len()))
+            return Err(Error::InvalidLength(v.len()));
         }
 
         let adr = Ipv4Address::from_bytes(&v[..Ipv4Address::LENGTH])?;

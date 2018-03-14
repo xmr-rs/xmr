@@ -39,7 +39,9 @@ impl H256 {
         pow >> 1
     }
 
-    pub fn tree_hash<T>(hashes: T) -> H256 where T: AsRef<[H256]> {
+    pub fn tree_hash<T>(hashes: T) -> H256
+        where T: AsRef<[H256]>
+    {
         let hashes = hashes.as_ref();
         assert!(hashes.len() > 0);
 
@@ -52,7 +54,7 @@ impl H256 {
                 (&mut buf[H256_LENGTH..]).copy_from_slice(hashes[1].as_bytes());
 
                 H256(fast_hash(&buf))
-            },
+            }
             count => {
                 let cnt = Self::tree_hash_cnt(count);
                 let mut ints = Vec::with_capacity(cnt);
@@ -131,13 +133,13 @@ impl H256 {
 
 impl fmt::Debug for H256 {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-            write!(fmt, "\"")?;
+        write!(fmt, "\"")?;
 
-            for b in self.0.iter() {
-                write!(fmt, "{:02x}", b)?;
-            }
+        for b in self.0.iter() {
+            write!(fmt, "{:02x}", b)?;
+        }
 
-            write!(fmt, "\"")
+        write!(fmt, "\"")
     }
 }
 
@@ -159,7 +161,8 @@ impl<'de> serde::Deserialize<'de> for H256 {
             }
 
             fn visit_bytes<E>(mut self, v: &[u8]) -> Result<Self::Value, E>
-                where E: serde::de::Error {
+                where E: serde::de::Error
+            {
                 if v.len() != H256_LENGTH {
                     Err(E::custom(format!("slice length isn't {} bytes", H256_LENGTH)))
                 } else {

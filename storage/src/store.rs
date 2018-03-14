@@ -16,13 +16,15 @@ pub trait Store: AsSubstore {
 
 /// Allows casting Arc<Store> to reference to any substore type
 pub trait AsSubstore: BlockChain + IndexedBlockProvider {
-	fn as_block_provider(&self) -> &BlockProvider;
+    fn as_block_provider(&self) -> &BlockProvider;
 }
 
-impl<T> AsSubstore for T where T: BlockChain + IndexedBlockProvider {
-	fn as_block_provider(&self) -> &BlockProvider {
-		&*self
-	}
+impl<T> AsSubstore for T
+    where T: BlockChain + IndexedBlockProvider
+{
+    fn as_block_provider(&self) -> &BlockProvider {
+        &*self
+    }
 }
 
 pub type SharedStore = Arc<CanonStore + Send + Sync>;

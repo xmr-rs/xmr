@@ -10,9 +10,7 @@ pub struct ConnectionFactory {
 
 impl ConnectionFactory {
     pub fn new(peers: PeersRef) -> ConnectionFactory {
-        ConnectionFactory {
-            peers,
-        }
+        ConnectionFactory { peers }
     }
 
     pub fn boxed(self) -> LocalSyncNodeRef {
@@ -21,7 +19,9 @@ impl ConnectionFactory {
 }
 
 impl LocalSyncNode for ConnectionFactory {
-    fn new_sync_connection(&self, peer_id: PeerId, sync_data: &CoreSyncData,
+    fn new_sync_connection(&self,
+                           peer_id: PeerId,
+                           sync_data: &CoreSyncData,
                            connection: OutboundSyncConnectionRef) {
         self.peers.insert(peer_id, sync_data, connection);
     }

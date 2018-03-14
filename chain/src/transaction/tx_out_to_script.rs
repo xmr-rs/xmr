@@ -1,11 +1,5 @@
 use keys::{PublicKey, PUBLIC_KEY_LENGTH};
-use format::{
-    Deserialize,
-    DeserializerStream,
-    Error,
-    Serialize,
-    SerializerStream
-};
+use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
 #[derive(Debug, Clone)]
 pub struct TxOutToScript {
@@ -28,10 +22,7 @@ impl Deserialize for TxOutToScript {
         let script = deserializer.get_blob(script_length)?;
 
 
-        Ok(TxOutToScript {
-            keys,
-            script,
-        })
+        Ok(TxOutToScript { keys, script })
     }
 }
 

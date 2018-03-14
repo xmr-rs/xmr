@@ -21,12 +21,15 @@ mod utils;
 use failure::Error;
 use app_dirs::AppInfo;
 
-pub const APP_INFO: AppInfo = AppInfo { name: "dxmr", author: "Jean Pierre Dudey" };
+pub const APP_INFO: AppInfo = AppInfo {
+    name: "dxmr",
+    author: "Jean Pierre Dudey",
+};
 
 fn main() {
     env_logger::init();
 
-    let matches  = clap_app!(dxmr =>
+    let matches = clap_app!(dxmr =>
         (version: "0.1.0")
         (author: "Jean Pierre Dudey <jeandudey@hotmail.com>")
         (about: "Monero client")
@@ -37,8 +40,9 @@ fn main() {
         (@arg hidemyport: --hidemyport)
         (@arg outpeers: --outpeers +takes_value "Maximum of outbound peers")
         (@arg inpeers: --inpeers +takes_value "Maximum of outbound peers")
-    ).get_matches();
-    
+    )
+            .get_matches();
+
     // TODO: no unwrap
     let cfg = config::parse(&matches).unwrap();
 
@@ -68,11 +72,9 @@ fn start(cfg: config::Config) -> Result<(), Error> {
 
     let p2p = p2p::P2P::new(config, local_sync_node, el.handle());
 
-    p2p.run(cfg.db.clone())
-        .expect("couldn't start p2p");
+    p2p.run(cfg.db.clone()).expect("couldn't start p2p");
 
-    el.run(p2p::forever())
-        .expect("couldn't run event loop");
+    el.run(p2p::forever()).expect("couldn't run event loop");
 
     Ok(())
 }

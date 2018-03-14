@@ -14,7 +14,7 @@ pub trait Serialize {
 pub struct SerializerStream<'buf>(&'buf mut BytesMut);
 
 impl<'buf> SerializerStream<'buf> {
-    pub fn new(bytes: &'buf mut BytesMut) -> SerializerStream<'buf> { 
+    pub fn new(bytes: &'buf mut BytesMut) -> SerializerStream<'buf> {
         SerializerStream(bytes)
     }
 

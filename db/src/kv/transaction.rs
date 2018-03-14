@@ -10,8 +10,8 @@ pub const COL_BLOCK_IDS: usize = 3;
 
 #[derive(Debug)]
 pub enum Operation {
-	Insert(KeyValue),
-	Delete(Key),
+    Insert(KeyValue),
+    Delete(Key),
 }
 
 #[derive(Debug)]
@@ -50,7 +50,7 @@ impl Value {
 
                 let mut buf = bytes.into_buf();
                 Value::BlockHeight(buf.get_u64::<LittleEndian>())
-            },
+            }
             Key::BlockId(_) => Value::BlockId(H256::from_bytes(&bytes)),
         }
     }
@@ -86,33 +86,31 @@ impl Value {
 
 #[derive(Debug, Clone)]
 pub enum KeyState<V> {
-	Insert(V),
-	Delete,
-	Unknown,
+    Insert(V),
+    Delete,
+    Unknown,
 }
 
 impl<V> KeyState<V> {
-	pub fn into_option(self) -> Option<V> {
-		match self {
-			KeyState::Insert(value) => Some(value),
-			KeyState::Delete => None,
-			KeyState::Unknown => None,
-		}
-	}
+    pub fn into_option(self) -> Option<V> {
+        match self {
+            KeyState::Insert(value) => Some(value),
+            KeyState::Delete => None,
+            KeyState::Unknown => None,
+        }
+    }
 }
 
 /// A list of operations to be done.
 #[derive(Debug)]
 pub struct Transaction {
-	pub operations: Vec<Operation>,
+    pub operations: Vec<Operation>,
 }
 
 impl Transaction {
     /// Creates a new `Transaction`.
     pub fn new() -> Transaction {
-        Transaction {
-            operations: Vec::new(),
-        }
+        Transaction { operations: Vec::new() }
     }
 
     /// Inserts a key-value pair onto the database.
@@ -129,7 +127,7 @@ impl Transaction {
 #[derive(Debug)]
 pub enum RawOperation {
     Insert(RawKeyValue),
-    Delete(RawKey)
+    Delete(RawKey),
 }
 
 impl<'a> From<&'a Operation> for RawOperation {
@@ -157,14 +155,14 @@ impl<'a> From<&'a KeyValue> for RawKeyValue {
                 let mut buf = BytesMut::with_capacity(8);
                 buf.put_u64::<LittleEndian>(*v);
                 (COL_BLOCK_HEIGHTS, Bytes::from(k.as_bytes()), buf.freeze())
-            },
+            }
             KeyValue::BlockId(ref k, ref v) => {
                 let mut buf = BytesMut::with_capacity(8);
                 buf.put_u64::<LittleEndian>(*k);
                 (COL_BLOCK_IDS, buf.freeze(), Bytes::from(v.as_bytes()))
             }
         };
-        
+
         RawKeyValue {
             location,
             key,
@@ -189,12 +187,9 @@ impl<'a> From<&'a Key> for RawKey {
                 let mut buf = BytesMut::with_capacity(8);
                 buf.put_u64::<LittleEndian>(*k);
                 (COL_BLOCK_IDS, buf.freeze())
-            },
+            }
         };
 
-        RawKey {
-            location,
-            key,
-        }
+        RawKey { location, key }
     }
 }

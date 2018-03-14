@@ -10,7 +10,7 @@ pub struct TimedSync;
 impl Command for TimedSync {
     type Request = TimedSyncRequest;
     type Response = TimedSyncResponse;
-    
+
     const ID: u32 = P2P_COMMAND_BASE_ID + 2;
 }
 

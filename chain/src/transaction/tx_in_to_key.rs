@@ -1,11 +1,5 @@
 use keys::{KeyImage, KEY_IMAGE_LENGTH};
-use format::{
-    Deserialize,
-    DeserializerStream,
-    Error,
-    Serialize,
-    SerializerStream
-};
+use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
 #[derive(Debug, Clone)]
 pub struct TxInToKey {
@@ -27,10 +21,10 @@ impl Deserialize for TxInToKey {
         let k_image = KeyImage::from_bytes(deserializer.get_blob(KEY_IMAGE_LENGTH)?);
 
         Ok(TxInToKey {
-            amount,
-            key_offsets,
-            k_image,
-        })
+               amount,
+               key_offsets,
+               k_image,
+           })
     }
 }
 

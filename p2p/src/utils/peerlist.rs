@@ -9,9 +9,7 @@ pub struct Peerlist {
 
 impl Peerlist {
     pub fn new() -> Peerlist {
-        Peerlist {
-            list: HashMap::new(),
-        }
+        Peerlist { list: HashMap::new() }
     }
 
     pub fn insert(&mut self, address: SocketAddr, entry: PeerlistEntry) {

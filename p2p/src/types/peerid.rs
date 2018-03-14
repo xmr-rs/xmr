@@ -40,7 +40,8 @@ impl<'de> Deserialize<'de> for PeerId {
             }
 
             fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
-                where E: Error {
+                where E: Error
+            {
                 Ok(PeerId(v))
             }
         }

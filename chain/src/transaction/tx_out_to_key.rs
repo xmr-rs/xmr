@@ -1,11 +1,5 @@
 use keys::{PublicKey, PUBLIC_KEY_LENGTH};
-use format::{
-    Deserialize,
-    DeserializerStream,
-    Error,
-    Serialize,
-    SerializerStream
-};
+use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
 #[derive(Debug, Clone)]
 pub struct TxOutToKey {

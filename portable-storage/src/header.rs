@@ -35,9 +35,7 @@ impl StorageBlockHeader {
             version: buf.get_u8(),
         };
 
-        if (hdr.is_valid_signature_a() ||
-            hdr.is_valid_signature_b()) &&
-            hdr.is_valid_version() {
+        if (hdr.is_valid_signature_a() || hdr.is_valid_signature_b()) && hdr.is_valid_version() {
             Ok(hdr)
         } else {
             Err(Error::InvalidHeader)

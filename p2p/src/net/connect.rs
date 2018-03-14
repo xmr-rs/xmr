@@ -23,13 +23,14 @@ type SupportFlagsResponse = <RequestSupportFlags as Command>::Response;
 pub fn connect(address: &SocketAddr,
                handle: &Handle,
                context: Arc<Context>,
-               request: HandshakeRequest) -> Connect {
+               request: HandshakeRequest)
+               -> Connect {
     Connect {
         context,
         state: ConnectState::TcpConnect {
             future: TcpStream::connect(address, handle),
             request,
-        }
+        },
     }
 }
 
@@ -43,18 +44,10 @@ enum ConnectState {
         future: TcpStreamNew,
         request: HandshakeRequest,
     },
-    InvokeHandshake {
-        future: Request<TcpStream>,
-    },
-    ReceiveRequestSupportFlags {
-        future: Receive<TcpStream>,
-    },
-    SendSupportFlags {
-        future: Response<TcpStream>,
-    },
-    ReceiveHandshakeResponse {
-        future: Receive<TcpStream>,
-    }
+    InvokeHandshake { future: Request<TcpStream> },
+    ReceiveRequestSupportFlags { future: Receive<TcpStream> },
+    SendSupportFlags { future: Response<TcpStream> },
+    ReceiveHandshakeResponse { future: Receive<TcpStream> },
 }
 
 impl Future for Connect {
@@ -64,20 +57,23 @@ impl Future for Connect {
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         loop {
             let next_state = match self.state {
-                ConnectState::TcpConnect { ref mut future, ref request } => {
+                ConnectState::TcpConnect {
+                    ref mut future,
+                    ref request,
+                } => {
                     let stream = try_ready!(future.poll());
 
                     ConnectState::InvokeHandshake {
                         future: Bucket::request_future::<_, Handshake>(stream, request),
                     }
-                },
+                }
                 ConnectState::InvokeHandshake { ref mut future } => {
                     let (stream, _) = try_ready!(future.poll());
 
                     ConnectState::ReceiveRequestSupportFlags {
                         future: Bucket::receive_future(stream),
                     }
-                },
+                }
                 ConnectState::ReceiveRequestSupportFlags { ref mut future } => {
                     let (stream, bucket) = try_ready!(future.poll());
                     if let Err(e) = bucket {
@@ -85,27 +81,23 @@ impl Future for Connect {
                     }
 
                     match bucket.unwrap().into_request::<RequestSupportFlags>() {
-                        Ok(_req) => {},
+                        Ok(_req) => {}
                         Err(e) => return Ok((stream, Err(e.into())).into()),
                     }
 
-                    let res = SupportFlagsResponse {
-                        support_flags: P2P_SUPPORT_FLAGS,
-                    };
+                    let res = SupportFlagsResponse { support_flags: P2P_SUPPORT_FLAGS };
 
                     ConnectState::SendSupportFlags {
-                        future: Bucket::response_future::<_, RequestSupportFlags>(
-                                    stream,
-                                    &res),
+                        future: Bucket::response_future::<_, RequestSupportFlags>(stream, &res),
                     }
-                },
+                }
                 ConnectState::SendSupportFlags { ref mut future } => {
                     let (stream, _) = try_ready!(future.poll());
 
                     ConnectState::ReceiveHandshakeResponse {
                         future: Bucket::receive_future(stream),
                     }
-                },
+                }
                 ConnectState::ReceiveHandshakeResponse { ref mut future } => {
                     let (stream, bucket) = try_ready!(future.poll());
 
@@ -120,9 +112,11 @@ impl Future for Connect {
                     };
 
                     if response.node_data.network_id.0 != self.context.config.network.id() {
-                        return Ok((stream, Err(ConnectError::WrongNetwork(response.node_data.network_id.0))).into());
+                        let network_id = response.node_data.network_id.0;
+                        let err = ConnectError::WrongNetwork(network_id);
+                        return Ok((stream, Err(err)).into());
                     }
-                    
+
                     if response.node_data.peer_id == self.context.peer_id {
                         return Ok((stream, Err(ConnectError::SamePeerId)).into());
                     }

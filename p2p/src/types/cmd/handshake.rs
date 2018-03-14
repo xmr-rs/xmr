@@ -45,8 +45,8 @@ pub mod tests {
     #[test]
     fn test_vector() {
         type Request = <Handshake as Command>::Request;
-        let test_vector =
-            include_bytes!("../../../../compat/test-vectors/data/COMMAND_HANDSHAKE_T_TEST_VECTOR").to_vec();
+        let test_vector = include_bytes!("../../../../compat/test-vectors/data/COMMAND_HANDSHAKE_T_TEST_VECTOR")
+            .to_vec();
         let network = Network::Testnet;
 
         let req = Request {

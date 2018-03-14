@@ -13,13 +13,12 @@ pub struct PeerContext {
 
 impl PeerContext {
     pub fn new(context: Arc<Context>, info: PeerlistEntry) -> PeerContext {
-        PeerContext {
-            context,
-            info,
-        }
+        PeerContext { context, info }
     }
 
-    pub fn notify<N>(&self, req: &N::Request) where N: Notify {
+    pub fn notify<N>(&self, req: &N::Request)
+        where N: Notify
+    {
         trace!("peer context notify - {:?}", self.info);
         let context = self.context.clone();
 
@@ -32,11 +31,12 @@ impl PeerContext {
         };
 
         let future = Box::new(Bucket::notify_future::<_, N>(channel, req)
-                                .map_err(|_| ())
-                                .map(|_| ()));
+                                  .map_err(|_| ())
+                                  .map(|_| ()));
 
-        context.remote.clone().spawn(move |_| {
-            context.pool.clone().spawn(future)
-        })
+        context
+            .remote
+            .clone()
+            .spawn(move |_| context.pool.clone().spawn(future))
     }
 }

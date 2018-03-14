@@ -24,15 +24,15 @@ impl StlElement for Ipv4Address {
 
     fn from_bytes(v: &[u8]) -> Result<Ipv4Address, Error> {
         if v.len() != Self::LENGTH {
-            return Err(Error::InvalidLength(v.len()))
+            return Err(Error::InvalidLength(v.len()));
         }
 
         let mut buf = v.into_buf();
 
         Ok(Ipv4Address {
-            ip: buf.get_u32::<LittleEndian>(),
-            port: buf.get_u16::<LittleEndian>(),
-        })
+               ip: buf.get_u32::<LittleEndian>(),
+               port: buf.get_u16::<LittleEndian>(),
+           })
     }
 
     fn to_bytes(&self, buf: &mut BytesMut) {

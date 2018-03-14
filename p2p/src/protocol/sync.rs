@@ -13,7 +13,9 @@ use types::cn::CoreSyncData;
 use types::PeerId;
 
 pub trait LocalSyncNode: Send + Sync + 'static {
-    fn new_sync_connection(&self, peer_id: PeerId, sync_data: &CoreSyncData,
+    fn new_sync_connection(&self,
+                           peer_id: PeerId,
+                           sync_data: &CoreSyncData,
                            connection: OutboundSyncConnectionRef);
 }
 
@@ -30,7 +32,7 @@ pub trait OutboundSyncConnection: Send + Sync {
     fn notify_response_get_objects(&self, req: &ResponseGetObjectsRequest);
 }
 
-pub type OutboundSyncConnectionRef = Arc<OutboundSyncConnection>; 
+pub type OutboundSyncConnectionRef = Arc<OutboundSyncConnection>;
 
 pub struct OutboundSync {
     context: PeerContext,
@@ -38,10 +40,8 @@ pub struct OutboundSync {
 
 impl OutboundSync {
     pub fn new(context: PeerContext) -> OutboundSync {
-        OutboundSync {
-            context,
-        }
-    } 
+        OutboundSync { context }
+    }
 }
 
 impl OutboundSyncConnection for OutboundSync {

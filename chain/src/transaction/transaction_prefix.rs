@@ -1,13 +1,6 @@
 use transaction::{TxIn, TxOut};
 use primitives::H256;
-use format::{
-    Deserialize,
-    DeserializerStream,
-    Error,
-    Serialize,
-    SerializerStream,
-    to_binary,
-};
+use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream, to_binary};
 
 /// Transaction prefix.
 #[derive(Debug, Clone)]
@@ -48,12 +41,12 @@ impl Deserialize for TransactionPrefix {
         let extra = deserializer.get_blob(extra_length)?;
 
         Ok(TransactionPrefix {
-            version,
-            unlock_time,
-            vin,
-            vout,
-            extra,
-        })
+               version,
+               unlock_time,
+               vin,
+               vout,
+               extra,
+           })
     }
 }
 
@@ -62,7 +55,7 @@ impl Serialize for TransactionPrefix {
         serializer.put_u8_varint(self.version);
         serializer.put_u64_varint(self.unlock_time);
 
-        serializer.put_u64_varint(self.vin.len() as u64); 
+        serializer.put_u64_varint(self.vin.len() as u64);
         for tx in self.vin.iter() {
             serializer.put_serializable(tx);
         }
