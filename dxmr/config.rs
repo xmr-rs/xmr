@@ -4,7 +4,7 @@ use clap::ArgMatches;
 use failure::Error;
 use network::Network;
 use peers::default_peers;
-use db::SharedStore;
+use storage::SharedStore;
 use utils;
 
 pub struct Config {

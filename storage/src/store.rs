@@ -1,8 +1,8 @@
+use std::sync::Arc;
+
+use best_block::BestBlock;
 use block_chain::BlockChain;
 use block_provider::{BlockProvider, IndexedBlockProvider};
-use best_block::BestBlock;
-use chain::BlockHeader;
-use std::sync::Arc;
 
 pub trait CanonStore: Store {
     fn as_store(&self) -> &Store;
@@ -12,9 +12,6 @@ pub trait CanonStore: Store {
 pub trait Store: AsSubstore {
     /// Get the best block.
     fn best_block(&self) -> BestBlock;
-
-    /// Get the best block header.
-    fn best_header(&self) -> BlockHeader;
 }
 
 /// Allows casting Arc<Store> to reference to any substore type

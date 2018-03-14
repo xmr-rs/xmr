@@ -12,7 +12,7 @@ use rand::OsRng;
 use parking_lot::RwLock;
 
 use network::Network;
-use db::SharedStore;
+use storage::SharedStore;
 
 use config::Config;
 use types::PeerId;

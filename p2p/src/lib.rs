@@ -17,11 +17,11 @@ extern crate failure;
 #[macro_use]
 extern crate log;
 
-extern crate xmr_db as db;
 extern crate xmr_network as network;
 extern crate xmr_portable_storage as portable_storage;
 extern crate xmr_portable_storage_utils as portable_storage_utils;
 extern crate xmr_primitives as primitives;
+extern crate xmr_storage as storage;
 
 pub mod event_loop;
 pub mod types;

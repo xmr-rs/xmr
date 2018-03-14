@@ -1,22 +1,14 @@
 use std::path::Path;
 
 use sanakirja;
-
 use parking_lot::RwLock;
-
-use chain::{BlockHeader, IndexedBlock};
-use primitives::H256;
 use bytes::{Buf, IntoBuf, LittleEndian};
 
-use block_chain::BlockChain;
-use block_provider::{BlockProvider, IndexedBlockProvider};
-use block_ref::BlockRef;
+use chain::IndexedBlock;
+use primitives::H256;
+use storage::{BestBlock, BlockChain, BlockProvider, IndexedBlockProvider, BlockRef, Store, CanonStore};
 
 use kv::{Key, Value, KeyValue, KeyState, KeyValueDatabase, DiskDb, Transaction};
-
-use store::{CanonStore, Store};
-use best_block::BestBlock;
-
 use error::Error;
 
 const KEY_BEST_BLOCK_HEIGHT: &'static str = "best_block_height";
@@ -147,22 +139,18 @@ impl<DB> BlockChainDatabase<DB> where DB: KeyValueDatabase {
 }
 
 impl<DB> BlockChain for BlockChainDatabase<DB> where DB: KeyValueDatabase {
-    fn insert(&self, block: IndexedBlock) -> Result<(), Error> {
-        BlockChainDatabase::insert(self, block)
+    fn insert(&self, block: IndexedBlock) -> Result<(), String> {
+        BlockChainDatabase::insert(self, block).map_err(|e| format!("{}", e))
     }
 
-    fn canonize(&self, id: &H256) -> Result<(), Error> {
-        BlockChainDatabase::canonize(self, id)
+    fn canonize(&self, id: &H256) -> Result<(), String> {
+        BlockChainDatabase::canonize(self, id).map_err(|e| format!("{}", e))
     }
 }
 
 impl<DB> Store for BlockChainDatabase<DB> where DB: KeyValueDatabase {
     fn best_block(&self) -> BestBlock {
         self.best_block.read().clone()
-    }
-
-    fn best_header(&self) -> BlockHeader {
-        unimplemented!()
     }
 }
 

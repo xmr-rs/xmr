@@ -26,6 +26,7 @@ members = [
     "portable-storage",
     "primitives",
     "rct",
+    "storage",
     "sync",
     "verification",
 ]
@@ -42,5 +43,6 @@ failure = "0.1.1"
 xmr-chain = { path  = "chain" }
 xmr-db = { path = "db" }
 xmr-network = { path = "network" }
+xmr-storage = { path = "storage" }
 xmr-p2p = { path = "p2p" }
 xmr-sync = { path = "sync" }

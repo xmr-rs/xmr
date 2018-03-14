@@ -751,6 +751,7 @@ dependencies = [
  "xmr-db 0.1.0",
  "xmr-network 0.1.0",
  "xmr-p2p 0.1.0",
+ "xmr-storage 0.1.0",
  "xmr-sync 0.1.0",
 ]
 
@@ -788,6 +789,7 @@ dependencies = [
  "xmr-chain 0.1.0",
  "xmr-format 0.1.0",
  "xmr-primitives 0.1.0",
+ "xmr-storage 0.1.0",
 ]
 
 [[package]]
@@ -840,11 +842,11 @@ dependencies = [
  "tokio-core 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-io 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "xmr-db 0.1.0",
  "xmr-network 0.1.0",
  "xmr-portable-storage 0.1.0",
  "xmr-portable-storage-utils 0.1.0",
  "xmr-primitives 0.1.0",
+ "xmr-storage 0.1.0",
 ]
 
 [[package]]
@@ -883,6 +885,14 @@ dependencies = [
 [[package]]
 name = "xmr-rct"
 version = "0.1.0"
+
+[[package]]
+name = "xmr-storage"
+version = "0.1.0"
+dependencies = [
+ "xmr-chain 0.1.0",
+ "xmr-primitives 0.1.0",
+]
 
 [[package]]
 name = "xmr-sync"

@@ -1,0 +1,8 @@
+[package]
+name = "xmr-storage"
+version = "0.1.0"
+authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
+
+[dependencies]
+xmr-chain = { path = "../chain" }
+xmr-primitives = { path = "../primitives" }

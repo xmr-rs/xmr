@@ -11,6 +11,7 @@ extern crate xmr_chain as chain;
 extern crate xmr_db as db;
 extern crate xmr_network as network;
 extern crate xmr_p2p as p2p;
+extern crate xmr_storage as storage;
 extern crate xmr_sync as sync;
 
 mod config;

@@ -16,6 +16,7 @@ failure_derive = "0.1.1"
 xmr-chain = { path = "../chain" }
 xmr-format = { path = "../format" }
 xmr-primitives = { path = "../primitives" }
+xmr-storage = { path = "../storage" }
 
 [dev-dependencies]
 tempdir = "0.3"
