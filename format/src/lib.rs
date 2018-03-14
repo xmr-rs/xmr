@@ -11,3 +11,7 @@ mod ser;
 
 pub use de::{Deserialize, DeserializerStream, Error, from_binary};
 pub use ser::{Serialize, SerializerStream, to_binary};
+
+mod impls;
+
+pub use impls::*;

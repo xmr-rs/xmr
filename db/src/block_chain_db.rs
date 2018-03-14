@@ -5,6 +5,7 @@ use parking_lot::RwLock;
 use bytes::{Buf, IntoBuf, LittleEndian};
 
 use chain::IndexedBlock;
+use format::to_binary;
 use primitives::H256;
 use storage::{BestBlock, BlockChain, BlockProvider, IndexedBlockProvider, BlockRef, Store,
               CanonStore};
@@ -117,10 +118,8 @@ impl<DB> BlockChainDatabase<DB>
         let mut update = Transaction::new();
         update.insert(KeyValue::BlockId(new_best_block.height, new_best_block.id.clone()));
         update.insert(KeyValue::BlockHeight(new_best_block.id.clone(), new_best_block.height));
-        /*
-		update.insert(KeyValue::Meta(KEY_BEST_BLOCK_HASH, serialize(&new_best_block.hash)));
-		update.insert(KeyValue::Meta(KEY_BEST_BLOCK_NUMBER, serialize(&new_best_block.number)));
-        */
+		update.insert(KeyValue::Meta(KEY_BEST_BLOCK_ID, to_binary(&new_best_block.id)));
+		update.insert(KeyValue::Meta(KEY_BEST_BLOCK_HEIGHT, to_binary(&new_best_block.height)));
 
         // TODO: transactions
 

@@ -68,6 +68,24 @@ impl<'buf> DeserializerStream<'buf> {
         }
     }
 
+    pub fn get_u64(&mut self) -> Result<u64, Error> {
+        use std::mem::size_of;
+
+        let bytes = size_of::<u64>();
+
+        if self.0.remaining() < bytes {
+            Err(Error::UnexpectedEof(bytes))
+        } else {
+            let mut res = 0;
+            let mut shift = 0;
+            for _ in 0..bytes {
+                res += (self.0.get_u8() as u64) << shift;
+                shift += 8;
+            }
+            Ok(res)
+        }
+    }
+
     pub fn get_u8_varint(&mut self) -> Result<u8, Error> {
         varint::read(&mut self.0)
             .map_err(Error::from)
