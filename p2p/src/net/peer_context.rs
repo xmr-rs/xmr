@@ -35,7 +35,7 @@ impl PeerContext {
                                 .map_err(|_| ())
                                 .map(|_| ()));
 
-        context.remote.clone().spawn(move |handle| {
+        context.remote.clone().spawn(move |_| {
             context.pool.clone().spawn(future)
         })
     }

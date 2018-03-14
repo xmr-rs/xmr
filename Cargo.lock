@@ -751,6 +751,7 @@ dependencies = [
  "xmr-db 0.1.0",
  "xmr-network 0.1.0",
  "xmr-p2p 0.1.0",
+ "xmr-sync 0.1.0",
 ]
 
 [[package]]
@@ -882,6 +883,15 @@ dependencies = [
 [[package]]
 name = "xmr-rct"
 version = "0.1.0"
+
+[[package]]
+name = "xmr-sync"
+version = "0.1.0"
+dependencies = [
+ "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parking_lot 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xmr-p2p 0.1.0",
+]
 
 [[package]]
 name = "xmr-varint"

@@ -1,0 +1,10 @@
+[package]
+name = "xmr-sync"
+version = "0.1.0"
+authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
+license = "MIT/Apache-2.0"
+
+[dependencies]
+log = "0.4.1"
+parking_lot = "0.4.8"
+xmr-p2p = { path = "../p2p" }

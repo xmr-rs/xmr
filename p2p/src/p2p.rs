@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::net::{SocketAddr, Shutdown};
 use std::sync::Arc;
 use std::error::Error as StdError;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -9,14 +9,17 @@ use futures::{Future, finished};
 use tokio_core::reactor::{Handle, Remote};
 use rand::OsRng;
 
+use parking_lot::RwLock;
+
 use network::Network;
-use db::{SharedStore, Store};
+use db::SharedStore;
 
 use config::Config;
 use types::PeerId;
-use net::{connect, ConnectionCounter, Connections};
+use net::{connect, ConnectionCounter, Connections, PeerContext};
+use protocol::{OutboundSync, LocalSyncNodeRef};
 use levin::Command;
-use types::BasicNodeData;
+use types::{BasicNodeData, PeerlistEntry};
 use types::cmd::Handshake;
 use types::cn::CoreSyncData;
 use utils::Peerlist;
@@ -25,11 +28,11 @@ pub type BoxedEmptyFuture = Box<Future<Item=(), Error=()> + Send>;
 
 pub struct Context {
     connection_counter: ConnectionCounter,
-    sync_data_handler: Box<SyncDataHandler>,
+    local_sync_node: LocalSyncNodeRef,
     pub(crate) remote: Remote,
     pub(crate) pool: CpuPool,
     pub(crate) connections: Connections,
-    pub(crate) peerlist: Peerlist,
+    pub(crate) peerlist: RwLock<Peerlist>,
     pub(crate) config: Config,
     pub(crate) peer_id: PeerId,
 }
@@ -38,16 +41,16 @@ impl Context {
     pub fn new(pool_handle: CpuPool,
                remote: Remote,
                config: Config,
-               sync_data_handler: Box<SyncDataHandler>) -> Context {
+               local_sync_node: LocalSyncNodeRef) -> Context {
         let mut rng = OsRng::new().expect("Cannot open OS random.");
         let peer_id = PeerId::random(&mut rng);
         Context {
             connection_counter: ConnectionCounter::new(config.in_peers, config.out_peers),
-            sync_data_handler,
+            local_sync_node,
             remote: remote,
             pool: pool_handle,
             connections: Connections::new(),
-            peerlist: Peerlist::new(),
+            peerlist: RwLock::new(Peerlist::new()),
             config,
             peer_id,
         }
@@ -76,13 +79,38 @@ impl Context {
                     match response {
                         Ok(response) => {
                             trace!("connect response - {:?}", response);
-                            context.sync_data_handler.handle_sync_data(&response.payload_data);
+                            let addr = match address {
+                                SocketAddr::V4(ref v4) => v4.clone(),
+                                SocketAddr::V6(_) => {
+                                    warn!("IPv6 addresses aren't supported yet.");
+                                    stream.shutdown(Shutdown::Both).ok();
+                                    context.connection_counter.note_close_outbound_connection();
+                                    return finished(());
+                                },
+                            };
+                            let info = PeerlistEntry {
+                                adr: addr.into(),
+                                id: response.node_data.peer_id,
+                                // TODO: last seen time
+                                last_seen: 0,
+                            };
+                            context.peerlist.write().insert(address, info.clone());
+                            let peer_context = PeerContext::new(context.clone(), info);
+                            let outbound_sync_connection = Arc::new(
+                                OutboundSync::new(peer_context)
+                            );
+                            context.local_sync_node.new_sync_connection(
+                                response.node_data.peer_id,
+                                &response.payload_data,
+                                outbound_sync_connection,
+                            );
                             context.connections.store(
                                 response.node_data.peer_id,
-                                stream.into()
+                                stream.into(),
                             );
                         },
                         Err(e) => {
+                            stream.shutdown(Shutdown::Both).ok();
                             context.connection_counter.note_close_outbound_connection();
                             warn!("node returned invalid data: {:?}", e);
                         }
@@ -118,20 +146,20 @@ impl Context {
 }
 
 pub struct P2P {
-    event_loop_handle: Handle,
+    _event_loop_handle: Handle,
     context: Arc<Context>,
     _pool: CpuPool,
 }
 
 impl P2P {
-    pub fn new(config: Config, sync_data_handler: Box<SyncDataHandler>, handle: Handle) -> P2P {
+    pub fn new(config: Config, local_sync_node: LocalSyncNodeRef, handle: Handle) -> P2P {
         trace!("p2p config: {:?}", config);
 
         let pool = CpuPool::new(config.threads);
         let remote = handle.remote().clone();
         P2P {
-            event_loop_handle: handle,
-            context: Arc::new(Context::new(pool.clone(), remote, config.clone(), sync_data_handler)),
+            _event_loop_handle: handle,
+            context: Arc::new(Context::new(pool.clone(), remote, config.clone(), local_sync_node)),
             _pool: pool,
         }
     }
@@ -162,8 +190,4 @@ fn core_sync_data(store: SharedStore, network: &Network) -> CoreSyncData {
         top_id: best_block.id,
         top_version: network.hard_forks().ideal_version(),
     }
-}
-
-pub trait SyncDataHandler: Send + Sync + 'static {
-    fn handle_sync_data(&self, payload_data: &CoreSyncData);
 }

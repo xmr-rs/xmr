@@ -13,4 +13,8 @@ impl Peerlist {
             list: HashMap::new(),
         }
     }
+
+    pub fn insert(&mut self, address: SocketAddr, entry: PeerlistEntry) {
+        self.list.insert(address, entry);
+    }
 }

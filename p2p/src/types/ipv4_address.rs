@@ -1,3 +1,4 @@
+use std::net;
 use bytes::{BytesMut, Buf, BufMut, IntoBuf, LittleEndian};
 
 use portable_storage_utils::stl::{StlElement, Error};
@@ -7,6 +8,15 @@ use portable_storage_utils::stl::{StlElement, Error};
 pub struct Ipv4Address {
     pub ip: u32,
     pub port: u16,
+}
+
+impl From<net::SocketAddrV4> for Ipv4Address {
+    fn from(addr: net::SocketAddrV4) -> Ipv4Address {
+        Ipv4Address {
+            ip: addr.ip().clone().into(),
+            port: addr.port(),
+        }
+    }
 }
 
 impl StlElement for Ipv4Address {

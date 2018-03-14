@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use net::PeerContext;
 
 use types::cn::cmd::{NewBlock, NewBlockRequest};
@@ -8,8 +9,17 @@ use types::cn::cmd::{RequestFluffyMissingTx, RequestFluffyMissingTxRequest};
 use types::cn::cmd::{RequestGetObjects, RequestGetObjectsRequest};
 use types::cn::cmd::{ResponseChainEntry, ResponseChainEntryRequest};
 use types::cn::cmd::{ResponseGetObjects, ResponseGetObjectsRequest};
+use types::cn::CoreSyncData;
+use types::PeerId;
 
-pub trait OutboundSyncConnection {
+pub trait LocalSyncNode: Send + Sync + 'static {
+    fn new_sync_connection(&self, peer_id: PeerId, sync_data: &CoreSyncData,
+                           connection: OutboundSyncConnectionRef);
+}
+
+pub type LocalSyncNodeRef = Box<LocalSyncNode>;
+
+pub trait OutboundSyncConnection: Send + Sync {
     fn notify_new_block(&self, req: &NewBlockRequest);
     fn notify_new_fluffy_block(&self, req: &NewFluffyBlockRequest);
     fn notify_new_transactions(&self, req: &NewTransactionsRequest);
@@ -20,8 +30,18 @@ pub trait OutboundSyncConnection {
     fn notify_response_get_objects(&self, req: &ResponseGetObjectsRequest);
 }
 
+pub type OutboundSyncConnectionRef = Arc<OutboundSyncConnection>; 
+
 pub struct OutboundSync {
     context: PeerContext,
+}
+
+impl OutboundSync {
+    pub fn new(context: PeerContext) -> OutboundSync {
+        OutboundSync {
+            context,
+        }
+    } 
 }
 
 impl OutboundSyncConnection for OutboundSync {
