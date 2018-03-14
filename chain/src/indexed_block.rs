@@ -1,5 +1,7 @@
-use std::cmp;
+use std::cmp::PartialEq;
+
 use primitives::H256;
+
 use block::Block;
 
 pub struct IndexedBlock {
@@ -26,7 +28,7 @@ impl From<Block> for IndexedBlock {
     }
 }
 
-impl cmp::PartialEq for IndexedBlock {
+impl PartialEq for IndexedBlock {
     fn eq(&self, other: &IndexedBlock) -> bool {
         self.id == other.id
     }
