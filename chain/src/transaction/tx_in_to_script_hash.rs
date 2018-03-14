@@ -1,4 +1,4 @@
-use primitives::{H256, H256_LENGTH};
+use primitives::H256;
 use transaction::TxOutToScript;
 use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
@@ -12,7 +12,7 @@ pub struct TxInToScriptHash {
 
 impl Deserialize for TxInToScriptHash {
     fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
-        let prev = H256::from_bytes(deserializer.get_blob(H256_LENGTH)?);
+        let prev = deserializer.get_deserializable()?;
         let prevout = deserializer.get_u64_varint()?;
         let script = deserializer.get_deserializable()?;
 
@@ -30,7 +30,7 @@ impl Deserialize for TxInToScriptHash {
 
 impl Serialize for TxInToScriptHash {
     fn serialize(&self, mut serializer: SerializerStream) {
-        serializer.put_blob(self.prev.as_bytes());
+        serializer.put_serializable(&self.prev);
         serializer.put_u64_varint(self.prevout);
         serializer.put_serializable(&self.script);
 

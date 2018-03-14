@@ -1,7 +1,10 @@
-use crypto::{fast_hash, slow_hash};
+use std::fmt::{self, Debug, Formatter};
+
 use bytes::{Buf, IntoBuf, LittleEndian};
 use serde;
-use std::{self, fmt};
+
+use crypto::{fast_hash, slow_hash};
+use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
 /// H256 length in bytes.
 pub const H256_LENGTH: usize = 32;
@@ -131,21 +134,15 @@ impl H256 {
     }
 }
 
-impl fmt::Debug for H256 {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "\"")?;
-
-        for b in self.0.iter() {
-            write!(fmt, "{:02x}", b)?;
-        }
-
-        write!(fmt, "\"")
-    }
-}
-
 impl From<[u8; 32]> for H256 {
     fn from(v: [u8; 32]) -> H256 {
         H256(v)
+    }
+}
+
+impl AsRef<[u8]> for H256 {
+    fn as_ref(&self) -> &[u8] {
+        self.as_bytes()
     }
 }
 
@@ -156,7 +153,7 @@ impl<'de> serde::Deserialize<'de> for H256 {
         impl<'de> serde::de::Visitor<'de> for H256 {
             type Value = H256;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
                 write!(formatter, "a {} bytes slice", H256_LENGTH)
             }
 
@@ -183,8 +180,27 @@ impl serde::Serialize for H256 {
     }
 }
 
-impl AsRef<[u8]> for H256 {
-    fn as_ref(&self) -> &[u8] {
-        self.as_bytes()
+impl Deserialize for H256 {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
+        deserializer.get_blob(H256_LENGTH).map(H256::from_bytes)
+    }
+}
+
+impl Serialize for H256 {
+    fn serialize(&self, mut serializer: SerializerStream) {
+        serializer.put_blob(self.as_bytes())
+    }
+}
+
+impl Debug for H256 {
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        // TODO: DRY, use fmt_byte_slice found in xmr-keys crate.
+        write!(fmt, "\"")?;
+
+        for b in self.0.iter() {
+            write!(fmt, "{:02x}", b)?;
+        }
+
+        write!(fmt, "\"")
     }
 }

@@ -5,3 +5,4 @@ authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 license = "MIT/Apache-2.0"
 
 [dependencies]
+xmr-format = { path = "../format" }

@@ -1,6 +1,6 @@
 use block_header::BlockHeader;
 use transaction::Transaction;
-use primitives::{H256, H256_LENGTH};
+use primitives::H256;
 use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream, to_binary};
 use bytes::{BytesMut, BufMut};
 use varint;
@@ -59,8 +59,8 @@ impl Deserialize for Block {
         let mut tx_hashes = Vec::with_capacity(tx_hashes_length);
 
         for _ in 0..tx_hashes_length {
-            let hash = deserializer.get_blob(H256_LENGTH)?;
-            tx_hashes.push(H256::from_bytes(hash));
+            let hash: H256 = deserializer.get_deserializable()?;
+            tx_hashes.push(hash);
         }
 
         Ok(Block {
@@ -78,7 +78,7 @@ impl Serialize for Block {
 
         serializer.put_u64_varint(self.tx_hashes.len() as u64);
         for txid in self.tx_hashes.iter() {
-            serializer.put_blob(txid.as_bytes());
+            serializer.put_serializable(txid);
         }
     }
 }

@@ -6,6 +6,7 @@ license = "MIT/Apache-2.0"
 
 [dependencies]
 xmr-crypto = { path = "../crypto" }
+xmr-format = { path = "../format" }
 
 serde = "1.0.27"
 bytes = "0.4.6"

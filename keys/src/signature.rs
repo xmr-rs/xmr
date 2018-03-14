@@ -1,5 +1,7 @@
 use std::fmt::{self, Debug, Formatter};
 
+use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
+
 use utils::fmt_byte_slice;
 
 /// Signature lenght.
@@ -23,6 +25,20 @@ impl Signature {
 
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
+    }
+}
+
+impl Deserialize for Signature {
+    fn deserialize(deserializer: &mut DeserializerStream) -> Result<Self, Error> {
+        deserializer
+            .get_blob(SIGNATURE_LENGTH)
+            .map(Signature::from_bytes)
+    }
+}
+
+impl Serialize for Signature {
+    fn serialize(&self, mut serializer: SerializerStream) {
+        serializer.put_blob(self.as_bytes())
     }
 }
 

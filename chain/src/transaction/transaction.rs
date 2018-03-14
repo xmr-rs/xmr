@@ -1,4 +1,4 @@
-use keys::{Signature, SIGNATURE_LENGTH};
+use keys::Signature;
 use rct::Signature as RctSignature;
 use transaction::TransactionPrefix;
 use primitives::H256;
@@ -44,8 +44,8 @@ impl Deserialize for Transaction {
                         let mut txin_sigs = Vec::with_capacity(txin.signature_size());
 
                         for _ in 0..txin.signature_size() {
-                            let blob = deserializer.get_blob(SIGNATURE_LENGTH)?;
-                            txin_sigs.push(Signature::from_bytes(blob));
+                            let sig: Signature = deserializer.get_deserializable()?;
+                            txin_sigs.push(sig);
                         }
 
                         signatures.push(txin_sigs);
@@ -79,7 +79,7 @@ impl Serialize for Transaction {
 
                 for sigv in signatures.iter() {
                     for sig in sigv.iter() {
-                        serializer.put_blob(sig.as_bytes());
+                        serializer.put_serializable(sig);
                     }
                 }
             }

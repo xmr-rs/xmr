@@ -1,3 +1,5 @@
+extern crate xmr_format as format;
+
 mod key_image;
 mod public_key;
 mod secret_key;

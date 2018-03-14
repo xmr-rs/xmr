@@ -805,6 +805,9 @@ dependencies = [
 [[package]]
 name = "xmr-keys"
 version = "0.1.0"
+dependencies = [
+ "xmr-format 0.1.0",
+]
 
 [[package]]
 name = "xmr-miner"
@@ -880,6 +883,7 @@ dependencies = [
  "bytes 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.27 (registry+https://github.com/rust-lang/crates.io-index)",
  "xmr-crypto 0.1.0",
+ "xmr-format 0.1.0",
 ]
 
 [[package]]

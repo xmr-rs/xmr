@@ -1,4 +1,4 @@
-use keys::{KeyImage, KEY_IMAGE_LENGTH};
+use keys::KeyImage;
 use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
 #[derive(Debug, Clone)]
@@ -18,7 +18,7 @@ impl Deserialize for TxInToKey {
             key_offsets.push(deserializer.get_u64_varint()?);
         }
 
-        let k_image = KeyImage::from_bytes(deserializer.get_blob(KEY_IMAGE_LENGTH)?);
+        let k_image = deserializer.get_deserializable()?;
 
         Ok(TxInToKey {
                amount,
@@ -37,6 +37,6 @@ impl Serialize for TxInToKey {
             serializer.put_u64_varint(*offset);
         }
 
-        serializer.put_blob(self.k_image.as_bytes())
+        serializer.put_serializable(&self.k_image)
     }
 }

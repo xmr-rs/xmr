@@ -1,4 +1,4 @@
-use primitives::{H256, H256_LENGTH};
+use primitives::H256;
 use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
 /// The metadata at the beginning of each block.
@@ -21,7 +21,7 @@ impl Deserialize for BlockHeader {
         let major_version = deserializer.get_u8_varint()?;
         let minor_version = deserializer.get_u8_varint()?;
         let timestamp = deserializer.get_u64_varint()?;
-        let prev_id = H256::from_bytes(deserializer.get_blob(H256_LENGTH)?);
+        let prev_id = deserializer.get_deserializable()?;
         let nonce = deserializer.get_u32()?;
 
         Ok(BlockHeader {
@@ -39,7 +39,7 @@ impl Serialize for BlockHeader {
         serializer.put_u8_varint(self.major_version);
         serializer.put_u8_varint(self.minor_version);
         serializer.put_u64_varint(self.timestamp);
-        serializer.put_blob(self.prev_id.as_ref());
+        serializer.put_serializable(&self.prev_id);
         serializer.put_u32(self.nonce)
     }
 }
