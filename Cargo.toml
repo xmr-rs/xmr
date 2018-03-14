@@ -28,6 +28,7 @@ members = [
     "rct",
     "storage",
     "sync",
+    "varint",
     "verification",
 ]
 
