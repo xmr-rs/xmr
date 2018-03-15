@@ -12,6 +12,14 @@ use stl::StlElement;
 #[derive(Debug, Default, Clone)]
 pub struct StlLinkedList<T: StlElement>(pub LinkedList<T>);
 
+impl<T> From<LinkedList<T>> for StlLinkedList<T>
+    where T: StlElement
+{
+    fn from(ll: LinkedList<T>) -> StlLinkedList<T> {
+        StlLinkedList(ll)
+    }
+}
+
 impl<'de, T> Deserialize<'de> for StlLinkedList<T>
     where T: StlElement
 {
