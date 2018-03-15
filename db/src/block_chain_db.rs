@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::collections::LinkedList;
 
 use sanakirja;
 use parking_lot::RwLock;
@@ -154,6 +155,45 @@ impl<DB> Store for BlockChainDatabase<DB>
 {
     fn best_block(&self) -> BestBlock {
         self.best_block.read().clone()
+    }
+
+    fn height(&self) -> u64 {
+        self.best_block.read().height + 1
+    }
+
+    fn short_chain_history(&self) -> LinkedList<H256> {
+        let height = self.height();
+        if height == 0 {
+            return LinkedList::new();
+        }
+
+        let mut ids = LinkedList::new();
+        let mut i = 0u64;
+        let mut current_multiplier = 1u64;
+        let mut genesis_included = false;
+        let mut current_back_offset = 1;
+        while current_back_offset < height {
+            let id = self.block_id(height - current_back_offset).unwrap();
+            ids.push_back(id);
+
+            if height - current_back_offset == 0 {
+                genesis_included = true;
+            }
+
+            if i < 10 {
+                current_back_offset += 1;
+            } else {
+                current_multiplier *= 2;
+                current_back_offset += current_multiplier;
+            }
+            i += 1;
+        }
+
+        if !genesis_included {
+            ids.push_back(self.block_id(0).unwrap());
+        }
+
+        ids
     }
 }
 

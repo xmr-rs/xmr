@@ -1,5 +1,7 @@
 use std::sync::Arc;
+use std::collections::LinkedList;
 
+use primitives::H256;
 use best_block::BestBlock;
 use block_chain::BlockChain;
 use block_provider::{BlockProvider, IndexedBlockProvider};
@@ -12,6 +14,11 @@ pub trait CanonStore: Store {
 pub trait Store: AsSubstore {
     /// Get the best block.
     fn best_block(&self) -> BestBlock;
+
+    /// Get the blockchain height.
+    fn height(&self) -> u64;
+
+    fn short_chain_history(&self) -> LinkedList<H256>;
 }
 
 /// Allows casting Arc<Store> to reference to any substore type
