@@ -87,6 +87,7 @@ impl Context {
                     match response {
                         Ok(response) => {
                             trace!("connect response - {:?}", response);
+
                             let addr = match address {
                                 SocketAddr::V4(ref v4) => v4.clone(),
                                 SocketAddr::V6(_) => {
@@ -98,6 +99,10 @@ impl Context {
                                     return finished(());
                                 }
                             };
+                            context
+                                .connections
+                                .store(response.node_data.peer_id, stream.into());
+
                             let info = PeerlistEntry {
                                 adr: addr.into(),
                                 id: response.node_data.peer_id,
@@ -113,9 +118,6 @@ impl Context {
                                 .new_sync_connection(response.node_data.peer_id,
                                                      &response.payload_data,
                                                      outbound_sync_connection);
-                            context
-                                .connections
-                                .store(response.node_data.peer_id, stream.into());
                         }
                         Err(e) => {
                             stream.shutdown(Shutdown::Both).ok();

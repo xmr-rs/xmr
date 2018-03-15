@@ -1,11 +1,11 @@
-use std::fmt;
+use std::fmt::{self, Formatter, Debug, Display};
 
 use rand::Rng;
 
 use serde::de::{Deserialize, Deserializer, Error, Visitor};
 use serde::ser::{Serialize, Serializer};
 
-#[derive(Debug, Default, Clone, Copy, Eq, PartialEq, Hash)]
+#[derive(Default, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct PeerId(u64);
 
 impl PeerId {
@@ -35,7 +35,7 @@ impl<'de> Deserialize<'de> for PeerId {
         impl<'de> Visitor<'de> for PeerIdVisitor {
             type Value = PeerId;
 
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
                 write!(formatter, "a peer id")
             }
 
@@ -55,5 +55,17 @@ impl Serialize for PeerId {
         where S: Serializer
     {
         serializer.serialize_u64(self.0)
+    }
+}
+
+impl Debug for PeerId {
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "PeerId(0x{:08x})", self.0)
+    }
+}
+
+impl Display for PeerId {
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "{:08x}", self.0)
     }
 }

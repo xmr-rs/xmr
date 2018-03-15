@@ -67,8 +67,8 @@ fn start(cfg: config::Config) -> Result<(), Error> {
         in_peers: cfg.in_peers,
     };
 
-    let local_node = sync::create_local_node();
-    let local_sync_node = sync::create_local_sync_node(local_node.peers());
+    let local_node = sync::create_local_node(cfg.db.clone());
+    let local_sync_node = sync::create_local_sync_node(local_node.clone());
 
     let p2p = p2p::P2P::new(config, local_sync_node, el.handle());
 

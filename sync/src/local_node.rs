@@ -1,16 +1,36 @@
 use std::sync::Arc;
-use synchronization_peers::{PeersRef, PeersImpl};
+
+use p2p::types::PeerId;
+
+use synchronization_client::{Client, SynchronizationClient}; 
+use synchronization_executor::LocalSynchronizationTaskExecutor;
+use synchronization_peers::PeersImpl;
+use types::{ClientRef, PeersRef, ExecutorRef, StorageRef};
 
 pub struct LocalNode {
+    client: ClientRef,
+    executor: ExecutorRef,
     peers: PeersRef,
 }
 
 impl LocalNode {
-    pub fn new() -> LocalNode {
-        LocalNode { peers: Arc::new(PeersImpl::new()) }
+    pub fn new(storage: StorageRef) -> LocalNode {
+        let peers =  Arc::new(PeersImpl::new());
+        let executor = Arc::new(LocalSynchronizationTaskExecutor::new(peers.clone()));
+        let client = Arc::new(SynchronizationClient::new(executor.clone(), storage));
+
+        LocalNode {
+            peers,
+            executor,
+            client,
+        }
     }
 
     pub fn peers(&self) -> PeersRef {
         self.peers.clone()
+    } 
+
+    pub fn on_connect(&self, peer_id: PeerId) {
+        self.client.on_connect(peer_id);
     }
 }

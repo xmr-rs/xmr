@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use std::collections::HashMap;
 
 use parking_lot::RwLock;
@@ -12,9 +11,9 @@ pub trait Peers: Send + Sync {
               peer_id: PeerId,
               sync_data: &CoreSyncData,
               connection: OutboundSyncConnectionRef);
-}
 
-pub type PeersRef = Arc<Peers>;
+    fn connection(&self, peer_id: PeerId) -> Option<OutboundSyncConnectionRef>;
+}
 
 pub struct Peer {
     connection: OutboundSyncConnectionRef,
@@ -45,5 +44,9 @@ impl Peers for PeersImpl {
         };
 
         self.peers.write().insert(peer_id, peer);
+    }
+
+    fn connection(&self, peer_id: PeerId) -> Option<OutboundSyncConnectionRef> {
+        self.peers.read().get(&peer_id).map(|peer| peer.connection.clone())
     }
 }

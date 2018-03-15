@@ -18,6 +18,7 @@ impl Connections {
     }
 
     pub fn store(&self, id: PeerId, stream: SharedTcpStream) -> SharedTcpStream {
+        trace!("storing peer - {:?}", id);
         self.channels.write().insert(id, stream.clone());
         stream
     }

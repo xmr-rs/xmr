@@ -2,15 +2,16 @@ use p2p::protocol::{LocalSyncNode, LocalSyncNodeRef, OutboundSyncConnectionRef};
 use p2p::types::cn::CoreSyncData;
 use p2p::types::PeerId;
 
-use synchronization_peers::PeersRef;
+use types::{LocalNodeRef, PeersRef};
 
 pub struct ConnectionFactory {
     peers: PeersRef,
+    local_node: LocalNodeRef,
 }
 
 impl ConnectionFactory {
-    pub fn new(peers: PeersRef) -> ConnectionFactory {
-        ConnectionFactory { peers }
+    pub fn new(local_node: LocalNodeRef) -> ConnectionFactory {
+        ConnectionFactory { peers: local_node.peers(), local_node }
     }
 
     pub fn boxed(self) -> LocalSyncNodeRef {
@@ -24,5 +25,6 @@ impl LocalSyncNode for ConnectionFactory {
                            sync_data: &CoreSyncData,
                            connection: OutboundSyncConnectionRef) {
         self.peers.insert(peer_id, sync_data, connection);
+        self.local_node.on_connect(peer_id);
     }
 }
