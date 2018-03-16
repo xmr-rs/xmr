@@ -177,9 +177,7 @@ impl Context {
 }
 
 pub struct P2P {
-    _event_loop_handle: Handle,
     context: Arc<Context>,
-    _pool: CpuPool,
 }
 
 impl P2P {
@@ -189,9 +187,7 @@ impl P2P {
         let pool = CpuPool::new(config.threads);
         let remote = handle.remote().clone();
         P2P {
-            _event_loop_handle: handle,
             context: Arc::new(Context::new(pool.clone(), remote, config.clone(), local_sync_node)),
-            _pool: pool,
         }
     }
 
