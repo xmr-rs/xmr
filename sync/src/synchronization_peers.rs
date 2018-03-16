@@ -11,7 +11,9 @@ pub trait Peers: Send + Sync {
               peer_id: PeerId,
               sync_data: &CoreSyncData,
               connection: OutboundSyncConnectionRef);
+    fn misbehaving(&self, peer_id: PeerId, reason: &str);
 
+    fn last_sync_data(&self, peer_id: PeerId) -> Option<CoreSyncData>;
     fn connection(&self, peer_id: PeerId) -> Option<OutboundSyncConnectionRef>;
 }
 
@@ -46,7 +48,26 @@ impl Peers for PeersImpl {
         self.peers.write().insert(peer_id, peer);
     }
 
+    fn misbehaving(&self, peer_id: PeerId, reason: &str) {
+        if let Some(peer) = self.peers.write().remove(&peer_id) {
+            warn!("Disconnecting from peer {} due to misbehaviour: {}",
+                  peer_id,
+                  reason);
+            peer.connection.close();
+        }
+    }
+
+    fn last_sync_data(&self, peer_id: PeerId) -> Option<CoreSyncData> {
+        self.peers
+            .read()
+            .get(&peer_id)
+            .map(|peer| peer.last_sync_data.clone())
+    }
+
     fn connection(&self, peer_id: PeerId) -> Option<OutboundSyncConnectionRef> {
-        self.peers.read().get(&peer_id).map(|peer| peer.connection.clone())
+        self.peers
+            .read()
+            .get(&peer_id)
+            .map(|peer| peer.connection.clone())
     }
 }

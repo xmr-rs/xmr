@@ -2,12 +2,15 @@ use std::sync::Arc;
 
 use parking_lot::Mutex;
 
+use network::Network;
 use p2p::types::PeerId;
 
 use synchronization_client_core::{ClientCore, SynchronizationClientCore};
-use types::{ClientCoreRef, ExecutorRef, StorageRef};
+use types::{ClientCoreRef, ExecutorRef, PeersRef, StorageRef};
 
-pub trait Client: Send + Sync + 'static  {
+/// 1.) Verify peer synchronization data.
+/// 1.1.) Send a RequestChain notification to the peer.
+pub trait Client: Send + Sync + 'static {
     fn on_connect(&self, peer_id: PeerId);
 }
 
@@ -16,9 +19,16 @@ pub struct SynchronizationClient {
 }
 
 impl SynchronizationClient {
-    pub fn new(executor: ExecutorRef, storage: StorageRef) -> SynchronizationClient {
+    pub fn new(executor: ExecutorRef,
+               storage: StorageRef,
+               network: Network,
+               peers: PeersRef)
+               -> SynchronizationClient {
         SynchronizationClient {
-            core: Arc::new(Mutex::new(SynchronizationClientCore::new(executor, storage)))
+            core: Arc::new(Mutex::new(SynchronizationClientCore::new(executor,
+                                                                     storage,
+                                                                     network,
+                                                                     peers))),
         }
     }
 }
@@ -26,5 +36,5 @@ impl SynchronizationClient {
 impl Client for SynchronizationClient {
     fn on_connect(&self, peer_id: PeerId) {
         self.core.lock().on_connect(peer_id)
-    } 
+    }
 }

@@ -57,6 +57,9 @@ fn start(cfg: config::Config) -> Result<(), Error> {
 
     let mut el = p2p::event_loop();
 
+    let local_node = sync::create_local_node(cfg.db.clone(), cfg.network);
+    let local_sync_node = sync::create_local_sync_node(local_node.clone());
+
     let config = p2p::Config {
         threads: cfg.threads,
         network: cfg.network,
@@ -66,9 +69,6 @@ fn start(cfg: config::Config) -> Result<(), Error> {
         out_peers: cfg.out_peers,
         in_peers: cfg.in_peers,
     };
-
-    let local_node = sync::create_local_node(cfg.db.clone());
-    let local_sync_node = sync::create_local_sync_node(local_node.clone());
 
     let p2p = p2p::P2P::new(config, local_sync_node, el.handle());
 

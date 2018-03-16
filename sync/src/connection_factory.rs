@@ -11,7 +11,10 @@ pub struct ConnectionFactory {
 
 impl ConnectionFactory {
     pub fn new(local_node: LocalNodeRef) -> ConnectionFactory {
-        ConnectionFactory { peers: local_node.peers(), local_node }
+        ConnectionFactory {
+            peers: local_node.peers(),
+            local_node,
+        }
     }
 
     pub fn boxed(self) -> LocalSyncNodeRef {

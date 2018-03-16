@@ -20,13 +20,13 @@ impl LocalSynchronizationTaskExecutor {
     }
 
     fn execute_requestchain(&self, peer_id: PeerId, request: cn::cmd::RequestChainRequest) {
-        debug!("Executing RequestChain request - {:?} - {:?}", peer_id, request);
+        debug!("Executing RequestChain request - {:?} - {:?}",
+               peer_id,
+               request);
 
         self.peers
             .connection(peer_id)
-            .map(|connection| {
-                connection.notify_request_chain(&request);
-            });
+            .map(|connection| { connection.notify_request_chain(&request); });
     }
 }
 

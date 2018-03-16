@@ -2,8 +2,10 @@
 extern crate log;
 extern crate parking_lot;
 
-extern crate xmr_p2p as p2p;
 extern crate xmr_db as db;
+extern crate xmr_network as network;
+extern crate xmr_p2p as p2p;
+extern crate xmr_primitives as primitives;
 extern crate xmr_storage as storage;
 
 mod connection_factory;
@@ -24,10 +26,10 @@ pub use synchronization_executor::{TaskExecutor, LocalSynchronizationTaskExecuto
 pub use synchronization_peers::{Peers, Peer, PeersImpl};
 pub use types::{LocalNodeRef, ClientRef, ClientCoreRef, ExecutorRef, PeersRef, StorageRef};
 
-pub fn create_local_node(storage: StorageRef) -> LocalNodeRef {
+pub fn create_local_node(storage: StorageRef, network: network::Network) -> LocalNodeRef {
     use std::sync::Arc;
 
-    Arc::new(LocalNode::new(storage))
+    Arc::new(LocalNode::new(storage, network))
 }
 
 pub fn create_local_sync_node(local_node: LocalNodeRef) -> p2p::protocol::LocalSyncNodeRef {
