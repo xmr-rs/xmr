@@ -30,6 +30,7 @@ pub trait OutboundSyncConnection: Send + Sync {
     fn notify_request_get_objects(&self, req: &RequestGetObjectsRequest);
     fn notify_response_chain_entry(&self, req: &ResponseChainEntryRequest);
     fn notify_response_get_objects(&self, req: &ResponseGetObjectsRequest);
+    fn close(&self);
 }
 
 pub type OutboundSyncConnectionRef = Arc<OutboundSyncConnection>;
@@ -84,5 +85,9 @@ impl OutboundSyncConnection for OutboundSync {
     fn notify_response_get_objects(&self, req: &ResponseGetObjectsRequest) {
         trace!("outbound sync - {:?}", req);
         self.context.notify::<ResponseGetObjects>(req)
+    }
+
+    fn close(&self) {
+        self.context.close();
     }
 }

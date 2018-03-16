@@ -161,6 +161,19 @@ impl Context {
             peer_id: self.peer_id,
         }
     }
+
+    pub fn close(context: Arc<Context>, peer_id: PeerId) {
+        if let Some(stream) = context.connections.remove(peer_id) {
+            stream.shutdown();
+            context
+                .connection_counter
+                .note_close_outbound_connection();
+            // remove outbound connection from pl
+            /*context.peerlist
+                .write()
+                .remove_by_id(peer_id)*/
+        }
+    }
 }
 
 pub struct P2P {

@@ -22,4 +22,9 @@ impl Connections {
         self.channels.write().insert(id, stream.clone());
         stream
     }
+
+    pub fn remove(&self, id: PeerId) -> Option<SharedTcpStream> {
+        trace!("removing peer - {:?}", id);
+        self.channels.write().remove(&id)
+    }
 }

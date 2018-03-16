@@ -39,4 +39,8 @@ impl PeerContext {
             .clone()
             .spawn(move |_| context.pool.clone().spawn(future))
     }
+
+    pub fn close(&self) {
+        Context::close(self.context.clone(), self.info.id);
+    }
 }
