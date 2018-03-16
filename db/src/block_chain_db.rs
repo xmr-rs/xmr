@@ -119,8 +119,8 @@ impl<DB> BlockChainDatabase<DB>
         let mut update = Transaction::new();
         update.insert(KeyValue::BlockId(new_best_block.height, new_best_block.id.clone()));
         update.insert(KeyValue::BlockHeight(new_best_block.id.clone(), new_best_block.height));
-		update.insert(KeyValue::Meta(KEY_BEST_BLOCK_ID, to_binary(&new_best_block.id)));
-		update.insert(KeyValue::Meta(KEY_BEST_BLOCK_HEIGHT, to_binary(&new_best_block.height)));
+        update.insert(KeyValue::Meta(KEY_BEST_BLOCK_ID, to_binary(&new_best_block.id)));
+        update.insert(KeyValue::Meta(KEY_BEST_BLOCK_HEIGHT, to_binary(&new_best_block.height)));
 
         // TODO: transactions
 
