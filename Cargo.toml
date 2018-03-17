@@ -19,6 +19,7 @@ members = [
     "db",
     "format",
     "keys",
+    "levin",
     "miner",
     "network",
     "p2p",

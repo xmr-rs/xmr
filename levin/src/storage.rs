@@ -3,23 +3,12 @@ use serde::de::value::Error;
 
 use portable_storage::{self, Section};
 
-pub const COMMAND_BASE_ID: u32 = 1000;
-
-pub trait Command {
-    type Request: Storage;
-    type Response: Storage;
-
-    const ID: u32;
-}
-
-pub trait Notify {
-    type Request: Storage + Send + Sync + 'static;
-
-    const ID: u32;
-}
-
+/// A type that can be converted from/to a `Section`.
 pub trait Storage: Sized {
+    /// Convert a section into this type.
     fn from_section(section: Section) -> Result<Self, Error>;
+
+    /// Convert this type to a `Section`.
     fn to_section(&self) -> Result<Section, Error>;
 }
 
@@ -35,6 +24,10 @@ impl<'de, T> Storage for T
     }
 }
 
+/// An empty type without any data.
+///
+/// This type can be used in request/response fields
+/// when one of them isn't needed.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct Empty;
 

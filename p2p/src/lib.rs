@@ -17,6 +17,7 @@ extern crate failure;
 #[macro_use]
 extern crate log;
 
+extern crate xmr_levin as levin;
 extern crate xmr_network as network;
 extern crate xmr_portable_storage as portable_storage;
 extern crate xmr_portable_storage_utils as portable_storage_utils;
@@ -29,7 +30,6 @@ pub mod p2p;
 pub mod net;
 pub mod protocol;
 pub mod config;
-pub mod levin;
 pub mod utils;
 
 pub use p2p::P2P;

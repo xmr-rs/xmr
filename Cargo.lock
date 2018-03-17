@@ -810,6 +810,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "xmr-levin"
+version = "0.1.0"
+dependencies = [
+ "bytes 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "failure_derive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "futures 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.27 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tokio-io 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xmr-portable-storage 0.1.0",
+]
+
+[[package]]
 name = "xmr-miner"
 version = "0.1.0"
 dependencies = [
@@ -845,6 +859,7 @@ dependencies = [
  "tokio-core 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-io 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xmr-levin 0.1.0",
  "xmr-network 0.1.0",
  "xmr-portable-storage 0.1.0",
  "xmr-portable-storage-utils 0.1.0",

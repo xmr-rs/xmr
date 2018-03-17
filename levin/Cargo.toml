@@ -1,0 +1,26 @@
+[package]
+name = "xmr-levin"
+version = "0.1.0"
+authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
+license = "MIT/Apache-2.0"
+description = "Implementation of the levin protocol used in the Monero cryptocurrency."
+keywords = ["futures", "async", "monero", "xmr", "epee"]
+# TODO: add real docs link
+documentation = "https://github.com/xmr-rs/xmr"
+homepage = "https://github.com/xmr-rs/xmr"
+repository = "https://github.com/xmr-rs/xmr"
+
+[dependencies]
+futures = "0.1.18"
+tokio-io = "0.1.5"
+
+bytes = "0.4.6"
+
+failure = "0.1.1"
+failure_derive = "0.1.1"
+
+serde = "1.0.27"
+
+log = "0.4.1"
+
+xmr-portable-storage = { path = "../portable-storage", version = "0.1.0" }

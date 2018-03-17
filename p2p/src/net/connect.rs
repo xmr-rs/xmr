@@ -14,7 +14,7 @@ use config::P2P_SUPPORT_FLAGS;
 use types::cmd::{Handshake, RequestSupportFlags};
 
 use levin::bucket::{Bucket, Request, Response, Receive};
-use levin::{LevinError, Command};
+use levin::{self, Command};
 
 pub type HandshakeRequest = <Handshake as Command>::Request;
 pub type HandshakeResponse = <Handshake as Command>::Response;
@@ -132,15 +132,15 @@ impl Future for Connect {
 #[derive(Debug)]
 pub enum ConnectError {
     /// A levin error.
-    LevinError(LevinError),
+    LevinError(levin::Error),
     /// Wrong network Id.
     WrongNetwork(Uuid),
     /// The peer has the same peer id, probably connected to self.
     SamePeerId,
 }
 
-impl From<LevinError> for ConnectError {
-    fn from(e: LevinError) -> ConnectError {
+impl From<levin::Error> for ConnectError {
+    fn from(e: levin::Error) -> ConnectError {
         ConnectError::LevinError(e)
     }
 }

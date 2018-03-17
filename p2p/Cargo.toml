@@ -5,7 +5,7 @@ authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 license = "MIT/Apache-2.0"
 
 [dependencies]
-futures = "0.1.17"
+futures = "0.1.18"
 futures-cpupool = "0.1.8"
 tokio-io = "0.1.1"
 tokio-core = "0.1.12"
@@ -21,6 +21,7 @@ log = "0.4.1"
 serde = "1.0.27"
 serde_derive = "1.0.27"
 
+xmr-levin = { path = "../levin" }
 xmr-network = { path = "../network" }
 xmr-portable-storage = { path = "../portable-storage" }
 xmr-portable-storage-utils = { path = "../portable-storage-utils" }

@@ -1,5 +1,6 @@
 use bytes::{Buf, BufMut, BytesMut, LittleEndian};
-use levin::{LevinResult, LevinError, BucketHeadError};
+
+use error::{BucketHeadError, Result};
 
 /// BucketHead signature.
 pub const LEVIN_SIGNATURE: u64 = 0x0101010101012101;
@@ -21,31 +22,42 @@ pub const BUCKET_HEAD_LENGTH: usize = 33;
 /// Ok return code.
 pub const LEVIN_OK: i32 = 0;
 
-/// Header of all the levin protocol operations.
-#[derive(Debug, Clone)]
+/// Header of a levin bucket.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BucketHead {
     /// This identifies the stream as a valid header.
     pub signature: u64,
+
     /// Size in bytes of the rest.
     pub cb: u64,
+
     /// Specifies if a command has to return a response.
     pub have_to_return_data: bool,
+
     /// The command ID.
     pub command: u32,
+
     /// The return code.
     pub return_code: i32,
+
     /// Flags of this header.
     pub flags: u32,
+
     /// The levin protocol version.
     pub protocol_version: u32,
 }
 
 impl BucketHead {
     /// Read a `BucketHead` from a buffer.
-    pub fn read<B: Buf>(buf: &mut B) -> LevinResult<Self> {
-        if buf.remaining() < BUCKET_HEAD_LENGTH {
-            return Err(LevinError::UnexpectedEob);
-        }
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the parameter `buf` isn't greater than
+    /// or equal to [`BUCKET_HEAD_LENGTH`][1].
+    ///
+    /// [1]: constant.BUCKET_HEAD_LENGTH.html
+    pub fn read<B: Buf>(buf: &mut B) -> Result<Self> {
+        assert!(buf.remaining() >= BUCKET_HEAD_LENGTH);
 
         let bucket_head = BucketHead {
             signature: buf.get_u64::<LittleEndian>(),
@@ -81,13 +93,15 @@ impl BucketHead {
     pub fn write(buf: &mut BytesMut, bucket_head: &BucketHead) {
         buf.reserve(BUCKET_HEAD_LENGTH);
 
+        let have_to_return_data = if bucket_head.have_to_return_data {
+            1u8
+        } else {
+            0u8
+        };
+
         buf.put_u64::<LittleEndian>(bucket_head.signature);
         buf.put_u64::<LittleEndian>(bucket_head.cb);
-        buf.put_u8(if bucket_head.have_to_return_data {
-                       1u8
-                   } else {
-                       0u8
-                   });
+        buf.put_u8(have_to_return_data);
         buf.put_u32::<LittleEndian>(bucket_head.command);
         buf.put_i32::<LittleEndian>(bucket_head.return_code);
         buf.put_u32::<LittleEndian>(bucket_head.flags);
