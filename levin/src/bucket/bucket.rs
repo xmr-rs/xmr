@@ -2,7 +2,7 @@ use std::io;
 
 use futures::{Future, Poll};
 use tokio_io::AsyncRead;
-use tokio_io::io::{Read, read};
+use tokio_io::io::{ReadExact, read_exact};
 
 use bytes::{Bytes, BytesMut, IntoBuf};
 
@@ -12,7 +12,7 @@ use bucket::bucket_head::{BucketHead, LEVIN_SIGNATURE, LEVIN_PROTOCOL_VER_1, LEV
                           LEVIN_PACKET_REQUEST, LEVIN_PACKET_RESPONSE, BUCKET_HEAD_LENGTH};
 
 use command::Id;
-use error::{Result, Error};
+use error::Result;
 
 /// A levin bucket, this is the packet of information
 /// that carries commands in the levin protocol.
@@ -112,7 +112,7 @@ impl Bucket {
         where A: AsyncRead
     {
         let buf = vec![0u8; BUCKET_HEAD_LENGTH];
-        Receive { state: ReceiveState::ReadBucket { reader: read(a, buf) } }
+        Receive { state: ReceiveState::ReadBucket { reader: read_exact(a, buf) } }
     }
 
     /// Convert the body of this bucket into a portable storage section.
@@ -145,10 +145,10 @@ pub struct Receive<A: AsyncRead> {
 
 #[derive(Debug)]
 enum ReceiveState<A> {
-    ReadBucket { reader: Read<A, Vec<u8>> },
+    ReadBucket { reader: ReadExact<A, Vec<u8>> },
     ReadStorage {
         bucket_head: BucketHead,
-        reader: Read<A, Vec<u8>>,
+        reader: ReadExact<A, Vec<u8>>,
     },
 }
 
@@ -163,10 +163,7 @@ impl<A> Future for Receive<A>
             let next_state = match self.state {
                 ReceiveState::ReadBucket { ref mut reader } => {
                     trace!("receive poll - reading bucket");
-                    let (stream, buf, size) = try_ready!(reader.poll());
-                    if buf.len() != size {
-                        return Ok((stream, Err(Error::UnfinishedRead(buf.len() - size))).into());
-                    }
+                    let (stream, buf) = try_ready!(reader.poll());
 
                     let mut buf = buf.into_buf();
                     let bucket_head = match BucketHead::read(&mut buf) {
@@ -181,7 +178,7 @@ impl<A> Future for Receive<A>
                     let buf = vec![0u8; bucket_head.cb as usize];
                     ReceiveState::ReadStorage {
                         bucket_head,
-                        reader: read(stream, buf),
+                        reader: read_exact(stream, buf),
                     }
                 }
                 ReceiveState::ReadStorage {
@@ -190,10 +187,7 @@ impl<A> Future for Receive<A>
                 } => {
                     trace!("receive poll - reading response");
 
-                    let (stream, buf, size) = try_ready!(reader.poll());
-                    if buf.len() != size {
-                        return Ok((stream, Err(Error::UnfinishedRead(buf.len() - size))).into());
-                    }
+                    let (stream, buf) = try_ready!(reader.poll());
 
                     let bucket = Bucket {
                         head: bucket_head.clone(),

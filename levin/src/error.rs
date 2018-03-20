@@ -11,10 +11,6 @@ pub enum Error {
     BucketHead(#[cause]
                BucketHeadError),
 
-    /// Expected to read more bytes.
-    #[fail(display = "couldn't read the complete bucket, needed {} bytes", _0)]
-    UnfinishedRead(usize),
-
     /// The command is invalid.
     #[fail(display = "the bucket command id ({}) is invalid", _0)]
     InvalidCommandId(u32),
