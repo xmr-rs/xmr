@@ -1,11 +1,10 @@
-use levin::Notify;
+use levin::Command;
+
 use types::cn::{CN_COMMAND_BASE_ID, BlockCompleteEntry};
 
 pub struct NewFluffyBlock;
 
-impl Notify for NewFluffyBlock {
-    type Request = NewFluffyBlockRequest;
-
+impl Command for NewFluffyBlock {
     const ID: u32 = CN_COMMAND_BASE_ID + 8;
 }
 

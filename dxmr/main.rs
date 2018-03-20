@@ -7,6 +7,8 @@ extern crate log;
 
 extern crate failure;
 
+extern crate rand;
+
 extern crate xmr_chain as chain;
 extern crate xmr_db as db;
 extern crate xmr_network as network;
@@ -60,6 +62,8 @@ fn start(cfg: config::Config) -> Result<(), Error> {
     let local_node = sync::create_local_node(cfg.db.clone(), cfg.network);
     let local_sync_node = sync::create_local_sync_node(local_node.clone());
 
+    let mut rng = rand::OsRng::new().expect("couldn't open OS random");
+
     let config = p2p::Config {
         threads: cfg.threads,
         network: cfg.network,
@@ -68,11 +72,12 @@ fn start(cfg: config::Config) -> Result<(), Error> {
         hide_my_port: cfg.hide_my_port,
         out_peers: cfg.out_peers,
         in_peers: cfg.in_peers,
+        peer_id: p2p::types::PeerId::random(&mut rng),
     };
 
-    let p2p = p2p::P2P::new(config, local_sync_node, el.handle());
+    let p2p = p2p::P2P::new(config, el.handle(), cfg.db.clone(), local_sync_node);
 
-    p2p.run(cfg.db.clone()).expect("couldn't start p2p");
+    p2p.run().expect("couldn't start p2p");
 
     el.run(p2p::forever()).expect("couldn't run event loop");
 

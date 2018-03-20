@@ -1,13 +1,12 @@
+use levin::Command;
 use portable_storage_utils::stl::StlVector;
 use primitives::H256;
-use levin::Notify;
+
 use types::cn::CN_COMMAND_BASE_ID;
 
 pub struct RequestFluffyMissingTx;
 
-impl Notify for RequestFluffyMissingTx {
-    type Request = RequestFluffyMissingTxRequest;
-
+impl Command for RequestFluffyMissingTx {
     const ID: u32 = CN_COMMAND_BASE_ID + 9;
 }
 

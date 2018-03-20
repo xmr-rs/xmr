@@ -1,5 +1,16 @@
 use std::cmp;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::net::SocketAddr;
+use std::collections::HashMap;
+
+use parking_lot::RwLock;
+
+/// Connection type.
+#[derive(Debug, Clone)]
+pub enum ConnectionType {
+    Inbound,
+    Outbound,
+}
 
 /// Counts number of open inbound and outbound connections.
 pub struct ConnectionCounter {
@@ -11,42 +22,51 @@ pub struct ConnectionCounter {
     max_inbound_connections: u32,
     /// Maximum number of outbound connections.
     max_outbound_connections: u32,
+    /// Connection type.
+    connection_type: RwLock<HashMap<SocketAddr, ConnectionType>>,
 }
 
 impl ConnectionCounter {
     pub fn new(max_inbound_connections: u32, max_outbound_connections: u32) -> Self {
+        let total_max_connections = max_inbound_connections + max_outbound_connections;
         ConnectionCounter {
             current_inbound_connections: AtomicUsize::new(0),
             current_outbound_connections: AtomicUsize::new(0),
             max_inbound_connections: max_inbound_connections,
             max_outbound_connections: max_outbound_connections,
+            connection_type: RwLock::new(HashMap::with_capacity(total_max_connections as _)),
         }
     }
 
     /// Increases inbound connections counter by 1.
-    pub fn note_new_inbound_connection(&self) {
+    pub fn note_new_inbound_connection(&self, addr: SocketAddr) {
         self.current_inbound_connections
             .fetch_add(1, Ordering::AcqRel);
-    }
-
-    /// Decreases inbound connections counter by 1.
-    /// If it underflows, it means, that there is a logic error.
-    pub fn note_close_inbound_connection(&self) {
-        self.current_inbound_connections
-            .fetch_sub(1, Ordering::AcqRel);
+        self.connection_type.write().insert(addr, ConnectionType::Inbound);
     }
 
     /// Increases outbound connections counter by 1.
-    pub fn note_new_outbound_connection(&self) {
+    pub fn note_new_outbound_connection(&self, addr: SocketAddr) {
         self.current_outbound_connections
             .fetch_add(1, Ordering::AcqRel);
+        self.connection_type.write().insert(addr, ConnectionType::Outbound);
     }
 
-    /// Decreases outbound connections counter by 1.
-    /// If it underflows, it means, that there is a logic error.
-    pub fn note_close_outbound_connection(&self) {
-        self.current_outbound_connections
-            .fetch_sub(1, Ordering::AcqRel);
+    /// Closes an inbound or outbound connection depending on the
+    /// direction of `addr` and decreases their counter by 1 respectively.
+    pub fn note_close_connection(&self, addr: &SocketAddr) {
+        if let Some(connection) = self.connection_type.write().remove(addr) {
+            match connection {
+                ConnectionType::Outbound => {
+                    self.current_outbound_connections
+                        .fetch_sub(1, Ordering::AcqRel);
+                }
+                ConnectionType::Inbound => {
+                    self.current_inbound_connections
+                        .fetch_sub(1, Ordering::AcqRel);
+                }
+            }
+        }
     }
 
     /// Returns number of inbound connections needed to reach the maximum
@@ -74,45 +94,9 @@ impl ConnectionCounter {
         let current = self.current_outbound_connections.load(Ordering::Acquire) as u32;
         (current, self.max_outbound_connections)
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::ConnectionCounter;
-
-    #[test]
-    fn test_inbound_connection_counter() {
-        let cc = ConnectionCounter::new(5, 10);
-        assert_eq!(cc.inbound_connections_needed(), 5);
-        assert_eq!(cc.inbound_connections(), (0, 5));
-        cc.note_new_inbound_connection();
-        assert_eq!(cc.inbound_connections_needed(), 4);
-        assert_eq!(cc.inbound_connections(), (1, 5));
-        cc.note_new_inbound_connection();
-        cc.note_new_inbound_connection();
-        cc.note_new_inbound_connection();
-        cc.note_new_inbound_connection();
-        assert_eq!(cc.inbound_connections_needed(), 0);
-        // it may exceed max
-        cc.note_new_inbound_connection();
-        assert_eq!(cc.inbound_connections_needed(), 0);
-        assert_eq!(cc.inbound_connections(), (6, 5));
-        cc.note_close_inbound_connection();
-        assert_eq!(cc.inbound_connections_needed(), 0);
-        assert_eq!(cc.inbound_connections(), (5, 5));
-    }
-
-    #[test]
-    fn test_outbound_connection_counter() {
-        let cc = ConnectionCounter::new(0, 4);
-        assert_eq!(cc.outbound_connections_needed(), 4);
-        assert_eq!(cc.outbound_connections(), (0, 4));
-        cc.note_new_outbound_connection();
-        cc.note_new_outbound_connection();
-        assert_eq!(cc.outbound_connections_needed(), 2);
-        assert_eq!(cc.outbound_connections(), (2, 4));
-        cc.note_close_outbound_connection();
-        assert_eq!(cc.outbound_connections_needed(), 3);
-        assert_eq!(cc.outbound_connections(), (1, 4));
+    /// The type of connection
+    pub fn connection_type(&self, addr: &SocketAddr) -> Option<ConnectionType> {
+        self.connection_type.read().get(addr).cloned()
     }
 }

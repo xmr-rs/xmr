@@ -12,6 +12,12 @@ impl From<Vec<u8>> for Blob {
     }
 }
 
+impl From<&'static [u8]> for Blob {
+    fn from(v: &'static [u8]) -> Blob {
+        Blob(v.to_vec())
+    }
+}
+
 impl<'de> Deserialize<'de> for Blob {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>

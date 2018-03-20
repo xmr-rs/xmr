@@ -42,6 +42,8 @@ log = "0.4.1"
 
 failure = "0.1.1"
 
+rand = "0.4.2"
+
 xmr-chain = { path  = "chain" }
 xmr-db = { path = "db" }
 xmr-network = { path = "network" }

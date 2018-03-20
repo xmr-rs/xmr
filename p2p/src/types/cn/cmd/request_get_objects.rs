@@ -1,12 +1,11 @@
+use levin::Command;
 use primitives::H256;
-use levin::Notify;
+
 use types::cn::CN_COMMAND_BASE_ID;
 
 pub struct RequestGetObjects;
 
-impl Notify for RequestGetObjects {
-    type Request = RequestGetObjectsRequest;
-
+impl Command for RequestGetObjects {
     const ID: u32 = CN_COMMAND_BASE_ID + 3;
 }
 

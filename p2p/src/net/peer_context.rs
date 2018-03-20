@@ -1,46 +1,37 @@
 use std::sync::Arc;
-use types::PeerlistEntry;
-use p2p::Context;
+use std::net::SocketAddr;
 
-use futures::Future;
-use levin::bucket::Bucket;
-use levin::Notify;
+use levin::Command;
+use portable_storage::Section;
+
+use p2p::Context;
 
 pub struct PeerContext {
     context: Arc<Context>,
-    info: PeerlistEntry,
+    addr: SocketAddr,
 }
 
 impl PeerContext {
-    pub fn new(context: Arc<Context>, info: PeerlistEntry) -> PeerContext {
-        PeerContext { context, info }
+    pub fn new(context: Arc<Context>, addr: SocketAddr) -> PeerContext {
+        PeerContext { context, addr }
     }
 
-    pub fn notify<N>(&self, req: &N::Request)
-        where N: Notify
+    pub fn notify<C>(&self, request: Section)
+        where C: Command
     {
-        trace!("peer context notify - {:?}", self.info);
-        let context = self.context.clone();
+        trace!("peer ({}) context notify - {:?} ", self.addr, request);
 
-        let channel = if let Some(c) = context.connections.channel(&self.info.id) {
-            c
+        let res = self.context.command_streams.read().get(&self.addr).cloned();
+        if let Some(command_stream) = res {
+            command_stream.notify::<C>(request)
         } else {
-            warn!("couldn't get peer channel, closed connection? (peer id: {:?})",
-                  self.info.id);
+            warn!("couldn't get command stream, closed connection? address {}",
+                  self.addr);
             return;
         };
-
-        let future = Box::new(Bucket::notify_future::<_, N>(channel, req)
-                                  .map_err(|_| ())
-                                  .map(|_| ()));
-
-        context
-            .remote
-            .clone()
-            .spawn(move |_| context.pool.clone().spawn(future))
     }
 
     pub fn close(&self) {
-        Context::close(self.context.clone(), self.info.id);
+        Context::close(self.context.clone(), &self.addr);
     }
 }

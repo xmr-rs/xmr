@@ -1,6 +1,8 @@
 use std::net::SocketAddr;
 use network::Network;
 
+use types::PeerId;
+
 /// P2P configuration.
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -11,14 +13,13 @@ pub struct Config {
     /// Peers to connect.
     pub peers: Vec<SocketAddr>,
     /// Listening port.
-    pub listen_port: Option<u32>,
+    pub listen_port: Option<u16>,
     /// Hide my port.
     pub hide_my_port: bool,
     /// Maximum of outbound peers.
     pub out_peers: u32,
     /// Maximum of inbound peers.
     pub in_peers: u32,
+    /// The peer ID.
+    pub peer_id: PeerId,
 }
-
-pub const P2P_SUPPORT_FLAG_FLUFFY_BLOCKS: u32 = 0x01;
-pub const P2P_SUPPORT_FLAGS: u32 = P2P_SUPPORT_FLAG_FLUFFY_BLOCKS;

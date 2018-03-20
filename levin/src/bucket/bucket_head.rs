@@ -107,4 +107,9 @@ impl BucketHead {
         buf.put_u32::<LittleEndian>(bucket_head.flags);
         buf.put_u32::<LittleEndian>(bucket_head.protocol_version);
     }
+
+    /// Checks if this bucket is a request, returns `true` if it is.
+    pub fn is_request(&self) -> bool {
+        self.flags & LEVIN_PACKET_REQUEST == LEVIN_PACKET_REQUEST
+    }
 }

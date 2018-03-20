@@ -1,4 +1,7 @@
 use std::sync::Arc;
+
+use portable_storage::to_section;
+
 use net::PeerContext;
 
 use types::cn::cmd::{NewBlock, NewBlockRequest};
@@ -48,43 +51,43 @@ impl OutboundSync {
 impl OutboundSyncConnection for OutboundSync {
     fn notify_new_block(&self, req: &NewBlockRequest) {
         trace!("outbound sync - {:?}", req);
-        self.context.notify::<NewBlock>(req)
+        self.context.notify::<NewBlock>(to_section(req).unwrap())
     }
 
 
     fn notify_new_fluffy_block(&self, req: &NewFluffyBlockRequest) {
         trace!("outbound sync - {:?}", req);
-        self.context.notify::<NewFluffyBlock>(req)
+        self.context.notify::<NewFluffyBlock>(to_section(req).unwrap())
     }
 
     fn notify_new_transactions(&self, req: &NewTransactionsRequest) {
         trace!("outbound sync - {:?}", req);
-        self.context.notify::<NewTransactions>(req)
+        self.context.notify::<NewTransactions>(to_section(req).unwrap())
     }
 
     fn notify_request_chain(&self, req: &RequestChainRequest) {
         trace!("outbound sync - {:?}", req);
-        self.context.notify::<RequestChain>(req)
+        self.context.notify::<RequestChain>(to_section(req).unwrap())
     }
 
     fn notify_request_fluffy_missing_tx(&self, req: &RequestFluffyMissingTxRequest) {
         trace!("outbound sync - {:?}", req);
-        self.context.notify::<RequestFluffyMissingTx>(req)
+        self.context.notify::<RequestFluffyMissingTx>(to_section(req).unwrap())
     }
 
     fn notify_request_get_objects(&self, req: &RequestGetObjectsRequest) {
         trace!("outbound sync - {:?}", req);
-        self.context.notify::<RequestGetObjects>(req)
+        self.context.notify::<RequestGetObjects>(to_section(req).unwrap())
     }
 
     fn notify_response_chain_entry(&self, req: &ResponseChainEntryRequest) {
         trace!("outbound sync - {:?}", req);
-        self.context.notify::<ResponseChainEntry>(req)
+        self.context.notify::<ResponseChainEntry>(to_section(req).unwrap())
     }
 
     fn notify_response_get_objects(&self, req: &ResponseGetObjectsRequest) {
         trace!("outbound sync - {:?}", req);
-        self.context.notify::<ResponseGetObjects>(req)
+        self.context.notify::<ResponseGetObjects>(to_section(req).unwrap())
     }
 
     fn close(&self) {
