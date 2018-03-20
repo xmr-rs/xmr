@@ -90,7 +90,8 @@ impl TcpServer {
                             }
                             Some(RemoteHandler::Notification(handler)) => handler.call(addr.clone(), section),
                             None => {
-                                warn!("received bucket but a handler isn't defined.");
+                                warn!("received bucket with ID #{} but a handler isn't defined.",
+                                      id);
                                 commands.error_response(id, -1);
                                 return future::ok::<(), io::Error>(());
                             }
@@ -98,14 +99,17 @@ impl TcpServer {
                     } else {
                         if let Some((handler_id, handler)) = commands.current_handler() {
                             if id != handler_id {
-                                warn!("response id doesn't match handler id");
+                                warn!("response id #{} doesn't match handler id #{}",
+                                      id,
+                                      handler_id);
                                 commands.error_response(id, -1);
                                 return future::ok::<(), io::Error>(());
                             }
 
                             handler.call(section);
                         } else {
-                            warn!("received response but no handler is defined.");
+                            warn!("received response with ID #{}, but no handler is defined.",
+                                  id);
                             commands.error_response(id, -1);
                             return future::ok::<(), io::Error>(());
                         }

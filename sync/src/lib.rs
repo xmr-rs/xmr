@@ -9,6 +9,7 @@ extern crate xmr_primitives as primitives;
 extern crate xmr_storage as storage;
 
 mod connection_factory;
+mod inbound_connection;
 mod local_node;
 mod synchronization_chain;
 mod synchronization_client;
@@ -18,6 +19,7 @@ mod synchronization_peers;
 mod types;
 
 pub use connection_factory::ConnectionFactory;
+pub use inbound_connection::InboundConnection;
 pub use local_node::LocalNode;
 pub use synchronization_chain::Chain;
 pub use synchronization_client::{Client, SynchronizationClient};

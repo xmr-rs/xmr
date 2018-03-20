@@ -19,7 +19,8 @@ pub trait LocalSyncNode: Send + Sync + 'static {
     fn new_sync_connection(&self,
                            peer_id: PeerId,
                            sync_data: &CoreSyncData,
-                           connection: OutboundSyncConnectionRef);
+                           connection: OutboundSyncConnectionRef)
+                           -> InboundSyncConnectionRef;
 }
 
 pub type LocalSyncNodeRef = Box<LocalSyncNode>;
@@ -94,3 +95,16 @@ impl OutboundSyncConnection for OutboundSync {
         self.context.close();
     }
 }
+
+pub trait InboundSyncConnection: Send + Sync + 'static {
+    fn on_new_block(&self, req: &NewBlockRequest);
+    fn on_new_fluffy_block(&self, req: &NewFluffyBlockRequest);
+    fn on_new_transactions(&self, req: &NewTransactionsRequest);
+    fn on_request_chain(&self, req: &RequestChainRequest);
+    fn on_request_fluffy_missing_tx(&self, req: &RequestFluffyMissingTxRequest);
+    fn on_request_get_objects(&self, req: &RequestGetObjectsRequest);
+    fn on_response_chain_entry(&self, req: &ResponseChainEntryRequest);
+    fn on_response_get_objects(&self, req: &ResponseGetObjectsRequest);
+}
+
+pub type InboundSyncConnectionRef = Arc<InboundSyncConnection>;

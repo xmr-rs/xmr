@@ -20,13 +20,16 @@ use portable_storage::{Section, from_section, to_section};
 use config::Config;
 
 use net::{ConnectionCounter, ConnectionType, PeerContext};
-use protocol::{LocalSyncNodeRef, OutboundSync};
+use protocol::{LocalSyncNodeRef, OutboundSync, InboundSyncConnectionRef};
 
 use types::BasicNodeData;
 use types::cn::CoreSyncData;
 use types::cmd::{Handshake, HandshakeRequest, HandshakeResponse, Ping, PingResponse,
                  RequestSupportFlags, SupportFlagsResponse, TimedSync,
                  TimedSyncRequest, TimedSyncResponse};
+use types::cn::cmd::{NewBlock, NewFluffyBlock, NewTransactions, RequestChain,
+                     RequestFluffyMissingTx, RequestGetObjects, ResponseChainEntry,
+                     ResponseGetObjects};
 
 use utils::Peerlist;
 
@@ -41,6 +44,7 @@ pub struct Context {
     pub(crate) command_streams: RwLock<HashMap<SocketAddr, Commands>>,
     peerlist: RwLock<Peerlist>,
     local_sync_node: LocalSyncNodeRef,
+    inbound_sync_connections: RwLock<HashMap<SocketAddr, InboundSyncConnectionRef>>,
 }
 
 impl Context {
@@ -53,6 +57,7 @@ impl Context {
 
         let max_peers = config.in_peers + config.out_peers;
         let command_streams = RwLock::new(HashMap::with_capacity(max_peers as _));
+        let inbound_sync_connections = RwLock::new(HashMap::with_capacity(max_peers as _));
 
         Context {
             remote,
@@ -63,11 +68,13 @@ impl Context {
             command_streams,
             peerlist: RwLock::new(Peerlist::new()),
             local_sync_node,
+            inbound_sync_connections,
         }
     }
 
     pub fn close(context: Arc<Context>, addr: &SocketAddr) {
         if let Some(command_stream) = context.command_streams.write().remove(addr) {
+            context.inbound_sync_connections.write().remove(addr);
             command_stream.shutdown();
             context.connection_counter.note_close_connection(addr);
         }
@@ -130,7 +137,14 @@ impl Context {
                         let peer_id = response.node_data.peer_id;
                         let sync_data = response.payload_data;
 
-                        context.local_sync_node.new_sync_connection(peer_id, &sync_data, outbound_sync);
+                        let inbound_sync_connection = context
+                            .local_sync_node
+                            .new_sync_connection(peer_id, &sync_data, outbound_sync);
+
+                        context
+                            .inbound_sync_connections
+                            .write()
+                            .insert(addr.clone(), inbound_sync_connection);
                     }
                 });
 
@@ -252,6 +266,125 @@ impl Context {
                         Some(to_section(&res).unwrap())
                     })
                     .map_err(|_| -1)
+            }
+        });
+
+        io_handler.add_notification::<NewBlock, _>({
+            let context = context.clone();
+            move |addr: SocketAddr, request: Section| {
+                if let Ok(req) = from_section(request) {
+                    context
+                        .inbound_sync_connections
+                        .read()
+                        .get(&addr)
+                        .cloned()
+                        .unwrap()
+                        .on_new_block(&req);
+                }
+            }
+        });
+
+        io_handler.add_notification::<NewFluffyBlock, _>({
+            let context = context.clone();
+            move |addr: SocketAddr, request: Section| {
+                if let Ok(req) = from_section(request) {
+                    context
+                        .inbound_sync_connections
+                        .read()
+                        .get(&addr)
+                        .cloned()
+                        .unwrap()
+                        .on_new_fluffy_block(&req);
+                }
+            }
+        });
+
+        io_handler.add_notification::<NewTransactions, _>({
+            let context = context.clone();
+            move |addr: SocketAddr, request: Section| {
+                if let Ok(req) = from_section(request) {
+                    context
+                        .inbound_sync_connections
+                        .read()
+                        .get(&addr)
+                        .unwrap()
+                        .on_new_transactions(&req);
+                }
+            }
+        });
+
+        io_handler.add_notification::<RequestChain, _>({
+            let context = context.clone();
+            move |addr: SocketAddr, request: Section| {
+                if let Ok(req) = from_section(request) {
+                    context
+                        .inbound_sync_connections
+                        .read()
+                        .get(&addr)
+                        .cloned()
+                        .unwrap()
+                        .on_request_chain(&req);
+                }
+            }
+        });
+
+        io_handler.add_notification::<RequestFluffyMissingTx, _>({
+            let context = context.clone();
+            move |addr: SocketAddr, request: Section| {
+                if let Ok(req) = from_section(request) {
+                    context
+                        .inbound_sync_connections
+                        .read()
+                        .get(&addr)
+                        .cloned()
+                        .unwrap()
+                        .on_request_fluffy_missing_tx(&req);
+                }
+            }
+        });
+
+        io_handler.add_notification::<RequestGetObjects, _>({
+            let context = context.clone();
+            move |addr: SocketAddr, request: Section| {
+                if let Ok(req) = from_section(request) {
+                    context
+                        .inbound_sync_connections
+                        .read()
+                        .get(&addr)
+                        .cloned()
+                        .unwrap()
+                        .on_request_get_objects(&req);
+                }
+            }
+        });
+
+        io_handler.add_notification::<ResponseChainEntry, _>({
+            let context = context.clone();
+            move |addr: SocketAddr, request: Section| {
+                if let Ok(req) = from_section(request) {
+                    context
+                        .inbound_sync_connections
+                        .read()
+                        .get(&addr)
+                        .cloned()
+                        .unwrap()
+                        .on_response_chain_entry(&req);
+                }
+            }
+        });
+
+        io_handler.add_notification::<ResponseGetObjects, _>({
+            let context = context.clone();
+            move |addr: SocketAddr, request: Section| {
+                if let Ok(req) = from_section(request) {
+                    context
+                        .inbound_sync_connections
+                        .read()
+                        .get(&addr)
+                        .cloned()
+                        .unwrap()
+                        .on_response_get_objects(&req);
+                }
             }
         });
 
