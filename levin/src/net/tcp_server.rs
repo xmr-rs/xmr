@@ -38,7 +38,7 @@ impl TcpServer {
     }
 
     /// Creates a future that will run the server.
-    pub fn run(self) -> Box<Future<Item = (), Error = io::Error>> {
+    pub fn run(self) -> Box<Future<Item = (), Error = io::Error> + Send + Sync + 'static> {
         let io_handler = self.io_handler;
         let connection_handler = self.connection_handler;
         Box::new(self.listener

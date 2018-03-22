@@ -27,7 +27,7 @@ pub fn connect(addr: &SocketAddr,
                handle: &Handle,
                io_handler: IoHandlerRef,
                commands: Commands)
-               -> Box<Future<Item = (), Error = io::Error>> {
+               -> Box<Future<Item = (), Error = io::Error> + Send + Sync + 'static> {
     let addr = addr.clone();
     Box::new(TcpStream::connect(&addr, handle).and_then(move |stream| {
         let io_handler = io_handler.clone();

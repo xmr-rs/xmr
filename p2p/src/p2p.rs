@@ -39,7 +39,7 @@ pub type BoxedEmptyFuture = Box<Future<Item = (), Error = ()> + Send>;
 
 pub struct Context {
     remote: Remote,
-    _pool: CpuPool,
+    pool: CpuPool,
     config: Config,
     connection_counter: ConnectionCounter,
     store: SharedStore,
@@ -64,7 +64,7 @@ impl Context {
 
         Context {
             remote,
-            _pool: pool,
+            pool,
             config,
             connection_counter,
             store,
@@ -98,13 +98,18 @@ impl Context {
             .spawn(move |handle| {
                 // TODO: spawn this future on the threadpool.
                 let connection_handler = ConnectionHandler::new(context.clone());
-                TcpServer::bind(&addr, handle, io_handler, connection_handler)
+                let future = TcpServer::bind(&addr, handle, io_handler, connection_handler)
                     .unwrap()
                     .run()
                     .map_err(|e| {
                                  warn!("server io error: {}", e);
                                  ()
-                             })
+                             });
+
+                context
+                    .pool
+                    .clone()
+                    .spawn(future)
             })
     }
 
@@ -164,11 +169,16 @@ impl Context {
                     .note_new_outbound_connection(addr.clone());
                 // XXX: peerlist?
 
-                levin_connect(&addr, handle, io_handler, commands)
+                let future = levin_connect(&addr, handle, io_handler, commands)
                     .map_err(|e| {
                         warn!("connect io error: {}", e);
                         ()
-                    })
+                    });
+
+                context
+                    .pool
+                    .clone()
+                    .spawn(future)
             })
     }
 
@@ -230,11 +240,16 @@ impl Context {
                     .note_new_outbound_connection(addr.clone());
                 // XXX: peerlist?
 
-                levin_connect(&addr, handle, io_handler, commands)
+                let future = levin_connect(&addr, handle, io_handler, commands)
                     .map_err(|e| {
                         warn!("connect io error: {}", e);
                         ()
-                    })
+                    });
+
+                context
+                    .pool
+                    .clone()
+                    .spawn(future)
             })
     }
 
