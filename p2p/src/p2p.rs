@@ -22,7 +22,7 @@ use config::Config;
 use net::{ConnectionCounter, ConnectionType, PeerContext};
 use protocol::{LocalSyncNodeRef, OutboundSync, InboundSyncConnectionRef};
 
-use types::BasicNodeData;
+use types::{BasicNodeData, PeerlistEntry};
 use types::cn::CoreSyncData;
 use types::cmd::{Handshake, HandshakeRequest, HandshakeResponse, Ping, PingResponse,
                  RequestSupportFlags, SupportFlagsResponse, TimedSync,
@@ -160,6 +160,66 @@ impl Context {
             })
     }
 
+    pub fn try_ping(context: Arc<Context>, addr: &SocketAddr) {
+        let addr = addr.clone();
+        context
+            .remote
+            .clone()
+            .spawn(move |handle| {
+                // TODO: on threadpool
+                
+                let commands = Commands::new();
+                let io_handler = IoHandler::new().to_ref();
+
+                commands.invoke::<Ping, _>(Section::new(), {
+                    let context = context.clone();
+                    let addr = addr.clone();
+                    move |response: Section| {
+                        let response: Result<PingResponse, _> = from_section(response);
+                        if let Ok(response) = response {
+                            if response.is_ok() {
+                                let adr = match addr {
+                                    SocketAddr::V4(ref adr) => adr.clone(),
+                                    SocketAddr::V6(_) => {
+                                        warn!("IPv6 adresses aren't supported (yet),
+                                              disconnecting from {}", addr);
+                                        Context::close(context.clone(), &addr);
+                                        return;
+                                    },
+                                };
+
+                                let entry = PeerlistEntry {
+                                    adr: adr.into(),
+                                    id: response.peer_id,
+                                    last_seen: Context::local_time() as i64,
+                                };
+
+                                context.peerlist.write().insert(addr, entry);
+                            } else {
+                                warn!("Peer {} returned invalid ping status ({:?})",
+                                      addr,
+                                      response.status);
+                            }
+                        } else {
+                            warn!("Peer {} returned invalid ping status data.", addr);
+                        }
+
+                        Context::close(context.clone(), &addr);
+                    }
+                });
+
+                context.command_streams.write().insert(addr.clone(), commands.clone());
+                context.connection_counter.note_new_outbound_connection(addr.clone());
+                // XXX: peerlist?
+
+                levin_connect(&addr, handle, io_handler, commands)
+                    .map_err(|e| {
+                        warn!("connect io error: {}", e);
+                        ()
+                    })
+            })
+    }
+
     pub fn on_handshake(context: Arc<Context>,
                         addr: SocketAddr,
                         request: HandshakeRequest) -> Option<HandshakeResponse> {
@@ -182,17 +242,24 @@ impl Context {
             _ => {/* it's fine */}
         }
 
-
-        // TODO: check for double handshake
+        let peer_context = PeerContext::new(context.clone(), addr.clone());
+        let out_sync = Arc::new(OutboundSync::new(peer_context));
         
-        // TODO: update sync data.
+        let in_sync = context
+            .local_sync_node
+            .new_sync_connection(request.node_data.peer_id,
+                                 &request.payload_data,
+                                 out_sync);
+
+        context.inbound_sync_connections.write().insert(addr.clone(), in_sync);
+
+        let command_stream = context.command_streams.read().get(&addr).cloned().unwrap();
 
         if context.config.peer_id != request.node_data.peer_id && request.node_data.my_port != 0 {
             // TODO: check if peer responds to ping and insert to context.peerlist
             unimplemented!();
         }
 
-        let command_stream = context.command_streams.read().get(&addr).cloned().unwrap();
         command_stream.invoke::<RequestSupportFlags, _>(Section::new(), {
             |_response: Section| {
                 // TODO: handle support flags.

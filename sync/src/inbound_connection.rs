@@ -29,7 +29,7 @@ impl InboundSyncConnection for InboundConnection {
     fn on_request_fluffy_missing_tx(&self, _req: &RequestFluffyMissingTxRequest) {}
     fn on_request_get_objects(&self, _req: &RequestGetObjectsRequest) {}
     fn on_response_chain_entry(&self, req: &ResponseChainEntryRequest) {
-        trace!("received response chain entry {:?}", req);
+        self.local_node.on_response_chain_entry(self.peer_id, req);
     }
     fn on_response_get_objects(&self, _req: &ResponseGetObjectsRequest) {}
 }

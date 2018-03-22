@@ -19,6 +19,15 @@ impl From<net::SocketAddrV4> for Ipv4Address {
     }
 }
 
+impl<'a> From<&'a net::SocketAddrV4> for Ipv4Address {
+    fn from(addr: &'a net::SocketAddrV4) -> Ipv4Address {
+        Ipv4Address {
+            ip: addr.ip().clone().into(),
+            port: addr.port(),
+        }
+    }
+}
+
 impl StlElement for Ipv4Address {
     const LENGTH: usize = 4 + 2;
 

@@ -11,10 +11,10 @@ pub trait Peers: Send + Sync {
               peer_id: PeerId,
               sync_data: &CoreSyncData,
               connection: OutboundSyncConnectionRef);
-    fn misbehaving(&self, peer_id: PeerId, reason: &str);
-
     fn last_sync_data(&self, peer_id: PeerId) -> Option<CoreSyncData>;
     fn connection(&self, peer_id: PeerId) -> Option<OutboundSyncConnectionRef>;
+
+    fn misbehaving(&self, peer_id: PeerId, reason: &str);
 }
 
 pub struct Peer {
@@ -40,20 +40,18 @@ impl Peers for PeersImpl {
         trace!("peer insertion - id - {:?}", peer_id);
         trace!("peer insertion - sync data - {:?}", sync_data);
 
-        let peer = Peer {
-            connection,
-            last_sync_data: sync_data.clone(),
-        };
+        let is_inserted = self.peers.write().get(&peer_id).is_some();
 
-        self.peers.write().insert(peer_id, peer);
-    }
+        if is_inserted {
+            let reason = "peer did a double handshake.";
+            self.misbehaving(peer_id, reason);
+        } else {
+            let peer = Peer {
+                connection,
+                last_sync_data: sync_data.clone(),
+            };
 
-    fn misbehaving(&self, peer_id: PeerId, reason: &str) {
-        if let Some(peer) = self.peers.write().remove(&peer_id) {
-            warn!("Disconnecting from peer {} due to misbehaviour: {}",
-                  peer_id,
-                  reason);
-            peer.connection.close();
+            self.peers.write().insert(peer_id, peer);
         }
     }
 
@@ -69,5 +67,14 @@ impl Peers for PeersImpl {
             .read()
             .get(&peer_id)
             .map(|peer| peer.connection.clone())
+    }
+
+    fn misbehaving(&self, peer_id: PeerId, reason: &str) {
+        if let Some(peer) = self.peers.write().remove(&peer_id) {
+            warn!("Disconnecting from peer {} due to misbehaviour: {}",
+                  peer_id,
+                  reason);
+            peer.connection.close();
+        }
     }
 }

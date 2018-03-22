@@ -1,6 +1,11 @@
+use std::collections::HashMap;
+
+use parking_lot::RwLock;
+
 use network::Network;
 
 use p2p::types::PeerId;
+use p2p::types::cn::cmd::ResponseChainEntryRequest;
 
 use synchronization_chain::Chain;
 use synchronization_executor::{Task, TaskExecutor};
@@ -8,6 +13,9 @@ use types::{ExecutorRef, PeersRef, StorageRef};
 
 pub trait ClientCore: Send + Sync + 'static {
     fn on_connect(&self, peer_id: PeerId);
+    fn on_response_chain_entry(&self,
+                               peer_id: PeerId,
+                               arg: &ResponseChainEntryRequest);
 }
 
 pub struct SynchronizationClientCore {
@@ -15,6 +23,7 @@ pub struct SynchronizationClientCore {
     chain: Chain,
     network: Network,
     peers: PeersRef,
+    contexes: RwLock<HashMap<PeerId, Context>>,
 }
 
 impl SynchronizationClientCore {
@@ -28,6 +37,7 @@ impl SynchronizationClientCore {
             chain: Chain::new(storage),
             network,
             peers,
+            contexes: RwLock::new(HashMap::new()),
         }
     }
 
@@ -59,16 +69,24 @@ impl SynchronizationClientCore {
             }
         }
 
-        let our_height = self.chain.height();
+        let context = Context {
+            remote_blockchain_height: sync_data.current_height,
+            last_response_height: None,
+        };
+
+        self.contexes.write().insert(peer_id, context);
 
         if self.chain.have_block(sync_data.top_id) {
+            let our_height = self.chain.height();
             if our_height == sync_data.current_height {
                 info!("Peer {} is synchronized with us.", peer_id);
-                return Some(SyncState::Synchronized);
+                Some(SyncState::Synchronized)
+            } else {
+                Some(SyncState::Synchronizing)
             }
+        } else {
+            Some(SyncState::Synchronizing)
         }
-
-        return Some(SyncState::Synchronizing);
     }
 }
 
@@ -86,7 +104,37 @@ impl ClientCore for SynchronizationClientCore {
                 self.executor
                     .execute(Task::RequestChain(peer_id, request));
             }
-            _ => {}
+            Some(SyncState::Synchronized) => {
+            }
+            None => { /* not valid sync info */ },
+        }
+    }
+
+    fn on_response_chain_entry(&self,
+                               peer_id: PeerId,
+                               arg: &ResponseChainEntryRequest)
+    {
+        if arg.m_block_ids.0.len() == 0 {
+            self.peers.misbehaving(peer_id, "peer sent empty `m_block_ids` field");
+            return;
+        }
+
+        if arg.total_height < arg.m_block_ids.0.len() as u64 || 
+           arg.start_height > arg.total_height - arg.m_block_ids.0.len() as u64 {
+            self.peers.misbehaving(peer_id, "peer sent invalid start/nblocks/height.");
+            return;
+        }
+
+        let mut contexes = self.contexes.write();
+        let context = contexes.get_mut(&peer_id).expect("context should be in map");
+
+        context.remote_blockchain_height = arg.total_height;
+        context.last_response_height = Some(arg.start_height + arg.m_block_ids.0.len() as u64 - 1);
+
+        if context.last_response_height.unwrap() > context.remote_blockchain_height {
+            let reason = "peer sent `ResponseChainEntry` with invalid height information.";
+            self.peers.misbehaving(peer_id, reason);
+            return;
         }
     }
 }
@@ -95,4 +143,9 @@ impl ClientCore for SynchronizationClientCore {
 pub enum SyncState {
     Synchronizing,
     Synchronized,
+}
+
+pub struct Context {
+    pub remote_blockchain_height: u64,
+    pub last_response_height: Option<u64>,
 }
