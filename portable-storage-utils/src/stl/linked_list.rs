@@ -12,6 +12,14 @@ use stl::StlElement;
 #[derive(Debug, Default, Clone)]
 pub struct StlLinkedList<T: StlElement>(pub LinkedList<T>);
 
+impl<T> StlLinkedList<T>
+    where T: StlElement
+{
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
 impl<T> From<LinkedList<T>> for StlLinkedList<T>
     where T: StlElement
 {
