@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use network::Network;
 use p2p::types::PeerId;
-use p2p::types::cn::cmd::ResponseChainEntryRequest;
+use p2p::types::cn::cmd::ResponseChainEntry;
 
 use synchronization_client::{Client, SynchronizationClient};
 use synchronization_executor::LocalSynchronizationTaskExecutor;
@@ -37,9 +37,7 @@ impl LocalNode {
         self.client.on_connect(peer_id);
     }
 
-    pub fn on_response_chain_entry(&self,
-                                   peer_id: PeerId,
-                                   notification: &ResponseChainEntryRequest) {
-        self.client.on_response_chain_entry(peer_id, notification)
+    pub fn on_response_chain_entry(&self, peer_id: PeerId, arg: &ResponseChainEntry) {
+        self.client.on_response_chain_entry(peer_id, arg)
     }
 }

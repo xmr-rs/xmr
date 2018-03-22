@@ -1,7 +1,9 @@
 use p2p::protocol::InboundSyncConnection;
-use p2p::types::PeerId;
 
-use p2p::types::cn::cmd::{NewBlockRequest, NewFluffyBlockRequest, NewTransactionsRequest, RequestChainRequest, RequestFluffyMissingTxRequest, RequestGetObjectsRequest, ResponseChainEntryRequest, ResponseGetObjectsRequest};
+use p2p::types::PeerId;
+use p2p::types::cn::cmd::{NewBlock, NewFluffyBlock, NewTransactions, RequestChain,
+                          RequestFluffyMissingTx, RequestGetObjects, ResponseChainEntry,
+                          ResponseGetObjects};
 
 use types::{PeersRef, LocalNodeRef};
 
@@ -22,14 +24,15 @@ impl InboundConnection {
 }
 
 impl InboundSyncConnection for InboundConnection {
-    fn on_new_block(&self, _req: &NewBlockRequest) {}
-    fn on_new_fluffy_block(&self, _req: &NewFluffyBlockRequest) {}
-    fn on_new_transactions(&self, _req: &NewTransactionsRequest) {}
-    fn on_request_chain(&self, _req: &RequestChainRequest) {}
-    fn on_request_fluffy_missing_tx(&self, _req: &RequestFluffyMissingTxRequest) {}
-    fn on_request_get_objects(&self, _req: &RequestGetObjectsRequest) {}
-    fn on_response_chain_entry(&self, req: &ResponseChainEntryRequest) {
-        self.local_node.on_response_chain_entry(self.peer_id, req);
+    fn on_new_block(&self, _arg: &NewBlock) {}
+    fn on_new_fluffy_block(&self, _arg: &NewFluffyBlock) {}
+    fn on_new_transactions(&self, _arg: &NewTransactions) {}
+    fn on_request_chain(&self, _arg: &RequestChain) {}
+    fn on_request_fluffy_missing_tx(&self, _arg: &RequestFluffyMissingTx) {}
+    fn on_request_get_objects(&self, _arg: &RequestGetObjects) {}
+    fn on_response_chain_entry(&self, arg: &ResponseChainEntry) {
+        self.local_node
+            .on_response_chain_entry(self.peer_id, arg);
     }
-    fn on_response_get_objects(&self, _req: &ResponseGetObjectsRequest) {}
+    fn on_response_get_objects(&self, _arg: &ResponseGetObjects) {}
 }

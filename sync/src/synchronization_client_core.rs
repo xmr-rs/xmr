@@ -5,7 +5,7 @@ use parking_lot::RwLock;
 use network::Network;
 
 use p2p::types::PeerId;
-use p2p::types::cn::cmd::ResponseChainEntryRequest;
+use p2p::types::cn::cmd::ResponseChainEntry;
 
 use synchronization_chain::Chain;
 use synchronization_executor::{Task, TaskExecutor};
@@ -13,9 +13,7 @@ use types::{ExecutorRef, PeersRef, StorageRef};
 
 pub trait ClientCore: Send + Sync + 'static {
     fn on_connect(&self, peer_id: PeerId);
-    fn on_response_chain_entry(&self,
-                               peer_id: PeerId,
-                               arg: &ResponseChainEntryRequest);
+    fn on_response_chain_entry(&self, peer_id: PeerId, arg: &ResponseChainEntry);
 }
 
 pub struct SynchronizationClientCore {
@@ -92,7 +90,7 @@ impl SynchronizationClientCore {
 
 impl ClientCore for SynchronizationClientCore {
     fn on_connect(&self, peer_id: PeerId) {
-        use p2p::types::cn::cmd::RequestChainRequest;
+        use p2p::types::cn::cmd::RequestChain;
 
         info!("Synchronizing with peer \"{}\"", peer_id);
 
@@ -100,33 +98,33 @@ impl ClientCore for SynchronizationClientCore {
         match state {
             Some(SyncState::Synchronizing) => {
                 let block_ids = self.chain.storage().short_chain_history();
-                let request = RequestChainRequest { block_ids: block_ids.into() };
+                let request = RequestChain { block_ids: block_ids.into() };
                 self.executor
                     .execute(Task::RequestChain(peer_id, request));
             }
-            Some(SyncState::Synchronized) => {
-            }
-            None => { /* not valid sync info */ },
+            Some(SyncState::Synchronized) => {}
+            None => { /* not valid sync info */ }
         }
     }
 
-    fn on_response_chain_entry(&self,
-                               peer_id: PeerId,
-                               arg: &ResponseChainEntryRequest)
-    {
+    fn on_response_chain_entry(&self, peer_id: PeerId, arg: &ResponseChainEntry) {
         if arg.block_ids.len() == 0 {
-            self.peers.misbehaving(peer_id, "peer sent empty `block_ids` field");
+            self.peers
+                .misbehaving(peer_id, "peer sent empty `block_ids` field");
             return;
         }
 
-        if arg.total_height < arg.block_ids.len() as u64 || 
+        if arg.total_height < arg.block_ids.len() as u64 ||
            arg.start_height > arg.total_height - arg.block_ids.len() as u64 {
-            self.peers.misbehaving(peer_id, "peer sent invalid start/nblocks/height.");
+            self.peers
+                .misbehaving(peer_id, "peer sent invalid start/nblocks/height.");
             return;
         }
 
         let mut contexes = self.contexes.write();
-        let context = contexes.get_mut(&peer_id).expect("context should be in map");
+        let context = contexes
+            .get_mut(&peer_id)
+            .expect("context should be in map");
 
         context.remote_blockchain_height = arg.total_height;
         context.last_response_height = Some(arg.start_height + arg.block_ids.len() as u64 - 1);

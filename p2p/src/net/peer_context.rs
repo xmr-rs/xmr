@@ -21,7 +21,11 @@ impl PeerContext {
     {
         trace!("peer ({}) context notify - {:?} ", self.addr, request);
 
-        let res = self.context.command_streams.read().get(&self.addr).cloned();
+        let res = self.context
+            .command_streams
+            .read()
+            .get(&self.addr)
+            .cloned();
         if let Some(command_stream) = res {
             command_stream.notify::<C>(request)
         } else {

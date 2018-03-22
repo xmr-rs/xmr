@@ -42,14 +42,18 @@ impl ConnectionCounter {
     pub fn note_new_inbound_connection(&self, addr: SocketAddr) {
         self.current_inbound_connections
             .fetch_add(1, Ordering::AcqRel);
-        self.connection_type.write().insert(addr, ConnectionType::Inbound);
+        self.connection_type
+            .write()
+            .insert(addr, ConnectionType::Inbound);
     }
 
     /// Increases outbound connections counter by 1.
     pub fn note_new_outbound_connection(&self, addr: SocketAddr) {
         self.current_outbound_connections
             .fetch_add(1, Ordering::AcqRel);
-        self.connection_type.write().insert(addr, ConnectionType::Outbound);
+        self.connection_type
+            .write()
+            .insert(addr, ConnectionType::Outbound);
     }
 
     /// Closes an inbound or outbound connection depending on the

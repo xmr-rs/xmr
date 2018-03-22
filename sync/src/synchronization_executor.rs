@@ -7,7 +7,7 @@ pub trait TaskExecutor: Send + Sync + 'static {
 }
 
 pub enum Task {
-    RequestChain(PeerId, cn::cmd::RequestChainRequest),
+    RequestChain(PeerId, cn::cmd::RequestChain),
 }
 
 pub struct LocalSynchronizationTaskExecutor {
@@ -19,7 +19,7 @@ impl LocalSynchronizationTaskExecutor {
         LocalSynchronizationTaskExecutor { peers }
     }
 
-    fn execute_requestchain(&self, peer_id: PeerId, request: cn::cmd::RequestChainRequest) {
+    fn execute_requestchain(&self, peer_id: PeerId, request: cn::cmd::RequestChain) {
         debug!("Executing RequestChain request - {:?} - {:?}",
                peer_id,
                request);

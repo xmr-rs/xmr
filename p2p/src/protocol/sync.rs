@@ -4,16 +4,11 @@ use portable_storage::to_section;
 
 use net::PeerContext;
 
-use types::cn::cmd::{NewBlock, NewBlockRequest};
-use types::cn::cmd::{NewFluffyBlock, NewFluffyBlockRequest};
-use types::cn::cmd::{NewTransactions, NewTransactionsRequest};
-use types::cn::cmd::{RequestChain, RequestChainRequest};
-use types::cn::cmd::{RequestFluffyMissingTx, RequestFluffyMissingTxRequest};
-use types::cn::cmd::{RequestGetObjects, RequestGetObjectsRequest};
-use types::cn::cmd::{ResponseChainEntry, ResponseChainEntryRequest};
-use types::cn::cmd::{ResponseGetObjects, ResponseGetObjectsRequest};
-use types::cn::CoreSyncData;
 use types::PeerId;
+use types::cn::CoreSyncData;
+use types::cn::cmd::{NewBlock, NewFluffyBlock, NewTransactions, RequestChain,
+                     RequestFluffyMissingTx, RequestGetObjects, ResponseChainEntry,
+                     ResponseGetObjects};
 
 pub trait LocalSyncNode: Send + Sync + 'static {
     fn new_sync_connection(&self,
@@ -26,14 +21,14 @@ pub trait LocalSyncNode: Send + Sync + 'static {
 pub type LocalSyncNodeRef = Box<LocalSyncNode>;
 
 pub trait OutboundSyncConnection: Send + Sync {
-    fn notify_new_block(&self, req: &NewBlockRequest);
-    fn notify_new_fluffy_block(&self, req: &NewFluffyBlockRequest);
-    fn notify_new_transactions(&self, req: &NewTransactionsRequest);
-    fn notify_request_chain(&self, req: &RequestChainRequest);
-    fn notify_request_fluffy_missing_tx(&self, req: &RequestFluffyMissingTxRequest);
-    fn notify_request_get_objects(&self, req: &RequestGetObjectsRequest);
-    fn notify_response_chain_entry(&self, req: &ResponseChainEntryRequest);
-    fn notify_response_get_objects(&self, req: &ResponseGetObjectsRequest);
+    fn notify_new_block(&self, arg: &NewBlock);
+    fn notify_new_fluffy_block(&self, arg: &NewFluffyBlock);
+    fn notify_new_transactions(&self, arg: &NewTransactions);
+    fn notify_request_chain(&self, arg: &RequestChain);
+    fn notify_request_fluffy_missing_tx(&self, arg: &RequestFluffyMissingTx);
+    fn notify_request_get_objects(&self, arg: &RequestGetObjects);
+    fn notify_response_chain_entry(&self, arg: &ResponseChainEntry);
+    fn notify_response_get_objects(&self, arg: &ResponseGetObjects);
     fn close(&self);
 }
 
@@ -50,45 +45,44 @@ impl OutboundSync {
 }
 
 impl OutboundSyncConnection for OutboundSync {
-    fn notify_new_block(&self, req: &NewBlockRequest) {
-        trace!("outbound sync - {:?}", req);
-        self.context.notify::<NewBlock>(to_section(req).unwrap())
+    fn notify_new_block(&self, arg: &NewBlock) {
+        self.context.notify::<NewBlock>(to_section(arg).unwrap())
     }
 
 
-    fn notify_new_fluffy_block(&self, req: &NewFluffyBlockRequest) {
-        trace!("outbound sync - {:?}", req);
-        self.context.notify::<NewFluffyBlock>(to_section(req).unwrap())
+    fn notify_new_fluffy_block(&self, arg: &NewFluffyBlock) {
+        self.context
+            .notify::<NewFluffyBlock>(to_section(arg).unwrap())
     }
 
-    fn notify_new_transactions(&self, req: &NewTransactionsRequest) {
-        trace!("outbound sync - {:?}", req);
-        self.context.notify::<NewTransactions>(to_section(req).unwrap())
+    fn notify_new_transactions(&self, arg: &NewTransactions) {
+        self.context
+            .notify::<NewTransactions>(to_section(arg).unwrap())
     }
 
-    fn notify_request_chain(&self, req: &RequestChainRequest) {
-        trace!("outbound sync - {:?}", req);
-        self.context.notify::<RequestChain>(to_section(req).unwrap())
+    fn notify_request_chain(&self, arg: &RequestChain) {
+        self.context
+            .notify::<RequestChain>(to_section(arg).unwrap())
     }
 
-    fn notify_request_fluffy_missing_tx(&self, req: &RequestFluffyMissingTxRequest) {
-        trace!("outbound sync - {:?}", req);
-        self.context.notify::<RequestFluffyMissingTx>(to_section(req).unwrap())
+    fn notify_request_fluffy_missing_tx(&self, arg: &RequestFluffyMissingTx) {
+        self.context
+            .notify::<RequestFluffyMissingTx>(to_section(arg).unwrap())
     }
 
-    fn notify_request_get_objects(&self, req: &RequestGetObjectsRequest) {
-        trace!("outbound sync - {:?}", req);
-        self.context.notify::<RequestGetObjects>(to_section(req).unwrap())
+    fn notify_request_get_objects(&self, arg: &RequestGetObjects) {
+        self.context
+            .notify::<RequestGetObjects>(to_section(arg).unwrap())
     }
 
-    fn notify_response_chain_entry(&self, req: &ResponseChainEntryRequest) {
-        trace!("outbound sync - {:?}", req);
-        self.context.notify::<ResponseChainEntry>(to_section(req).unwrap())
+    fn notify_response_chain_entry(&self, arg: &ResponseChainEntry) {
+        self.context
+            .notify::<ResponseChainEntry>(to_section(arg).unwrap())
     }
 
-    fn notify_response_get_objects(&self, req: &ResponseGetObjectsRequest) {
-        trace!("outbound sync - {:?}", req);
-        self.context.notify::<ResponseGetObjects>(to_section(req).unwrap())
+    fn notify_response_get_objects(&self, arg: &ResponseGetObjects) {
+        self.context
+            .notify::<ResponseGetObjects>(to_section(arg).unwrap())
     }
 
     fn close(&self) {
@@ -97,14 +91,14 @@ impl OutboundSyncConnection for OutboundSync {
 }
 
 pub trait InboundSyncConnection: Send + Sync + 'static {
-    fn on_new_block(&self, req: &NewBlockRequest);
-    fn on_new_fluffy_block(&self, req: &NewFluffyBlockRequest);
-    fn on_new_transactions(&self, req: &NewTransactionsRequest);
-    fn on_request_chain(&self, req: &RequestChainRequest);
-    fn on_request_fluffy_missing_tx(&self, req: &RequestFluffyMissingTxRequest);
-    fn on_request_get_objects(&self, req: &RequestGetObjectsRequest);
-    fn on_response_chain_entry(&self, req: &ResponseChainEntryRequest);
-    fn on_response_get_objects(&self, req: &ResponseGetObjectsRequest);
+    fn on_new_block(&self, arg: &NewBlock);
+    fn on_new_fluffy_block(&self, arg: &NewFluffyBlock);
+    fn on_new_transactions(&self, arg: &NewTransactions);
+    fn on_request_chain(&self, arg: &RequestChain);
+    fn on_request_fluffy_missing_tx(&self, arg: &RequestFluffyMissingTx);
+    fn on_request_get_objects(&self, arg: &RequestGetObjects);
+    fn on_response_chain_entry(&self, arg: &ResponseChainEntry);
+    fn on_response_get_objects(&self, arg: &ResponseGetObjects);
 }
 
 pub type InboundSyncConnectionRef = Arc<InboundSyncConnection>;

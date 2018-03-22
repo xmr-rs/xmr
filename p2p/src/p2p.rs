@@ -13,7 +13,9 @@ use parking_lot::RwLock;
 
 use storage::SharedStore;
 
-use levin::net::{IoHandler, IoHandlerRef, TcpServer, Commands, ConnectionHandler as ConnectionHandlerTrait, ConnectionHandlerRef, connect as levin_connect};
+use levin::net::{IoHandler, IoHandlerRef, TcpServer, Commands,
+                 ConnectionHandler as ConnectionHandlerTrait, ConnectionHandlerRef,
+                 connect as levin_connect};
 
 use portable_storage::{Section, from_section, to_section};
 
@@ -25,8 +27,8 @@ use protocol::{LocalSyncNodeRef, OutboundSync, InboundSyncConnectionRef};
 use types::{BasicNodeData, PeerlistEntry};
 use types::cn::CoreSyncData;
 use types::cmd::{Handshake, HandshakeRequest, HandshakeResponse, Ping, PingResponse,
-                 RequestSupportFlags, SupportFlagsResponse, TimedSync,
-                 TimedSyncRequest, TimedSyncResponse};
+                 RequestSupportFlags, SupportFlagsResponse, TimedSync, TimedSyncRequest,
+                 TimedSyncResponse};
 use types::cn::cmd::{NewBlock, NewFluffyBlock, NewTransactions, RequestChain,
                      RequestFluffyMissingTx, RequestGetObjects, ResponseChainEntry,
                      ResponseGetObjects};
@@ -52,7 +54,8 @@ impl Context {
                pool: CpuPool,
                config: Config,
                store: SharedStore,
-               local_sync_node: LocalSyncNodeRef) -> Context {
+               local_sync_node: LocalSyncNodeRef)
+               -> Context {
         let connection_counter = ConnectionCounter::new(config.in_peers, config.out_peers);
 
         let max_peers = config.in_peers + config.out_peers;
@@ -81,7 +84,8 @@ impl Context {
     }
 
     pub fn spawn_server(context: Arc<Context>, io_handler: IoHandlerRef) {
-        let addr = context.config
+        let addr = context
+            .config
             .listen_port
             .map(|port| format!("127.0.0.1:{}", port))
             .unwrap_or(format!("127.0.0.1:{}", context.config.network.listen_port()))
@@ -98,9 +102,9 @@ impl Context {
                     .unwrap()
                     .run()
                     .map_err(|e| {
-                        warn!("server io error: {}", e);
-                        ()
-                    })
+                                 warn!("server io error: {}", e);
+                                 ()
+                             })
             })
     }
 
@@ -111,13 +115,15 @@ impl Context {
             .clone()
             .spawn(move |handle| {
                 // TODO: on threadpool
-                
+
                 let commands = Commands::new();
 
                 let request = to_section(&HandshakeRequest {
-                    node_data: Context::basic_node_data(context.clone()),
-                    payload_data: Context::core_sync_data(context.clone()),
-                }).unwrap();
+                                              node_data: Context::basic_node_data(context.clone()),
+                                              payload_data:
+                                                  Context::core_sync_data(context.clone()),
+                                          })
+                        .unwrap();
 
                 commands.invoke::<Handshake, _>(request, {
                     let context = context.clone();
@@ -137,9 +143,10 @@ impl Context {
                         let peer_id = response.node_data.peer_id;
                         let sync_data = response.payload_data;
 
-                        let inbound_sync_connection = context
-                            .local_sync_node
-                            .new_sync_connection(peer_id, &sync_data, outbound_sync);
+                        let inbound_sync_connection =
+                            context
+                                .local_sync_node
+                                .new_sync_connection(peer_id, &sync_data, outbound_sync);
 
                         context
                             .inbound_sync_connections
@@ -148,8 +155,13 @@ impl Context {
                     }
                 });
 
-                context.command_streams.write().insert(addr.clone(), commands.clone());
-                context.connection_counter.note_new_outbound_connection(addr.clone());
+                context
+                    .command_streams
+                    .write()
+                    .insert(addr.clone(), commands.clone());
+                context
+                    .connection_counter
+                    .note_new_outbound_connection(addr.clone());
                 // XXX: peerlist?
 
                 levin_connect(&addr, handle, io_handler, commands)
@@ -167,7 +179,7 @@ impl Context {
             .clone()
             .spawn(move |handle| {
                 // TODO: on threadpool
-                
+
                 let commands = Commands::new();
                 let io_handler = IoHandler::new().to_ref();
 
@@ -182,10 +194,11 @@ impl Context {
                                     SocketAddr::V4(ref adr) => adr.clone(),
                                     SocketAddr::V6(_) => {
                                         warn!("IPv6 adresses aren't supported (yet),
-                                              disconnecting from {}", addr);
+                                              disconnecting from {}",
+                                              addr);
                                         Context::close(context.clone(), &addr);
                                         return;
-                                    },
+                                    }
                                 };
 
                                 let entry = PeerlistEntry {
@@ -208,8 +221,13 @@ impl Context {
                     }
                 });
 
-                context.command_streams.write().insert(addr.clone(), commands.clone());
-                context.connection_counter.note_new_outbound_connection(addr.clone());
+                context
+                    .command_streams
+                    .write()
+                    .insert(addr.clone(), commands.clone());
+                context
+                    .connection_counter
+                    .note_new_outbound_connection(addr.clone());
                 // XXX: peerlist?
 
                 levin_connect(&addr, handle, io_handler, commands)
@@ -222,7 +240,8 @@ impl Context {
 
     pub fn on_handshake(context: Arc<Context>,
                         addr: SocketAddr,
-                        request: HandshakeRequest) -> Option<HandshakeResponse> {
+                        request: HandshakeRequest)
+                        -> Option<HandshakeResponse> {
         let network_id = request.node_data.network_id.0;
         if network_id != context.config.network.id() {
             info!("wrong network agen connected! id {}", network_id);
@@ -233,27 +252,35 @@ impl Context {
 
         match context.connection_counter.connection_type(&addr) {
             Some(ConnectionType::Outbound) => {
-                info!("handshake didn't came from inbound connection! address {}", addr);
+                info!("handshake didn't came from inbound connection! address {}",
+                      addr);
                 Context::close(context.clone(), &addr);
 
                 return None;
-            },
+            }
             None => unreachable!(),
-            _ => {/* it's fine */}
+            _ => { /* it's fine */ }
         }
 
         let peer_context = PeerContext::new(context.clone(), addr.clone());
         let out_sync = Arc::new(OutboundSync::new(peer_context));
-        
-        let in_sync = context
-            .local_sync_node
-            .new_sync_connection(request.node_data.peer_id,
-                                 &request.payload_data,
-                                 out_sync);
 
-        context.inbound_sync_connections.write().insert(addr.clone(), in_sync);
+        let in_sync =
+            context
+                .local_sync_node
+                .new_sync_connection(request.node_data.peer_id, &request.payload_data, out_sync);
 
-        let command_stream = context.command_streams.read().get(&addr).cloned().unwrap();
+        context
+            .inbound_sync_connections
+            .write()
+            .insert(addr.clone(), in_sync);
+
+        let command_stream = context
+            .command_streams
+            .read()
+            .get(&addr)
+            .cloned()
+            .unwrap();
 
         if context.config.peer_id != request.node_data.peer_id && request.node_data.my_port != 0 {
             // TODO: check if peer responds to ping and insert to context.peerlist
@@ -268,10 +295,10 @@ impl Context {
         });
 
         Some(HandshakeResponse {
-            node_data: Context::basic_node_data(context.clone()), 
-            payload_data: Context::core_sync_data(context.clone()),
-            local_peerlist: context.peerlist.read().stl_peerlist(),
-        })
+                 node_data: Context::basic_node_data(context.clone()),
+                 payload_data: Context::core_sync_data(context.clone()),
+                 local_peerlist: context.peerlist.read().stl_peerlist(),
+             })
     }
 
     pub fn on_ping(context: Arc<Context>) -> PingResponse {
@@ -284,7 +311,8 @@ impl Context {
 
     pub fn on_timed_sync(context: Arc<Context>,
                          _addr: SocketAddr,
-                         _request: TimedSyncRequest) -> TimedSyncResponse {
+                         _request: TimedSyncRequest)
+                         -> TimedSyncResponse {
         // TODO: handle request.payload_data
 
         TimedSyncResponse {
@@ -298,24 +326,28 @@ impl Context {
         let mut io_handler = IoHandler::with_capacity(12);
 
         io_handler.add_invokation::<Handshake, _>({
-            let context = context.clone();
-            move |addr: SocketAddr, request: Section| -> Result<Option<Section>, i32> {
-                from_section(request)
+                                                      let context = context.clone();
+                                                      move |addr: SocketAddr,
+                                                            request: Section|
+                                                            -> Result<Option<Section>, i32> {
+                                                          from_section(request)
                     .map_err(|_| -1)
                     .map(|request: HandshakeRequest| {
                         Context::on_handshake(context.clone(), addr, request)
                             .map(|res| to_section(&res).unwrap())
                     })
-            }
-        });
+                                                      }
+                                                  });
 
         io_handler.add_invokation::<Ping, _>({
-            let context = context.clone();
-            move |_: SocketAddr, _: Section| -> Result<Option<Section>, i32> {
-                let res = Context::on_ping(context.clone());
-                Ok(Some(to_section(&res).unwrap()))
-            }
-        });
+                                                 let context = context.clone();
+                                                 move |_: SocketAddr,
+                                                       _: Section|
+                                                       -> Result<Option<Section>, i32> {
+                                                     let res = Context::on_ping(context.clone());
+                                                     Ok(Some(to_section(&res).unwrap()))
+                                                 }
+                                             });
 
         io_handler.add_invokation::<RequestSupportFlags, _>({
             move |_: SocketAddr, _: Section| -> Result<Option<Section>, i32> {
@@ -325,20 +357,22 @@ impl Context {
         });
 
         io_handler.add_invokation::<TimedSync, _>({
-            let context = context.clone();
-            move |addr: SocketAddr, request: Section| -> Result<Option<Section>, i32> {
-                from_section(request)
+                                                      let context = context.clone();
+                                                      move |addr: SocketAddr,
+                                                            request: Section|
+                                                            -> Result<Option<Section>, i32> {
+                                                          from_section(request)
                     .map(|request: TimedSyncRequest| {
                         let res = Context::on_timed_sync(context.clone(), addr, request);
                         Some(to_section(&res).unwrap())
                     })
                     .map_err(|_| -1)
-            }
-        });
+                                                      }
+                                                  });
 
         io_handler.add_notification::<NewBlock, _>({
-            let context = context.clone();
-            move |addr: SocketAddr, request: Section| {
+                                                       let context = context.clone();
+                                                       move |addr: SocketAddr, request: Section| {
                 if let Ok(req) = from_section(request) {
                     context
                         .inbound_sync_connections
@@ -349,11 +383,12 @@ impl Context {
                         .on_new_block(&req);
                 }
             }
-        });
+                                                   });
 
         io_handler.add_notification::<NewFluffyBlock, _>({
-            let context = context.clone();
-            move |addr: SocketAddr, request: Section| {
+                                                             let context = context.clone();
+                                                             move |addr: SocketAddr,
+                                                                   request: Section| {
                 if let Ok(req) = from_section(request) {
                     context
                         .inbound_sync_connections
@@ -364,11 +399,12 @@ impl Context {
                         .on_new_fluffy_block(&req);
                 }
             }
-        });
+                                                         });
 
         io_handler.add_notification::<NewTransactions, _>({
-            let context = context.clone();
-            move |addr: SocketAddr, request: Section| {
+                                                              let context = context.clone();
+                                                              move |addr: SocketAddr,
+                                                                    request: Section| {
                 if let Ok(req) = from_section(request) {
                     context
                         .inbound_sync_connections
@@ -378,11 +414,12 @@ impl Context {
                         .on_new_transactions(&req);
                 }
             }
-        });
+                                                          });
 
         io_handler.add_notification::<RequestChain, _>({
-            let context = context.clone();
-            move |addr: SocketAddr, request: Section| {
+                                                           let context = context.clone();
+                                                           move |addr: SocketAddr,
+                                                                 request: Section| {
                 if let Ok(req) = from_section(request) {
                     context
                         .inbound_sync_connections
@@ -393,11 +430,12 @@ impl Context {
                         .on_request_chain(&req);
                 }
             }
-        });
+                                                       });
 
         io_handler.add_notification::<RequestFluffyMissingTx, _>({
-            let context = context.clone();
-            move |addr: SocketAddr, request: Section| {
+                                                                     let context = context.clone();
+                                                                     move |addr: SocketAddr,
+                                                                           request: Section| {
                 if let Ok(req) = from_section(request) {
                     context
                         .inbound_sync_connections
@@ -408,11 +446,12 @@ impl Context {
                         .on_request_fluffy_missing_tx(&req);
                 }
             }
-        });
+                                                                 });
 
         io_handler.add_notification::<RequestGetObjects, _>({
-            let context = context.clone();
-            move |addr: SocketAddr, request: Section| {
+                                                                let context = context.clone();
+                                                                move |addr: SocketAddr,
+                                                                      request: Section| {
                 if let Ok(req) = from_section(request) {
                     context
                         .inbound_sync_connections
@@ -423,11 +462,12 @@ impl Context {
                         .on_request_get_objects(&req);
                 }
             }
-        });
+                                                            });
 
         io_handler.add_notification::<ResponseChainEntry, _>({
-            let context = context.clone();
-            move |addr: SocketAddr, request: Section| {
+                                                                 let context = context.clone();
+                                                                 move |addr: SocketAddr,
+                                                                       request: Section| {
                 if let Ok(req) = from_section(request) {
                     context
                         .inbound_sync_connections
@@ -438,11 +478,12 @@ impl Context {
                         .on_response_chain_entry(&req);
                 }
             }
-        });
+                                                             });
 
         io_handler.add_notification::<ResponseGetObjects, _>({
-            let context = context.clone();
-            move |addr: SocketAddr, request: Section| {
+                                                                 let context = context.clone();
+                                                                 move |addr: SocketAddr,
+                                                                       request: Section| {
                 if let Ok(req) = from_section(request) {
                     context
                         .inbound_sync_connections
@@ -453,7 +494,7 @@ impl Context {
                         .on_response_get_objects(&req);
                 }
             }
-        });
+                                                             });
 
         io_handler.to_ref()
     }
@@ -462,10 +503,11 @@ impl Context {
         let my_port = if context.config.hide_my_port {
             0
         } else {
-            context.config
-                   .listen_port
-                   .map(|p| p as u32)
-                   .unwrap_or(context.config.network.listen_port() as u32)
+            context
+                .config
+                .listen_port
+                .map(|p| p as u32)
+                .unwrap_or(context.config.network.listen_port() as u32)
         };
 
         BasicNodeData {
@@ -504,7 +546,8 @@ impl P2P {
     pub fn new(config: Config,
                handle: Handle,
                store: SharedStore,
-               local_sync_node: LocalSyncNodeRef) -> P2P {
+               local_sync_node: LocalSyncNodeRef)
+               -> P2P {
         trace!("p2p config: {:?}", config);
 
         let pool = CpuPool::new(config.threads);
@@ -545,7 +588,12 @@ impl ConnectionHandler {
 impl ConnectionHandlerTrait for ConnectionHandler {
     fn on_connect(&self, addr: SocketAddr, commands: Commands) {
         info!("new inbound connection from {}", addr);
-        self.context.command_streams.write().insert(addr.clone(), commands);
-        self.context.connection_counter.note_new_inbound_connection(addr.clone());
+        self.context
+            .command_streams
+            .write()
+            .insert(addr.clone(), commands);
+        self.context
+            .connection_counter
+            .note_new_inbound_connection(addr.clone());
     }
 }

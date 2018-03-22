@@ -26,6 +26,6 @@ impl SupportFlagsResponse {
     /// Creates a `SupportFlagsResponse` with the flags
     /// supported by this implementation.
     pub fn supported() -> SupportFlagsResponse {
-        SupportFlagsResponse { support_flags: P2P_SUPPORT_FLAGS, }
+        SupportFlagsResponse { support_flags: P2P_SUPPORT_FLAGS }
     }
 }
