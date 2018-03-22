@@ -15,5 +15,6 @@ pub struct ResponseChainEntryRequest {
     pub start_height: u64,
     pub total_height: u64,
     pub cummulative_difficulty: u64,
-    pub m_block_ids: StlLinkedList<H256>,
+    #[serde(rename = "m_block_ids")]
+    pub block_ids: StlLinkedList<H256>,
 }

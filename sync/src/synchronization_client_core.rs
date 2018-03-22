@@ -114,13 +114,13 @@ impl ClientCore for SynchronizationClientCore {
                                peer_id: PeerId,
                                arg: &ResponseChainEntryRequest)
     {
-        if arg.m_block_ids.len() == 0 {
-            self.peers.misbehaving(peer_id, "peer sent empty `m_block_ids` field");
+        if arg.block_ids.len() == 0 {
+            self.peers.misbehaving(peer_id, "peer sent empty `block_ids` field");
             return;
         }
 
-        if arg.total_height < arg.m_block_ids.len() as u64 || 
-           arg.start_height > arg.total_height - arg.m_block_ids.len() as u64 {
+        if arg.total_height < arg.block_ids.len() as u64 || 
+           arg.start_height > arg.total_height - arg.block_ids.len() as u64 {
             self.peers.misbehaving(peer_id, "peer sent invalid start/nblocks/height.");
             return;
         }
@@ -129,7 +129,7 @@ impl ClientCore for SynchronizationClientCore {
         let context = contexes.get_mut(&peer_id).expect("context should be in map");
 
         context.remote_blockchain_height = arg.total_height;
-        context.last_response_height = Some(arg.start_height + arg.m_block_ids.len() as u64 - 1);
+        context.last_response_height = Some(arg.start_height + arg.block_ids.len() as u64 - 1);
 
         if context.last_response_height.unwrap() > context.remote_blockchain_height {
             let reason = "peer sent `ResponseChainEntry` with invalid height information.";
