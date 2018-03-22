@@ -35,8 +35,6 @@ use types::cn::cmd::{NewBlock, NewFluffyBlock, NewTransactions, RequestChain,
 
 use utils::Peerlist;
 
-pub type BoxedEmptyFuture = Box<Future<Item = (), Error = ()> + Send>;
-
 pub struct Context {
     remote: Remote,
     pool: CpuPool,
@@ -259,7 +257,7 @@ impl Context {
                         -> Option<HandshakeResponse> {
         let network_id = request.node_data.network_id.0;
         if network_id != context.config.network.id() {
-            info!("wrong network agen connected! id {}", network_id);
+            info!("wrong network agent connected! id {}", network_id);
             Context::close(context.clone(), &addr);
 
             return None;
