@@ -1,3 +1,0 @@
-[submodule "compat/monero"]
-	path = compat/monero
-	url = https://github.com/monero-project/monero
