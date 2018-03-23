@@ -99,6 +99,12 @@ pub trait InboundSyncConnection: Send + Sync + 'static {
     fn on_request_get_objects(&self, arg: &RequestGetObjects);
     fn on_response_chain_entry(&self, arg: &ResponseChainEntry);
     fn on_response_get_objects(&self, arg: &ResponseGetObjects);
+
+    /// # Notes:
+    ///
+    /// This isn't a notification, it is called when a `RequestSupportFlags`
+    /// response is received.
+    fn on_support_flags(&self, arg: u32);
 }
 
 pub type InboundSyncConnectionRef = Arc<InboundSyncConnection>;

@@ -35,4 +35,5 @@ impl InboundSyncConnection for InboundConnection {
             .on_response_chain_entry(self.peer_id, arg);
     }
     fn on_response_get_objects(&self, _arg: &ResponseGetObjects) {}
+    fn on_support_flags(&self, _arg: u32) {}
 }

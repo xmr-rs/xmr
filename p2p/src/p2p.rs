@@ -286,7 +286,7 @@ impl Context {
         context
             .inbound_sync_connections
             .write()
-            .insert(addr.clone(), in_sync);
+            .insert(addr.clone(), in_sync.clone());
 
         let command_stream = context
             .command_streams
@@ -296,14 +296,26 @@ impl Context {
             .unwrap();
 
         if context.config.peer_id != request.node_data.peer_id && request.node_data.my_port != 0 {
-            // TODO: check if peer responds to ping and insert to context.peerlist
-            unimplemented!();
+            Context::try_ping(context.clone(), &addr);
         }
 
         command_stream.invoke::<RequestSupportFlags, _>(Section::new(), {
-            |_response: Section| {
-                // TODO: handle support flags.
-                unimplemented!();
+            let context = context.clone();
+            let in_sync = in_sync.clone();
+            let addr = addr.clone();
+
+            move |response: Section| {
+                let response: Result<SupportFlagsResponse, _> = from_section(response);
+                match response {
+                    Ok(response) => {
+                        in_sync.on_support_flags(response.support_flags);
+                    },
+                    Err(e) => {
+                        warn!("Disconnecting from peer {} due to bad `SupportFlagsResponse`: {}.",
+                              addr, e);
+                        Context::close(context.clone(), &addr);
+                    },
+                }
             }
         });
 
