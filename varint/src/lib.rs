@@ -27,6 +27,7 @@ impl std::fmt::Display for ReadError {
     }
 }
 
+/// Read a varint.
 pub fn read<B: Buf>(buf: &mut B) -> Result<u64, ReadError> {
     let bits = (size_of::<u64>() * 8) as u64;
     let mut output = 0u64;
@@ -56,16 +57,25 @@ pub fn read<B: Buf>(buf: &mut B) -> Result<u64, ReadError> {
     Ok(output)
 }
 
-pub fn write<I: ToPrimitive>(output: &mut BytesMut, i: I) {
-    // XXX: Benchmark this, then try to optimize allocations,
-    // then benchmark again.
+/// Calcuate how many bytes a varint occupies in memory.
+pub fn length<I: ToPrimitive>(i: I) -> usize {
     let mut i = i.to_u64().unwrap();
+    let mut count = 1;
     while i >= 0x80 {
-        output.reserve(1);
+        count += 1;
+        i >>= 7;
+    }
+    count
+}
+
+/// Write an integer as a varint.
+pub fn write<I: ToPrimitive>(output: &mut BytesMut, i: I) {
+    let mut i = i.to_u64().unwrap();
+    output.reserve(length(i));
+    while i >= 0x80 {
         output.put((i & 0x7f) as u8 | 0x80);
         i >>= 7;
     }
-    output.reserve(1);
     output.put_u8(i as u8);
 }
 
