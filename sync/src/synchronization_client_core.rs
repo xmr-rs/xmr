@@ -5,7 +5,9 @@ use parking_lot::RwLock;
 use network::Network;
 
 use p2p::types::PeerId;
-use p2p::types::cn::cmd::ResponseChainEntry;
+use p2p::types::cn::cmd::{NewBlock, NewFluffyBlock, NewTransactions, RequestChain,
+                          RequestFluffyMissingTx, RequestGetObjects, ResponseChainEntry,
+                          ResponseGetObjects};
 
 use synchronization_chain::Chain;
 use synchronization_executor::{Task, TaskExecutor};
@@ -13,7 +15,15 @@ use types::{ExecutorRef, PeersRef, StorageRef};
 
 pub trait ClientCore: Send + Sync + 'static {
     fn on_connect(&self, peer_id: PeerId);
+    fn on_new_block(&self, peer_id: PeerId, arg: &NewBlock);
+    fn on_new_fluffy_block(&self, peer_id: PeerId, arg: &NewFluffyBlock);
+    fn on_new_transactions(&self, peer_id: PeerId, arg: &NewTransactions);
+    fn on_request_chain(&self, peer_id: PeerId, arg: &RequestChain);
+    fn on_request_fluffy_missing_tx(&self, peer_id: PeerId, arg: &RequestFluffyMissingTx);
+    fn on_request_get_objects(&self, peer_id: PeerId, arg: &RequestGetObjects);
     fn on_response_chain_entry(&self, peer_id: PeerId, arg: &ResponseChainEntry);
+    fn on_response_get_objects(&self, peer_id: PeerId, arg: &ResponseGetObjects);
+    fn on_support_flags(&self, peer_id: PeerId, arg: u32);
 }
 
 pub struct SynchronizationClientCore {
@@ -39,6 +49,19 @@ impl SynchronizationClientCore {
         }
     }
 
+    fn context_write<F>(&self, peer_id: &PeerId, f: F)
+        where F: FnOnce(&mut Context)
+    {
+        let mut contexes = self.contexes.write();
+        let context = contexes.get_mut(peer_id).expect("context should exist");
+        f(context)
+    }
+
+    fn misbehaving(&self, peer_id: PeerId, reason: &str) {
+        self.peers.misbehaving(peer_id, reason);
+        self.contexes.write().remove(&peer_id);
+    }
+
     fn verify_sync_data(&self, peer_id: PeerId) -> Option<SyncState> {
         let sync_data = self.peers
             .last_sync_data(peer_id)
@@ -60,8 +83,7 @@ impl SynchronizationClientCore {
                       sync_data.top_version,
                       peer_top);
 
-                self.peers
-                    .misbehaving(peer_id, "peer uses different version than us");
+                self.misbehaving(peer_id, "peer uses different version than us");
 
                 return None;
             }
@@ -70,6 +92,7 @@ impl SynchronizationClientCore {
         let context = Context {
             remote_blockchain_height: sync_data.current_height,
             last_response_height: None,
+            support_flags: None,
         };
 
         self.contexes.write().insert(peer_id, context);
@@ -107,33 +130,58 @@ impl ClientCore for SynchronizationClientCore {
         }
     }
 
+    fn on_new_block(&self, _peer_id: PeerId, _arg: &NewBlock) {
+    }
+
+    fn on_new_fluffy_block(&self, _peer_id: PeerId, _arg: &NewFluffyBlock) {
+    }
+
+    fn on_new_transactions(&self, _peer_id: PeerId, _arg: &NewTransactions) {
+    }
+
+    fn on_request_chain(&self, _peer_id: PeerId, _arg: &RequestChain) {
+    }
+
+    fn on_request_fluffy_missing_tx(&self, _peer_id: PeerId, _arg: &RequestFluffyMissingTx) {
+    }
+
+    fn on_request_get_objects(&self, _peer_id: PeerId, _arg: &RequestGetObjects) {
+    }
+
     fn on_response_chain_entry(&self, peer_id: PeerId, arg: &ResponseChainEntry) {
         if arg.block_ids.len() == 0 {
-            self.peers
-                .misbehaving(peer_id, "peer sent empty `block_ids` field");
+            self.misbehaving(peer_id, "peer sent empty `block_ids` field");
             return;
         }
 
         if arg.total_height < arg.block_ids.len() as u64 ||
            arg.start_height > arg.total_height - arg.block_ids.len() as u64 {
-            self.peers
-                .misbehaving(peer_id, "peer sent invalid start/nblocks/height.");
+            self.misbehaving(peer_id, "peer sent invalid start/nblocks/height.");
             return;
         }
 
-        let mut contexes = self.contexes.write();
-        let context = contexes
-            .get_mut(&peer_id)
-            .expect("context should be in map");
+        let remote_blockchain_height = arg.total_height;
+        let last_response_height = arg.start_height + arg.block_ids.len() as u64 - 1;
 
-        context.remote_blockchain_height = arg.total_height;
-        context.last_response_height = Some(arg.start_height + arg.block_ids.len() as u64 - 1);
+        self.context_write(&peer_id, move |context| {
+            context.remote_blockchain_height = remote_blockchain_height;
+            context.last_response_height = Some(last_response_height);
+        });
 
-        if context.last_response_height.unwrap() > context.remote_blockchain_height {
+        if last_response_height > remote_blockchain_height {
             let reason = "peer sent `ResponseChainEntry` with invalid height information.";
-            self.peers.misbehaving(peer_id, reason);
+            self.misbehaving(peer_id, reason);
             return;
         }
+    }
+
+    fn on_response_get_objects(&self, _peer_id: PeerId, _arg: &ResponseGetObjects) {
+    }
+
+    fn on_support_flags(&self, peer_id: PeerId, arg: u32) {
+        self.context_write(&peer_id, move |context| {
+            context.support_flags = Some(arg);
+        });
     }
 }
 
@@ -146,4 +194,5 @@ pub enum SyncState {
 pub struct Context {
     pub remote_blockchain_height: u64,
     pub last_response_height: Option<u64>,
+    pub support_flags: Option<u32>,
 }
