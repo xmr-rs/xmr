@@ -55,6 +55,10 @@ impl Serialize for PublicKey {
     fn serialize(&self, mut serializer: SerializerStream) {
         serializer.put_blob(self.as_bytes())
     }
+
+    fn len(&self) -> usize {
+        PUBLIC_KEY_LENGTH
+    }
 }
 
 impl Debug for PublicKey {

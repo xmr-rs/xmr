@@ -40,6 +40,10 @@ impl Serialize for Signature {
     fn serialize(&self, mut serializer: SerializerStream) {
         serializer.put_blob(self.as_bytes())
     }
+
+    fn len(&self) -> usize {
+        SIGNATURE_LENGTH
+    }
 }
 
 impl Clone for Signature {

@@ -71,7 +71,6 @@ pub fn length<I: ToPrimitive>(i: I) -> usize {
 /// Write an integer as a varint.
 pub fn write<I: ToPrimitive>(output: &mut BytesMut, i: I) {
     let mut i = i.to_u64().unwrap();
-    output.reserve(length(i));
     while i >= 0x80 {
         output.put((i & 0x7f) as u8 | 0x80);
         i >>= 7;

@@ -1,6 +1,6 @@
 use block_header::BlockHeader;
 use transaction::Transaction;
-use primitives::H256;
+use primitives::{H256, H256_LENGTH};
 use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream, to_binary};
 use bytes::{BytesMut, BufMut};
 use varint;
@@ -80,6 +80,17 @@ impl Serialize for Block {
         for txid in self.tx_hashes.iter() {
             serializer.put_serializable(txid);
         }
+    }
+
+    fn len(&self) -> usize {
+        use varint;
+
+        let mut sum = 0;
+        sum += self.header.len();
+        sum += self.miner_tx.len();
+        sum += varint::length(self.tx_hashes.len());
+        sum += self.tx_hashes.len() * H256_LENGTH;
+        sum
     }
 }
 

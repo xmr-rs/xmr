@@ -3,12 +3,14 @@ use varint;
 
 pub fn to_binary<T: Serialize>(v: &T) -> Bytes {
     let mut bytes = BytesMut::new();
+    bytes.reserve(v.len());
     v.serialize(SerializerStream::new(&mut bytes));
     bytes.freeze()
 }
 
 pub trait Serialize {
     fn serialize(&self, serializer: SerializerStream);
+    fn len(&self) -> usize;
 }
 
 pub struct SerializerStream<'buf>(&'buf mut BytesMut);
@@ -19,7 +21,6 @@ impl<'buf> SerializerStream<'buf> {
     }
 
     pub fn put_u8(&mut self, v: u8) {
-        self.0.reserve(1);
         self.0.put_u8(v);
     }
 
@@ -27,7 +28,6 @@ impl<'buf> SerializerStream<'buf> {
         use std::mem::size_of;
 
         let bytes = size_of::<u32>();
-        self.0.reserve(bytes);
         for _ in 0..bytes {
             self.0.put_u8((v & 0xff) as u8);
             v >>= 8;
@@ -38,7 +38,6 @@ impl<'buf> SerializerStream<'buf> {
         use std::mem::size_of;
 
         let bytes = size_of::<u64>();
-        self.0.reserve(bytes);
         for _ in 0..bytes {
             self.0.put_u8((v & 0xff) as u8);
             v >>= 8;
@@ -54,7 +53,6 @@ impl<'buf> SerializerStream<'buf> {
     }
 
     pub fn put_blob(&mut self, v: &[u8]) {
-        self.0.reserve(v.len());
         self.0.put(v)
     }
 

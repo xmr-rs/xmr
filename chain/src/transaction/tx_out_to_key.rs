@@ -1,4 +1,4 @@
-use keys::PublicKey;
+use keys::{PublicKey, PUBLIC_KEY_LENGTH};
 use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
 #[derive(Debug, Clone)]
@@ -17,5 +17,9 @@ impl Deserialize for TxOutToKey {
 impl Serialize for TxOutToKey {
     fn serialize(&self, mut serializer: SerializerStream) {
         serializer.put_serializable(&self.key);
+    }
+
+    fn len(&self) -> usize {
+        PUBLIC_KEY_LENGTH
     }
 }

@@ -42,4 +42,17 @@ impl Serialize for BlockHeader {
         serializer.put_serializable(&self.prev_id);
         serializer.put_u32(self.nonce)
     }
+
+    fn len(&self) -> usize {
+        use varint;
+
+        let mut sum = 0;
+
+        sum += varint::length(self.major_version);
+        sum += varint::length(self.minor_version);
+        sum += varint::length(self.timestamp);
+        sum += self.prev_id.len();
+        sum += 4;
+        sum
+    }
 }

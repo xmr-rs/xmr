@@ -62,4 +62,14 @@ impl Serialize for TxOutTarget {
             }
         }
     }
+
+    fn len(&self) -> usize {
+        let mut sum = 1;
+        sum += match *self {
+            TxOutTarget::ToKey(ref v) => v.len(),
+            TxOutTarget::ToScript(ref v) => v.len(),
+            TxOutTarget::ToScriptHash(ref v) => v.len(),
+        };
+        sum
+    }
 }

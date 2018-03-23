@@ -32,4 +32,15 @@ impl Serialize for TxInToScript {
         serializer.put_u64_varint(self.sigset.len() as u64);
         serializer.put_blob(self.sigset.as_slice());
     }
+
+    fn len(&self) -> usize {
+        use varint;
+
+        let mut sum = 0;
+        sum += self.prev.len();
+        sum += varint::length(self.prevout);
+        sum += varint::length(self.sigset.len());
+        sum += self.sigset.len();
+        sum
+    }
 }

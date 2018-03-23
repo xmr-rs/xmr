@@ -47,6 +47,10 @@ impl Serialize for KeyImage {
     fn serialize(&self, mut serializer: SerializerStream) {
         serializer.put_blob(self.as_bytes())
     }
+
+    fn len(&self) -> usize {
+        KEY_IMAGE_LENGTH
+    }
 }
 
 impl Debug for KeyImage {

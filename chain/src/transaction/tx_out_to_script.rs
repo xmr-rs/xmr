@@ -1,4 +1,4 @@
-use keys::PublicKey;
+use keys::{PublicKey, PUBLIC_KEY_LENGTH};
 use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream};
 
 #[derive(Debug, Clone)]
@@ -37,5 +37,16 @@ impl Serialize for TxOutToScript {
 
         serializer.put_u64_varint(self.script.len() as u64);
         serializer.put_blob(self.script.as_slice());
+    }
+
+    fn len(&self) -> usize {
+        use varint;
+
+        let mut sum = 0usize;
+        sum += varint::length(self.keys.len());
+        sum += self.keys.len() * PUBLIC_KEY_LENGTH;
+        sum += varint::length(self.script.len());
+        sum += self.script.len();
+        sum
     }
 }

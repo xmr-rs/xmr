@@ -190,6 +190,10 @@ impl Serialize for H256 {
     fn serialize(&self, mut serializer: SerializerStream) {
         serializer.put_blob(self.as_bytes())
     }
+
+    fn len(&self) -> usize {
+        H256_LENGTH
+    }
 }
 
 impl Debug for H256 {

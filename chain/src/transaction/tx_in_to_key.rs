@@ -39,4 +39,17 @@ impl Serialize for TxInToKey {
 
         serializer.put_serializable(&self.k_image)
     }
+
+    fn len(&self) -> usize {
+        use varint;
+
+        let mut sum = 0;
+        sum += varint::length(self.amount);
+        sum += varint::length(self.key_offsets.len());
+        for offset in self.key_offsets.iter() {
+            sum += varint::length(*offset);
+        }
+        sum += self.k_image.len();
+        sum
+    }
 }

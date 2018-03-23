@@ -17,4 +17,10 @@ impl Serialize for TxInGen {
     fn serialize(&self, mut serializer: SerializerStream) {
         serializer.put_u64_varint(self.height)
     }
+
+    fn len(&self) -> usize {
+        use varint;
+
+        varint::length(self.height)
+    }
 }

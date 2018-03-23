@@ -1,9 +1,8 @@
-use keys::Signature;
+use keys::{Signature, SIGNATURE_LENGTH};
 use rct::Signature as RctSignature;
 use transaction::TransactionPrefix;
 use primitives::H256;
-use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream, from_binary,
-             to_binary};
+use format::{Deserialize, DeserializerStream, Error, Serialize, SerializerStream, from_binary, to_binary};
 
 /// A transaction.
 #[derive(Debug, Clone)]
@@ -90,6 +89,23 @@ impl Serialize for Transaction {
                 unimplemented!()
             }
         }
+    }
+
+    fn len(&self) -> usize {
+        let mut sum = self.prefix.len();
+
+        match self.signature_type {
+            SignatureType::Normal(ref signatures) => {
+                for sigv in signatures.iter() {
+                    sum += sigv.len() * SIGNATURE_LENGTH;
+                }
+            }
+            SignatureType::RingCt(_) => {
+                unimplemented!()
+            }
+        }
+
+        sum
     }
 }
 

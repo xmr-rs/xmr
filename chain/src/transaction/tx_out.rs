@@ -22,4 +22,10 @@ impl Serialize for TxOut {
         serializer.put_u64_varint(self.amount);
         serializer.put_serializable(&self.target);
     }
+
+    fn len(&self) -> usize {
+        use varint;
+
+        varint::length(self.amount) + self.target.len()
+    }
 }

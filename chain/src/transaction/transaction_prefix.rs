@@ -68,4 +68,23 @@ impl Serialize for TransactionPrefix {
         serializer.put_u64_varint(self.extra.len() as u64);
         serializer.put_blob(self.extra.as_slice());
     }
+
+    fn len(&self) -> usize {
+        use varint;
+
+        let mut sum = 0;
+        sum += varint::length(self.version);
+        sum += varint::length(self.unlock_time);
+        sum += varint::length(self.vin.len());
+        for tx in self.vin.iter() {
+            sum += tx.len();
+        }
+        sum += varint::length(self.vout.len());
+        for tx in self.vout.iter() {
+            sum += tx.len();
+        }
+        sum += varint::length(self.extra.len());
+        sum += self.extra.len();
+        sum
+    }
 }

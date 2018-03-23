@@ -11,4 +11,8 @@ impl Serialize for u64 {
     fn serialize(&self, mut serializer: SerializerStream) {
         serializer.put_u64(*self)
     }
+
+    fn len(&self) -> usize {
+        8
+    }
 }

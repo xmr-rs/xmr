@@ -86,4 +86,15 @@ impl Serialize for TxIn {
             }
         }
     }
+
+    fn len(&self) -> usize {
+        let mut sum = 1;
+        sum += match *self {
+            TxIn::Gen(ref v) => v.len(),
+            TxIn::ToKey(ref v) => v.len(),
+            TxIn::ToScript(ref v) => v.len(),
+            TxIn::ToScriptHash(ref v) => v.len(),
+        };
+        sum
+    }
 }
