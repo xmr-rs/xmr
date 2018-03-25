@@ -212,6 +212,12 @@ static inline void memcpy_swap64(void *dst, const void *src, size_t n) {
 # define BYTE_ORDER	LITTLE_ENDIAN
 #endif
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+# define LITTLE_ENDIAN	1234
+# define BIG_ENDIAN	4321
+# define BYTE_ORDER	LITTLE_ENDIAN
+#endif
+
 #ifdef __linux__
 #include <endian.h>
 
