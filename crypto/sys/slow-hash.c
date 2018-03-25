@@ -50,6 +50,12 @@ extern int aesb_pseudo_round(const uint8_t *in, uint8_t *out, const uint8_t *exp
 #if !defined NO_AES && (defined(__x86_64__) || (defined(_MSC_VER) && defined(_WIN64)))
 // Optimised code below, uses x86-specific intrinsics, SSE2, AES-NI
 // Fall back to more portable code is down at the bottom
+//
+#ifdef __linux__
+#ifndef __USE_MISC
+#define __USE_MISC 1
+#endif
+#endif
 
 #include <emmintrin.h>
 
