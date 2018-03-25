@@ -28,7 +28,8 @@
 // 
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#pragma once
+#ifndef _CRYPTO_OPS_H
+#define _CRYPTO_OPS_H
 
 /* From fe.h */
 
@@ -158,3 +159,5 @@ void ge_sub(ge_p1p1 *r, const ge_p3 *p, const ge_cached *q);
 void fe_add(fe h, const fe f, const fe g);
 void fe_tobytes(unsigned char *, const fe);
 void fe_invert(fe out, const fe z);
+
+#endif

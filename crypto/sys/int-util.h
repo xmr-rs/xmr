@@ -28,7 +28,8 @@
 // 
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#pragma once
+#ifndef _INT_UTIL_
+#define _INT_UTIL_
 
 #include <assert.h>
 #include <stdbool.h>
@@ -38,6 +39,13 @@
 #ifndef _MSC_VER
 #include <sys/param.h>
 #endif
+
+//#ifdef _MSC_VER
+#define LITTLE_ENDIAN 1234
+#define BIG_ENDIAN 4321
+#define PDP_ENDIAN 3412
+#define BYTE_ORDER LITTLE_ENDIAN
+//#endif
 
 #if defined(__ANDROID__)
 #include <byteswap.h>
@@ -255,4 +263,6 @@ static_assert(false, "BYTE_ORDER is undefined. Perhaps, GNU extensions are not e
 #define mem_inplace_swap64le mem_inplace_swap64
 #define memcpy_swap64be memcpy_ident64
 #define memcpy_swap64le memcpy_swap64
+#endif
+
 #endif
