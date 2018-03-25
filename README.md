@@ -1,6 +1,9 @@
 <p align="center">
   <img src="doc/logo.png">
 </p>
+<p align="center">
+  <img src="https://travis-ci.org/xmr-rs/xmr.svg?branch=master" title="Travis CI Status">
+</p>
 
 # xmr - Monero node
 
