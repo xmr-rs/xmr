@@ -15,4 +15,4 @@
 ## License
 
 This project is licensed under the MIT license or the Apache 2.0 license at
-https://travis-ci.org/xmr-rs/xmryour option.
+your option.
