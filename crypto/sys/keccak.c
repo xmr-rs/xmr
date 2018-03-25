@@ -8,9 +8,8 @@
 #include "hash-ops.h"
 #include "keccak.h"
 
-static void local_abort(const char *msg)
+static void local_abort(void)
 {
-  fprintf(stderr, "%s\n", msg);
 #ifdef NDEBUG
   _exit(1);
 #else
@@ -95,7 +94,7 @@ void keccak(const uint8_t *in, size_t inlen, uint8_t *md, int mdlen)
     _Static_assert(HASH_DATA_AREA <= sizeof(temp), "Bad keccak preconditions");
     if (mdlen <= 0 || (mdlen > 100 && sizeof(st) != (size_t)mdlen))
     {
-      local_abort("Bad keccak use");
+      local_abort();
     }
 
     rsiz = sizeof(state_t) == mdlen ? HASH_DATA_AREA : 200 - 2 * mdlen;
@@ -112,7 +111,7 @@ void keccak(const uint8_t *in, size_t inlen, uint8_t *md, int mdlen)
     // last block and padding
     if (inlen + 1 >= sizeof(temp) || inlen > rsiz || rsiz - inlen + inlen + 1 >= sizeof(temp) || rsiz == 0 || rsiz - 1 >= sizeof(temp) || rsizw * 8 > sizeof(temp))
     {
-      local_abort("Bad keccak use");
+      local_abort();
     }
 
     memcpy(temp, in, inlen);
