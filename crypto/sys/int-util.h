@@ -213,8 +213,12 @@ static inline void memcpy_swap64(void *dst, const void *src, size_t n) {
 #endif
 
 #ifdef __linux__
-#define __USE_MISC 1
 #include <endian.h>
+
+# define LITTLE_ENDIAN	__LITTLE_ENDIAN
+# define BIG_ENDIAN	__BIG_ENDIAN
+# define PDP_ENDIAN	__PDP_ENDIAN
+# define BYTE_ORDER	__BYTE_ORDER
 #endif
 
 #if !defined(BYTE_ORDER) || !defined(LITTLE_ENDIAN) || !defined(BIG_ENDIAN)
