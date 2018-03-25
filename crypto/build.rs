@@ -2,6 +2,9 @@ extern crate cc;
 
 fn main() {
     cc::Build::new()
+        .warnings(false)
+        .flag_if_supported("-msse4.1")
+        .flag_if_supported("-maes")
         .file("sys/aesb.c")
         .file("sys/blake256.c")
         .file("sys/crypto-ops-data.c")
@@ -18,7 +21,6 @@ fn main() {
         .file("sys/random.c")
         .file("sys/skein.c")
         .file("sys/slow-hash.c")
-        .file("sys/tree-hash.c")
         .include("sys")
         .compile("cncrypto");
 }
