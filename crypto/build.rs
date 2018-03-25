@@ -11,6 +11,10 @@ fn main() {
             .flag_if_supported("-maes");
     }
 
+    if tool.is_like_msvc() {   
+        build.include("sys/mvsc");
+    }
+
     build.warnings(false);
 
     build.file("sys/aesb.c")
