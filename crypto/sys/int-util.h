@@ -36,17 +36,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#ifndef _MSC_VER
-#include <sys/param.h>
-#endif
-
-//#ifdef _MSC_VER
-#define LITTLE_ENDIAN 1234
-#define BIG_ENDIAN 4321
-#define PDP_ENDIAN 3412
-#define BYTE_ORDER LITTLE_ENDIAN
-//#endif
-
 #if defined(__ANDROID__)
 #include <byteswap.h>
 #endif
@@ -221,6 +210,11 @@ static inline void memcpy_swap64(void *dst, const void *src, size_t n) {
 # define LITTLE_ENDIAN	1234
 # define BIG_ENDIAN	4321
 # define BYTE_ORDER	LITTLE_ENDIAN
+#endif
+
+#ifdef __linux__
+#define __USE_MISC 1
+#include <endian.h>
 #endif
 
 #if !defined(BYTE_ORDER) || !defined(LITTLE_ENDIAN) || !defined(BIG_ENDIAN)
