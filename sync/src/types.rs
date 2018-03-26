@@ -32,3 +32,4 @@ pub type ClientCoreRef = Arc<Mutex<SynchronizationClientCore>>;
 pub type PeersRef = Arc<Peers>;
 pub type ExecutorRef = Arc<LocalSynchronizationTaskExecutor>;
 pub type StorageRef = SharedStore;
+pub type PeerIndex = usize;

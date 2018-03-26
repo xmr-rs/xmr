@@ -20,7 +20,6 @@ use portable_storage::to_section;
 
 use net::PeerContext;
 
-use types::PeerId;
 use types::cn::CoreSyncData;
 use types::cn::cmd::{NewBlock, NewFluffyBlock, NewTransactions, RequestChain,
                      RequestFluffyMissingTx, RequestGetObjects, ResponseChainEntry,
@@ -28,7 +27,6 @@ use types::cn::cmd::{NewBlock, NewFluffyBlock, NewTransactions, RequestChain,
 
 pub trait LocalSyncNode: Send + Sync + 'static {
     fn new_sync_connection(&self,
-                           peer_id: PeerId,
                            sync_data: &CoreSyncData,
                            connection: OutboundSyncConnectionRef)
                            -> InboundSyncConnectionRef;

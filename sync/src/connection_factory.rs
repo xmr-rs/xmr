@@ -15,11 +15,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use p2p::protocol::{LocalSyncNode, LocalSyncNodeRef, OutboundSyncConnectionRef,
                     InboundSyncConnectionRef};
 use p2p::types::cn::CoreSyncData;
-use p2p::types::PeerId;
 
 use inbound_connection::InboundConnection;
 use types::{LocalNodeRef, PeersRef};
@@ -27,6 +27,7 @@ use types::{LocalNodeRef, PeersRef};
 pub struct ConnectionFactory {
     peers: PeersRef,
     local_node: LocalNodeRef,
+    counter: AtomicUsize,
 }
 
 impl ConnectionFactory {
@@ -34,6 +35,7 @@ impl ConnectionFactory {
         ConnectionFactory {
             peers: local_node.peers(),
             local_node,
+            counter: AtomicUsize::new(0),
         }
     }
 
@@ -44,13 +46,15 @@ impl ConnectionFactory {
 
 impl LocalSyncNode for ConnectionFactory {
     fn new_sync_connection(&self,
-                           peer_id: PeerId,
                            sync_data: &CoreSyncData,
                            connection: OutboundSyncConnectionRef)
                            -> InboundSyncConnectionRef {
-        self.peers.insert(peer_id, sync_data, connection);
-        self.local_node.on_connect(peer_id);
+		let peer_index = self.counter.fetch_add(1, Ordering::SeqCst) + 1;
+        info!("Connecting with peer #{}", peer_index);
 
-        Arc::new(InboundConnection::new(peer_id, self.peers.clone(), self.local_node.clone()))
+        self.peers.insert(peer_index, sync_data, connection);
+        self.local_node.on_connect(peer_index);
+
+        Arc::new(InboundConnection::new(peer_index, self.peers.clone(), self.local_node.clone()))
     }
 }

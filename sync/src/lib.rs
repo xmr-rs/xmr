@@ -42,7 +42,7 @@ pub use synchronization_client::{Client, SynchronizationClient};
 pub use synchronization_client_core::{ClientCore, SynchronizationClientCore};
 pub use synchronization_executor::{TaskExecutor, LocalSynchronizationTaskExecutor};
 pub use synchronization_peers::{Peers, Peer, PeersImpl};
-pub use types::{LocalNodeRef, ClientRef, ClientCoreRef, ExecutorRef, PeersRef, StorageRef};
+pub use types::{LocalNodeRef, ClientRef, ClientCoreRef, ExecutorRef, PeersRef, StorageRef, PeerIndex};
 
 pub fn create_local_node(storage: StorageRef, network: network::Network) -> LocalNodeRef {
     use std::sync::Arc;

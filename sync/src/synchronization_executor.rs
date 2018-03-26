@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use p2p::types::{cn, PeerId};
+use p2p::types::cn;
 
-use types::PeersRef;
+use types::{PeersRef, PeerIndex};
 
 pub trait TaskExecutor: Send + Sync + 'static {
     fn execute(&self, task: Task);
 }
 
 pub enum Task {
-    RequestChain(PeerId, cn::cmd::RequestChain),
+    RequestChain(PeerIndex, cn::cmd::RequestChain),
 }
 
 pub struct LocalSynchronizationTaskExecutor {
@@ -35,13 +35,13 @@ impl LocalSynchronizationTaskExecutor {
         LocalSynchronizationTaskExecutor { peers }
     }
 
-    fn execute_requestchain(&self, peer_id: PeerId, request: cn::cmd::RequestChain) {
-        debug!("Executing RequestChain request - {:?} - {:?}",
-               peer_id,
+    fn execute_requestchain(&self, peer_index: PeerIndex, request: cn::cmd::RequestChain) {
+        debug!("Executing RequestChain request for peer #{} - {:?}",
+               peer_index,
                request);
 
         self.peers
-            .connection(peer_id)
+            .connection(peer_index)
             .map(|connection| { connection.notify_request_chain(&request); });
     }
 }
@@ -49,7 +49,7 @@ impl LocalSynchronizationTaskExecutor {
 impl TaskExecutor for LocalSynchronizationTaskExecutor {
     fn execute(&self, task: Task) {
         match task {
-            Task::RequestChain(peer_id, req) => self.execute_requestchain(peer_id, req),
+            Task::RequestChain(peer_index, req) => self.execute_requestchain(peer_index, req),
         }
     }
 }

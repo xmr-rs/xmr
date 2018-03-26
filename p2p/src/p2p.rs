@@ -156,13 +156,12 @@ impl Context {
                         let peer_context = PeerContext::new(context.clone(), addr.clone());
                         let outbound_sync = Arc::new(OutboundSync::new(peer_context));
 
-                        let peer_id = response.node_data.peer_id;
                         let sync_data = response.payload_data;
 
                         let inbound_sync_connection =
                             context
                                 .local_sync_node
-                                .new_sync_connection(peer_id, &sync_data, outbound_sync);
+                                .new_sync_connection(&sync_data, outbound_sync);
 
                         context
                             .inbound_sync_connections
@@ -288,7 +287,7 @@ impl Context {
         let in_sync =
             context
                 .local_sync_node
-                .new_sync_connection(request.node_data.peer_id, &request.payload_data, out_sync);
+                .new_sync_connection(&request.payload_data, out_sync);
 
         context
             .inbound_sync_connections

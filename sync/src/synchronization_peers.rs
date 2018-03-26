@@ -18,19 +18,20 @@ use std::collections::HashMap;
 
 use parking_lot::RwLock;
 
-use p2p::types::PeerId;
 use p2p::types::cn::CoreSyncData;
 use p2p::protocol::OutboundSyncConnectionRef;
 
+use types::PeerIndex;
+
 pub trait Peers: Send + Sync {
     fn insert(&self,
-              peer_id: PeerId,
+              peer_index: PeerIndex,
               sync_data: &CoreSyncData,
               connection: OutboundSyncConnectionRef);
-    fn last_sync_data(&self, peer_id: PeerId) -> Option<CoreSyncData>;
-    fn connection(&self, peer_id: PeerId) -> Option<OutboundSyncConnectionRef>;
+    fn last_sync_data(&self, peer_index: PeerIndex) -> Option<CoreSyncData>;
+    fn connection(&self, peer_index: PeerIndex) -> Option<OutboundSyncConnectionRef>;
 
-    fn misbehaving(&self, peer_id: PeerId, reason: &str);
+    fn misbehaving(&self, peer_index: PeerIndex, reason: &str);
 }
 
 pub struct Peer {
@@ -39,7 +40,7 @@ pub struct Peer {
 }
 
 pub struct PeersImpl {
-    peers: RwLock<HashMap<PeerId, Peer>>,
+    peers: RwLock<HashMap<PeerIndex, Peer>>,
 }
 
 impl PeersImpl {
@@ -50,45 +51,38 @@ impl PeersImpl {
 
 impl Peers for PeersImpl {
     fn insert(&self,
-              peer_id: PeerId,
+              peer_index: PeerIndex,
               sync_data: &CoreSyncData,
               connection: OutboundSyncConnectionRef) {
-        trace!("peer insertion - id - {:?}", peer_id);
+        trace!("peer insertion - #{}", peer_index);
         trace!("peer insertion - sync data - {:?}", sync_data);
 
-        let is_inserted = self.peers.write().get(&peer_id).is_some();
+        let peer = Peer {
+            connection,
+            last_sync_data: sync_data.clone(),
+        };
 
-        if is_inserted {
-            let reason = "peer did a double handshake.";
-            self.misbehaving(peer_id, reason);
-        } else {
-            let peer = Peer {
-                connection,
-                last_sync_data: sync_data.clone(),
-            };
-
-            self.peers.write().insert(peer_id, peer);
-        }
+        self.peers.write().insert(peer_index, peer);
     }
 
-    fn last_sync_data(&self, peer_id: PeerId) -> Option<CoreSyncData> {
+    fn last_sync_data(&self, peer_index: PeerIndex) -> Option<CoreSyncData> {
         self.peers
             .read()
-            .get(&peer_id)
+            .get(&peer_index)
             .map(|peer| peer.last_sync_data.clone())
     }
 
-    fn connection(&self, peer_id: PeerId) -> Option<OutboundSyncConnectionRef> {
+    fn connection(&self, peer_index: PeerIndex) -> Option<OutboundSyncConnectionRef> {
         self.peers
             .read()
-            .get(&peer_id)
+            .get(&peer_index)
             .map(|peer| peer.connection.clone())
     }
 
-    fn misbehaving(&self, peer_id: PeerId, reason: &str) {
-        if let Some(peer) = self.peers.write().remove(&peer_id) {
-            warn!("Disconnecting from peer {} due to misbehaviour: {}",
-                  peer_id,
+    fn misbehaving(&self, peer_index: PeerIndex, reason: &str) {
+        if let Some(peer) = self.peers.write().remove(&peer_index) {
+            warn!("Disconnecting from peer #{} due to misbehaviour: {}",
+                  peer_index,
                   reason);
             peer.connection.close();
         }
