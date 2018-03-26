@@ -13,6 +13,6 @@
 # xmr - Monero node
 
 ## License
-
-This project is licensed under the MIT license or the Apache 2.0 license at
-your option.
+Some parts of the code are GPLv3 due to them being base on the `parity-bitcoin` code.
+However the code that isn't related to the `parity-bitcoin` code is licensed under
+the MIT or Apache 2.0 at your option.

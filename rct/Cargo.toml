@@ -3,5 +3,6 @@ name = "xmr-rct"
 version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 license = "MIT/Apache-2.0"
+include = ["LICENSE-APACHE", "LICENSE-MIT"]
 
 [dependencies]

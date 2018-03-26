@@ -1,12 +1,16 @@
 [package]
 name = "xmr"
 version = "0.1.0"
-authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
-license = "MIT/Apache-2.0"
+authors = [
+    "Jean Pierre Dudey <jeandudey@hotmail.com>",
+    "Parity Technologies <admin@parity.io>"
+]
+license = "GPL-3.0-only"
 description = "Monero node implementation in Rust."
 documentation = "https://github.com/xmr-rs/xmr"
 homepage = "https://github.com/xmr-rs/xmr"
 repository = "https://github.com/xmr-rs/xmr.git"
+include = ["LICENSE-GPL"]
 
 [[bin]]
 name = "dxmr"
@@ -20,7 +24,6 @@ members = [
     "format",
     "keys",
     "levin",
-    "miner",
     "network",
     "p2p",
     "portable-storage-utils",

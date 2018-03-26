@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
 build = "build.rs"
 license = "MIT/Apache-2.0"
+include = ["LICENSE-MIT", "LICENSE-APACHE", "sys/"]
 
 [dependencies]
 libc = "0.2.36"

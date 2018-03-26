@@ -834,14 +834,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "xmr-miner"
-version = "0.1.0"
-dependencies = [
- "xmr-chain 0.1.0",
- "xmr-verification 0.1.0",
-]
-
-[[package]]
 name = "xmr-network"
 version = "0.1.0"
 dependencies = [

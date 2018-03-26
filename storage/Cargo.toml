@@ -1,7 +1,12 @@
 [package]
 name = "xmr-storage"
 version = "0.1.0"
-authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
+authors = [
+    "Jean Pierre Dudey <jeandudey@hotmail.com>",
+    "Parity Technologies <admin@parity.io>"
+]
+license = "GPL-3.0-only"
+include = ["LICENSE-GPL"]
 
 [dependencies]
 xmr-chain = { path = "../chain" }

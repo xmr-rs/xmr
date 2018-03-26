@@ -2,7 +2,8 @@
 name = "xmr-chain"
 version = "0.1.0"
 authors = ["Jean Pierre Dudey <jeandudey@hotmail.com>"]
-license = "MIT/Apache-2.0"
+license = "GPL-3.0-only"
+include = ["LICENSE-MIT", "LICENSE-APACHE"]
 
 [dependencies]
 bytes = "0.4.6"
