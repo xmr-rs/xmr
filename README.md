@@ -10,7 +10,32 @@
   </a>
 </p>
 
-# xmr - Monero node
+# Xmr Monero node
+
+Xmr is an implementation of the Monero cryptocurrency. It aims to be a full
+Monero node with wallet functionality.
+
+*This is a work in progress that is not yet functional*
+
+## Building Xmr
+
+Xmr is built with the [Cargo][1] package manager. First, ensure you have the
+latest stable Rust version (it hasn't been tested with older Rust versions).
+Then run this in the `xmr` repository folder:
+
+[1]: https://crates.io/
+
+```bash
+cargo build
+```
+
+This will create the `dxmr` binary in the *target/debug* directory.
+
+To build the binary optimized for release:
+
+```bash
+cargo build --release
+```
 
 ## License
 Some parts of the code are GPLv3 due to them being base on the `parity-bitcoin` code.
