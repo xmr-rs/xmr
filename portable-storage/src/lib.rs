@@ -324,6 +324,7 @@ impl Array {
     fn write(buf: &mut BytesMut, array: &Array) {
         buf.reserve(1);
         buf.put_u8(array.serialize_type.unwrap());
+        raw_size::write(buf, array.array.len());
         for entry in array.array.iter() {
             StorageEntry::write(buf, &entry);
         }
