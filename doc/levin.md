@@ -65,6 +65,8 @@ other type of packet. It should match this definition:
 #define LEVIN_SIGNATURE  0x0101010101012101LL  //Bender's nightmare
 ```
 
+**Note:** _Required explanation of [Bender's nightmare](https://www.youtube.com/watch?v=MOn_ySghN2Y)_ :wink:
+
 (Also, what does "Bende'rs nightmare" means? if you know please share it with
 me, just curious).
 
